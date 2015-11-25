@@ -1648,7 +1648,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     OrcProto.Stream.Types.Kind.SECONDARY), false, isDirectV2, writer);
                 recordPosition(rowIndexPosition);
                 // for unit tests to set different time zones
-                this.base_timestamp = DateTime.Parse(BASE_TIMESTAMP_STRING).getTime() / MILLIS_PER_SECOND;
+                this.base_timestamp = DateTime.Parse(BASE_TIMESTAMP_STRING).getTimestamp() / MILLIS_PER_SECOND;
                 writer.useWriterTimeZone(true);
             }
 
@@ -1668,11 +1668,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 {
                     DateTime val = ((TimestampObjectInspector)inspector).get();
                     indexStatistics.updateTimestamp(val);
-                    seconds.write((val.getTime() / MILLIS_PER_SECOND) - base_timestamp);
+                    seconds.write((val.getTimestamp() / MILLIS_PER_SECOND) - base_timestamp);
                     nanos.write(formatNanos(val.getNanos()));
                     if (createBloomFilter)
                     {
-                        bloomFilter.addLong(val.getTime());
+                        bloomFilter.addLong(val.getTimestamp());
                     }
                 }
             }

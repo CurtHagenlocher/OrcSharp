@@ -1034,9 +1034,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 this._skipCorrupt = skipCorrupt;
                 this.baseTimestampMap = new Dictionary<string, long>();
-                this.readerTimeZone = TimeZone.CurrentTimeZone;
+                this.readerTimeZone = TimeZoneInfo.Local;
                 this.writerTimeZone = readerTimeZone;
-                this.hasSameTZRules = writerTimeZone.hasSameRules(readerTimeZone);
+                this.hasSameTZRules = writerTimeZone.HasSameRules(readerTimeZone);
                 this.base_timestamp = getBaseTimestamp(readerTimeZone.StandardName);
                 if (encoding != null)
                 {
@@ -1089,23 +1089,19 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 long epoch;
                 if (!baseTimestampMap.TryGetValue(timeZoneId, out epoch))
                 {
-                    writerTimeZone = TimeZone.getTimeZone(timeZoneId);
-                    hasSameTZRules = writerTimeZone.hasSameRules(readerTimeZone);
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    sdf.setTimeZone(writerTimeZone);
+                    writerTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                    hasSameTZRules = writerTimeZone.HasSameRules(readerTimeZone);
                     try
                     {
-                        epoch = sdf.parse(WriterImpl.BASE_TIMESTAMP_STRING).getTime() / WriterImpl.MILLIS_PER_SECOND;
+                        DateTime dateTime = DateTime.Parse(WriterImpl.BASE_TIMESTAMP_STRING);
+                        dateTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, writerTimeZone);
+                        epoch = dateTime.getTimestamp() / WriterImpl.MILLIS_PER_SECOND;
                         baseTimestampMap[timeZoneId] = epoch;
                         return epoch;
                     }
-                    catch (ParseException e)
+                    catch (FormatException e)
                     {
                         throw new IOException("Unable to create base timestamp", e);
-                    }
-                    finally
-                    {
-                        sdf.setTimeZone(readerTimeZone);
                     }
                 }
 
@@ -1127,16 +1123,16 @@ namespace org.apache.hadoop.hive.ql.io.orc
             public override object next(object previous)
             {
                 base.next(previous);
-                TimestampWritable result = null;
+                StrongBox<DateTime> result = null;
                 if (valuePresent)
                 {
                     if (previous == null)
                     {
-                        result = new TimestampWritable();
+                        result = new StrongBox<DateTime>();
                     }
                     else
                     {
-                        result = (TimestampWritable)previous;
+                        result = (StrongBox<DateTime>)previous;
                     }
                     long millis = (data.next() + base_timestamp) * WriterImpl.MILLIS_PER_SECOND;
                     int newNanos = parseNanos(nanos.next());
@@ -1149,28 +1145,30 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         millis -= newNanos / 1000000;
                     }
+                    DateTime timestamp = Epoch.getTimestamp(millis);
+
                     long offset = 0;
                     // If reader and writer time zones have different rules, adjust the timezone difference
                     // between reader and writer taking day light savings into account.
                     if (!hasSameTZRules)
                     {
-                        offset = writerTimeZone.getOffset(millis) - readerTimeZone.getOffset(millis);
+                        offset = (long)((writerTimeZone.GetUtcOffset(timestamp)- readerTimeZone.GetUtcOffset(timestamp)).TotalMilliseconds);
                     }
                     long adjustedMillis = millis + offset;
-                    Timestamp ts = new Timestamp(adjustedMillis);
+                    DateTime ts = Epoch.getTimestamp(adjustedMillis);
                     // Sometimes the reader timezone might have changed after adding the adjustedMillis.
                     // To account for that change, check for any difference in reader timezone after
                     // adding adjustedMillis. If so use the new offset (offset at adjustedMillis point of time).
                     if (!hasSameTZRules &&
-                        (readerTimeZone.getOffset(millis) != readerTimeZone.getOffset(adjustedMillis)))
+                        (readerTimeZone.GetUtcOffset(timestamp) != readerTimeZone.GetUtcOffset(ts)))
                     {
                         long newOffset =
-                            writerTimeZone.getOffset(millis) - readerTimeZone.getOffset(adjustedMillis);
+                            (long)((writerTimeZone.GetUtcOffset(timestamp) - readerTimeZone.GetUtcOffset(ts)).TotalMilliseconds);
                         adjustedMillis = millis + newOffset;
-                        ts.setTime(adjustedMillis);
+                        ts = Epoch.getTimestamp(adjustedMillis);
                     }
-                    ts.setNanos(newNanos);
-                    result.set(ts);
+                    // ts.setNanos(newNanos);
+                    result.Value = ts;
                 }
                 return result;
             }
@@ -1199,9 +1197,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     }
                     else
                     {
-                        TimestampWritable writable = (TimestampWritable)obj;
-                        Timestamp timestamp = writable.getTimestamp();
-                        result.vector[i] = TimestampUtils.getTimeNanoSec(timestamp);
+                        StrongBox<DateTime> writable = (StrongBox<DateTime>)obj;
+                        result.vector[i] = writable.Value.getTimestamp();
                     }
                 }
 
@@ -1280,18 +1277,18 @@ namespace org.apache.hadoop.hive.ql.io.orc
             public override object next(object previous)
             {
                 base.next(previous);
-                DateWritable result = null;
+                StrongBox<DateTime> result = null;
                 if (valuePresent)
                 {
                     if (previous == null)
                     {
-                        result = new DateWritable();
+                        result = new StrongBox<DateTime>();
                     }
                     else
                     {
-                        result = (DateWritable)previous;
+                        result = (StrongBox<DateTime>)previous;
                     }
-                    result.set((int)reader.next());
+                    result.Value = Epoch.getDate((int)reader.next());
                 }
                 return result;
             }
@@ -1716,7 +1713,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                         result = (Text)previous;
                     }
                     int len = (int)lengths.next();
-                    data.read(result, len);
+                    result.readWithKnownLength(stream, len);
                 }
                 return result;
             }
@@ -1908,7 +1905,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     // as it will default to empty
                     if (dictionaryBuffer != null)
                     {
-                        dictionaryBuffer.setText(result, offset, length);
+                        string tmp;
+                        dictionaryBuffer.setText(out tmp, offset, length);
+                        result.set(tmp);
                     }
                     else
                     {
@@ -2029,17 +2028,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             public override object next(object previous)
             {
-                HiveCharWritable result;
+                Text result;
                 if (previous == null)
                 {
-                    result = new HiveCharWritable();
+                    result = new Text();
                 }
                 else
                 {
-                    result = (HiveCharWritable)previous;
+                    result = (Text)previous;
                 }
                 // Use the string reader implementation to populate the internal Text value
-                Object textVal = base.next(result.getTextValue());
+                object textVal = base.next(result);
                 if (textVal == null)
                 {
                     return null;
@@ -2118,17 +2117,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             public override object next(object previous)
             {
-                HiveVarcharWritable result;
+                Text result;
                 if (previous == null)
                 {
-                    result = new HiveVarcharWritable();
+                    result = new Text();
                 }
                 else
                 {
-                    result = (HiveVarcharWritable)previous;
+                    result = (Text)previous;
                 }
                 // Use the string reader implementation to populate the internal Text value
-                Object textVal = base.next(result.getTextValue());
+                object textVal = base.next(result);
                 if (textVal == null)
                 {
                     return null;
@@ -2198,7 +2197,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             private String[] fieldNames;
 
             public StructTreeReader(int columnId,
-                List<OrcProto.Type> types,
+                IList<OrcProto.Type> types,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
@@ -2326,7 +2325,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             protected RunLengthByteReader tags;
 
             public UnionTreeReader(int columnId,
-                List<OrcProto.Type> types,
+                IList<OrcProto.Type> types,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
@@ -2419,7 +2418,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             protected IntegerReader lengths = null;
 
             public ListTreeReader(int columnId,
-                List<OrcProto.Type> types,
+                IList<OrcProto.Type> types,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
@@ -2519,7 +2518,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             protected IntegerReader lengths = null;
 
             public MapTreeReader(int columnId,
-                List<OrcProto.Type> types,
+                IList<OrcProto.Type> types,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
@@ -2627,7 +2626,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         }
 
         public static TreeReader createTreeReader(int columnId,
-            List<OrcProto.Type> types,
+            IList<OrcProto.Type> types,
             bool[] included,
             bool skipCorrupt
         )

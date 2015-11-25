@@ -30,7 +30,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         // TODO: This is currently only a place holder for type conversions.
 
-        public static new TreeReader createTreeReader(
+        public static TreeReader createTreeReader(
             int columnId,
             List<OrcProto.Type> types,
             bool[] included,

@@ -347,14 +347,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return result;
         }
 
-        public bool getUseZeroCopy()
+        public bool? getUseZeroCopy()
         {
-            return _useZeroCopy.Value;
+            return _useZeroCopy;
         }
 
-        public bool getSkipCorruptRecords()
+        public bool? getSkipCorruptRecords()
         {
-            return _skipCorruptRecords.Value;
+            return _skipCorruptRecords;
         }
 
         public RecordReaderOptions clone()

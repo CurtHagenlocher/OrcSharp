@@ -19,6 +19,7 @@
 namespace org.apache.hadoop.hive.ql.io.orc.external
 {
     using System;
+    using System.IO;
 
     public class ByteBuffer
     {
@@ -153,6 +154,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         }
 
         internal bool hasArray()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal int readRemaining(Stream file)
         {
             throw new NotImplementedException();
         }

@@ -35,5 +35,20 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         {
             throw new NotImplementedException();
         }
+
+        internal void enforceMaxLength(int maxLength)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void readWithKnownLength(InStream stream, int len)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void set(string tmp)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

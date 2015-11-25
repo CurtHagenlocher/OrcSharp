@@ -33,14 +33,15 @@ namespace org.apache.hadoop.hive.ql.io.orc
         static Log LOG = LogFactory.getLog(typeof(RecordReaderFactory));
         private static bool isLogInfoEnabled = LOG.isInfoEnabled();
 
-        public static TreeReaderFactory.TreeReader createTreeReader(int colId,
+        public static TreeReaderFactory.TreeReader createTreeReader(
+            int colId,
             Configuration conf,
-            List<OrcProto.Type> fileSchema,
+            IList<OrcProto.Type> fileSchema,
             bool[] included,
             bool skipCorrupt)
         {
             bool isAcid = checkAcidSchema(fileSchema);
-            List<OrcProto.Type> originalFileSchema;
+            IList<OrcProto.Type> originalFileSchema;
             if (isAcid)
             {
                 originalFileSchema = fileSchema.subList(fileSchema[0].SubtypesCount,
@@ -51,8 +52,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 originalFileSchema = fileSchema;
             }
             int numCols = originalFileSchema[0].SubtypesCount;
-            List<OrcProto.Type> schemaOnRead = getSchemaOnRead(numCols, conf);
-            List<OrcProto.Type> schemaUsed = getMatchingSchema(fileSchema, schemaOnRead);
+            IList<OrcProto.Type> schemaOnRead = getSchemaOnRead(numCols, conf);
+            IList<OrcProto.Type> schemaUsed = getMatchingSchema(fileSchema, schemaOnRead);
             if (schemaUsed == null)
             {
                 return TreeReaderFactory.createTreeReader(colId, fileSchema, included, skipCorrupt);
@@ -69,7 +70,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         "rowId", "currentTransaction", "row" };
         }
 
-        private static bool checkAcidSchema(List<OrcProto.Type> fileSchema)
+        private static bool checkAcidSchema(IList<OrcProto.Type> fileSchema)
         {
             if (fileSchema[0].Kind == OrcProto.Type.Types.Kind.STRUCT)
             {
@@ -83,8 +84,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return false;
         }
 
-        private static List<OrcProto.Type> getMatchingSchema(List<OrcProto.Type> fileSchema,
-            List<OrcProto.Type> schemaOnRead)
+        private static IList<OrcProto.Type> getMatchingSchema(IList<OrcProto.Type> fileSchema, IList<OrcProto.Type> schemaOnRead)
         {
             if (schemaOnRead == null)
             {
@@ -170,7 +170,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return null;
         }
 
-        private static List<OrcProto.Type> getSchemaOnRead(int numCols, Configuration conf)
+        private static IList<OrcProto.Type> getSchemaOnRead(int numCols, Configuration conf)
         {
             String columnTypeProperty = conf.get(serdeConstants.LIST_COLUMN_TYPES);
             String columnNameProperty = conf.get(serdeConstants.LIST_COLUMNS);

@@ -950,7 +950,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             static DateTime GetTimestampValue(long milliseconds)
             {
-                return Epoch.Start.AddMilliseconds(milliseconds);
+                return Epoch.getTimestamp(milliseconds);
             }
 
             public override void reset()

@@ -257,7 +257,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @param version the version number as a list
          * @return the human readable form of the version string
          */
-        private static string versionString(List<int> version)
+        private static string versionString(IList<int> version)
         {
             StringBuilder buffer = new StringBuilder();
             for (int i = 0; i < version.Count; ++i)
@@ -278,7 +278,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @param path the data source path for error messages
          * @param version the version of hive that wrote the file.
          */
-        static void checkOrcVersion(Log log, string path, List<int> version)
+        static void checkOrcVersion(Log log, string path, IList<int> version)
         {
             if (version.Count >= 1)
             {
@@ -320,7 +320,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 this.metadataSize = fileMetadata.getMetadataSize();
                 this.stripeStats = fileMetadata.getStripeStats();
                 this.versionList = fileMetadata.getVersionList();
-                this.writerVersion = OrcFile.WriterVersion.from(fileMetadata.getWriterVersionNum());
+                this.writerVersion = OrcFile.WriterVersionHelpers.from(fileMetadata.getWriterVersionNum());
                 this.types = fileMetadata.getTypes();
                 this.rowIndexStride = fileMetadata.getRowIndexStride();
                 this.contentLength = fileMetadata.getContentLength();
@@ -451,7 +451,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             CodedInputStream @in = CodedInputStream.CreateInstance(
                 bb.array(), bb.arrayOffset() + psAbsOffset, psLen);
             OrcProto.PostScript ps = OrcProto.PostScript.ParseFrom(@in);
-            checkOrcVersion(LOG, path, ps.VersionList);
+            checkOrcVersion(LOG, path, ps.VersionList.flip());
 
             // Check compression codec.
             switch (ps.Compression)
@@ -473,7 +473,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
             long size;
             if (maxFileLength == Int64.MaxValue)
             {
-                size = fs.getFileStatus(path).getLen();
+                // size = fs.getFileStatus(path).getLen();
+                throw new NotImplementedException();
             }
             else
             {
@@ -546,7 +547,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         private static OrcFile.WriterVersion extractWriterVersion(OrcProto.PostScript ps)
         {
             return (ps.HasWriterVersion
-                ? getWriterVersion(ps.WriterVersion) : OrcFile.WriterVersion.ORIGINAL);
+                ? getWriterVersion((int)ps.WriterVersion) : OrcFile.WriterVersion.ORIGINAL);
         }
 
         private static List<StripeInformation> convertProtoStripesToStripes(
@@ -600,7 +601,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public FileMetaInfo getFileMetaInfo()
         {
             return new FileMetaInfo(compressionKind, bufferSize,
-                metadataSize, footerByteBuffer, versionList, writerVersion, footerMetaAndPsBuffer);
+                metadataSize, footerByteBuffer, versionList.flip(), writerVersion, footerMetaAndPsBuffer);
         }
 
         /** Same as FileMetaInfo, but with extra fields. FileMetaInfo is serialized for splits
@@ -612,7 +613,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             private List<StripeInformation> stripes;
             private FileMetaInfo fileMetaInfo;
 
-            private FooterInfo(
+            internal FooterInfo(
                 List<StripeStatistics> metadata, OrcProto.Footer footer, FileMetaInfo fileMetaInfo)
             {
                 this.metadata = metadata;
@@ -663,7 +664,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 Arrays.fill(include, true);
                 options.include(include);
             }
-            return new RecordReaderImpl(this.getStripes(), fileSystem, path,
+            return new RecordReaderImpl(this.getStripes(), File.OpenRead(path), path,
                 options, types, codec, bufferSize, rowIndexStride, conf);
         }
 
@@ -866,7 +867,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public MetadataReader metadata()
         {
-            return new MetadataReaderImpl(fileSystem, path, codec, bufferSize, types.Count);
+            return new MetadataReaderImpl(baseStream, codec, bufferSize, types.Count);
         }
 
         public IList<int> getVersionList()
@@ -881,7 +882,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public DataReader createDefaultDataReader(bool useZeroCopy)
         {
-            return RecordReaderUtils.createDefaultDataReader(fileSystem, path, useZeroCopy, codec);
+            return RecordReaderUtils.createDefaultDataReader(baseStream, path, useZeroCopy, codec);
         }
     }
 }

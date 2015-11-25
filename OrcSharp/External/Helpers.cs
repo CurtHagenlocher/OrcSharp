@@ -20,10 +20,11 @@
 
 namespace org.apache.hadoop.hive.ql.io.orc
 {
+    using Google.ProtocolBuffers;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Text;
+    using org.apache.hadoop.hive.ql.io.orc.external;
 
     public static class Arrays
     {
@@ -100,6 +101,26 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             return true;
         }
+
+        public static IList<int> flip(this IList<uint> array)
+        {
+            int[] result = new int[array.Count];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = (int)array[i];
+            }
+            return result;
+        }
+
+        public static IList<uint> flip(this IList<int> array)
+        {
+            uint[] result = new uint[array.Count];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = (uint)array[i];
+            }
+            return result;
+        }
     }
 
     public static class Float
@@ -121,7 +142,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     {
         public readonly static DateTime Start = new DateTime(1970, 1, 1);
 
-        public static long getTime(this DateTime dateTime)
+        public static long getTimestamp(this DateTime dateTime)
         {
             return (long)Math.Floor((dateTime - Epoch.Start).TotalMilliseconds);
         }
@@ -131,15 +152,20 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return (int)Math.Floor((dateTime - Epoch.Start).TotalDays);
         }
 
+        public static DateTime getDate(int days)
+        {
+            return Start.AddDays(days);
+        }
+
         public static int getNanos(this DateTime dateTime)
         {
             return (int)((dateTime.Ticks % TimeSpan.TicksPerMillisecond) % 1e6);
         }
 
-        public static bool hasSameRules(this TimeZone timeZone, TimeZone other)
+        public static DateTime getTimestamp(long millis)
         {
-            // TODO: Hmm
-            return timeZone.Equals(other);
+            // TODO: Rounding
+            return Start.AddMilliseconds(millis);
         }
     }
 
@@ -185,6 +211,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 length -= n;
                 position += n;
             }
+        }
+    }
+
+    public static class ByteBuffers
+    {
+        public static ByteBuffer asReadOnlyByteBuffer(this ByteString buffer)
+        {
+            throw new InvalidOperationException();
         }
     }
 }

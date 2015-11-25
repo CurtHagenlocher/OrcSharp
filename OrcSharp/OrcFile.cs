@@ -113,6 +113,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
             FUTURE = Int32.MaxValue // a version from a future writer
         }
 
+        public static class WriterVersionHelpers
+        {
+            public static WriterVersion from(int n)
+            {
+                return (WriterVersion)n;
+            }
+        }
+
         public enum EncodingStrategy
         {
             SPEED, COMPRESSION
@@ -130,11 +138,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @return a new ORC file reader.
          * @
          */
-        public static Reader createReader(FileSystem fs, string path)
+        public static Reader createReader(Stream file, string path)
         {
             ReaderOptions opts = new ReaderOptions(new Configuration());
-            opts.filesystem(fs);
-            return new ReaderImpl(path, opts);
+            // opts.filesystem(fs);
+            return new ReaderImpl(file, path, opts);
         }
 
         public class ReaderOptions
@@ -206,7 +214,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public static Reader createReader(string path, ReaderOptions options)
         {
-            return new ReaderImpl(path, options);
+            return new ReaderImpl(File.OpenRead(path), path, options);
         }
 
         public interface WriterCallback

@@ -33,12 +33,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
         private static bool isLogDebugEnabled = LOG.isDebugEnabled();
         private string path;
         private long firstRow;
-        private List<StripeInformation> stripes =
-            new List<StripeInformation>();
+        private List<StripeInformation> stripes = new List<StripeInformation>();
         private OrcProto.StripeFooter stripeFooter;
         private long totalRowCount;
         private CompressionCodec codec;
-        private List<OrcProto.Type> types;
+        private IList<OrcProto.Type> types;
         private int bufferSize;
         private bool[] included;
         private long rowIndexStride;
@@ -130,16 +129,16 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return result;
         }
 
-        protected RecordReaderImpl(List<StripeInformation> stripes,
-                                   FileSystem fileSystem,
-                                   string path,
-                                   RecordReaderOptions options,
-                                   List<OrcProto.Type> types,
-                                   CompressionCodec codec,
-                                   int bufferSize,
-                                   long strideRate,
-                                   Configuration conf
-                                   )
+        public RecordReaderImpl(
+            IList<StripeInformation> stripes,
+            Stream file,
+            string path,
+            RecordReaderOptions options,
+            IList<OrcProto.Type> types,
+            CompressionCodec codec,
+            int bufferSize,
+            long strideRate,
+            Configuration conf)
         {
             this.path = path;
             this.codec = codec;
@@ -148,7 +147,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             this.included = options.getInclude();
             this.conf = conf;
             this.rowIndexStride = strideRate;
-            this.metadata = new MetadataReaderImpl(fileSystem, path, codec, bufferSize, types.Count);
+            this.metadata = new MetadataReaderImpl(file, codec, bufferSize, types.Count);
             SearchArgument sarg = options.getSearchArgument();
             if (sarg != null && strideRate != 0)
             {
@@ -177,24 +176,24 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 }
             }
 
-            bool zeroCopy = options.getUseZeroCopy();
+            bool? zeroCopy = options.getUseZeroCopy();
             if (zeroCopy == null)
             {
                 zeroCopy = OrcConf.USE_ZEROCOPY.getBoolean(conf);
             }
             // TODO: we could change the ctor to pass this externally
-            this.dataReader = RecordReaderUtils.createDefaultDataReader(fileSystem, path, zeroCopy, codec);
+            this.dataReader = RecordReaderUtils.createDefaultDataReader(file, path, zeroCopy.Value, codec);
             this.dataReader.open();
 
             firstRow = skippedRows;
             totalRowCount = rows;
-            bool skipCorrupt = options.getSkipCorruptRecords();
+            bool? skipCorrupt = options.getSkipCorruptRecords();
             if (skipCorrupt == null)
             {
                 skipCorrupt = OrcConf.SKIP_CORRUPT_DATA.getBoolean(conf);
             }
 
-            reader = RecordReaderFactory.createTreeReader(0, conf, types, included, skipCorrupt);
+            reader = RecordReaderFactory.createTreeReader(0, conf, types, included, skipCorrupt.Value);
             indexes = new OrcProto.RowIndex[types.Count];
             bloomFilterIndices = new OrcProto.BloomFilterIndex[types.Count];
             advanceToNextRow(reader, 0L, true);
@@ -648,23 +647,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     result = TruthValue.YES_NO_NULL;
                 }
             }
-            else if (predObj is Timestamp)
+            else if (predObj is DateTime)
             {
-                if (bf.testLong(((Timestamp)predObj).getTime()))
-                {
-                    result = TruthValue.YES_NO_NULL;
-                }
-            }
-            else if (predObj is TimestampWritable)
-            {
-                if (bf.testLong(((TimestampWritable)predObj).getTimestamp().getTime()))
-                {
-                    result = TruthValue.YES_NO_NULL;
-                }
-            }
-            else if (predObj is Date)
-            {
-                if (bf.testLong(DateWritable.dateToDays((Date)predObj)))
+                // Could be date or timestamp
+                DateTime dateTime = (DateTime)predObj;
+                if (bf.testLong(dateTime.getTimestamp()) || bf.testLong(dateTime.getDays()))
                 {
                     result = TruthValue.YES_NO_NULL;
                 }
@@ -752,10 +739,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         return obj;
                     }
-                    else if (obj is Timestamp)
+                    else if (obj is DateTime)
                     {
+#if TODO
                         return new HiveDecimalWritable(
                             new Double(new TimestampWritable((Timestamp)obj).getDouble()).ToString());
+#endif
                     }
                     break;
                 case PredicateLeaf.Type.FLOAT:
@@ -768,9 +757,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         return ((HiveDecimal)obj).doubleValue();
                     }
-                    else if (obj is Timestamp)
+                    else if (obj is DateTime)
                     {
+#if TODO
                         return new TimestampWritable((Timestamp)obj).getDouble();
+#endif
                     }
                     else if (obj is HiveDecimal)
                     {
@@ -795,10 +786,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     }
                     break;
                 case PredicateLeaf.Type.TIMESTAMP:
-                    if (obj is Timestamp)
+                    if (obj is DateTime)
                     {
                         return obj;
                     }
+#if TODO
                     else if (obj is int)
                     {
                         return TimestampWritable.longToTimestamp((int)obj, false);
@@ -823,6 +815,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         return new Timestamp(((Date)obj).getTime());
                     }
+#endif
                     // float/double conversion to timestamp is interpreted as seconds whereas integer conversion
                     // to timestamp is interpreted as milliseconds by default. The integer to timestamp casting
                     // is also config driven. The filter operator changes its promotion based on config:
@@ -848,8 +841,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
             // same as the above array, but indices are set to true
             internal bool[] sargColumns;
 
-            public SargApplier(SearchArgument sarg, String[] columnNames, long rowIndexStride,
-                List<OrcProto.Type> types, int includedCount)
+            public SargApplier(SearchArgument sarg, string[] columnNames, long rowIndexStride,
+                IList<OrcProto.Type> types, int includedCount)
             {
                 this.sarg = sarg;
                 sargLeaves = sarg.getLeaves();

@@ -49,7 +49,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             public void open()
             {
-                this.file = fs.open(path);
+                // this.file = fs.open(path);
             }
 
             public DiskRangeList readFileData(
@@ -62,7 +62,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 if (file != null)
                 {
-                    file.close();
+                    file.Close();
                 }
             }
 
@@ -77,9 +77,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
         }
 
         public static DataReader createDefaultDataReader(
-            FileSystem fs, string path, bool useZeroCopy, CompressionCodec codec)
+            Stream file, string path, bool useZeroCopy, CompressionCodec codec)
         {
-            return new DefaultDataReader(fs, path, useZeroCopy, codec);
+            return new DefaultDataReader(file, path, useZeroCopy, codec);
         }
 
         public static bool[] findPresentStreamsByColumn(
@@ -331,6 +331,18 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return prev.next;
         }
 
+        private static int readByteBuffer(Stream file, ByteBuffer dest)
+        {
+            int pos = dest.position();
+            int result = dest.readRemaining(file);
+            if (result > 0)
+            {
+                // Ensure this explicitly since versions before 2.7 read doesn't do it.
+                dest.position(pos + result);
+            }
+            return result;
+        }
+
         public static void readDirect(Stream file, int len, ByteBuffer directBuf)
         {
             // TODO: HDFS API is a mess, so handle all kinds of cases.
@@ -340,7 +352,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 while (pos < endPos)
                 {
-                    int count = SHIMS.readByteBuffer(file, directBuf);
+                    int count = readByteBuffer(file, directBuf);
                     if (count < 0) throw new EndOfStreamException();
                     Debug.Assert(count != 0, "0-length read: " + (endPos - pos) + "@" + (pos - startPos));
                     pos += count;
@@ -348,7 +360,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     directBuf.position(pos);
                 }
             }
-            catch (NotSupportedException ex)
+            catch (NotSupportedException)
             {
                 Debug.Assert(pos == startPos);
                 // Happens in q files and such.

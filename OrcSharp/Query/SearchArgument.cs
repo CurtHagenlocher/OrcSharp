@@ -50,7 +50,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
          */
         public static TruthValue or(this TruthValue left, TruthValue right)
         {
-            if (right == null || right == left)
+            if (/* right == null || */ right == left)
             {
                 return left;
             }
@@ -102,7 +102,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
          */
         public static TruthValue and(this TruthValue left, TruthValue right)
         {
-            if (right == null || right == left)
+            if (/* right == null || */ right == left)
             {
                 return left;
             }
