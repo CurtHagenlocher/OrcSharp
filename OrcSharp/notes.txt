@@ -1,0 +1,2 @@
+﻿BooleanWritable -> StrongBox<bool>
+ByteWritable -> StrongBox<byte>

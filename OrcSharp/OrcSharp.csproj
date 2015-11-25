@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{322BCFDA-CE81-4550-B90D-3E463273C6EF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OrcSharp</RootNamespace>
+    <AssemblyName>OrcSharp</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Google.ProtocolBuffers">
+      <HintPath>..\Google.ProtocolBuffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConversionTreeReaderFactory.cs" />
+    <Compile Include="DataReader.cs" />
+    <Compile Include="DirectDecompressionCodec.cs" />
+    <Compile Include="External\BloomFilter.cs" />
+    <Compile Include="External\BloomFilterIO.cs" />
+    <Compile Include="External\ByteBuffer.cs" />
+    <Compile Include="External\BytesColumnVector.cs" />
+    <Compile Include="External\Text.cs" />
+    <Compile Include="External\BytesWritable.cs" />
+    <Compile Include="External\ColumnVector.cs" />
+    <Compile Include="External\Configuration.cs" />
+    <Compile Include="External\DecimalColumnVector.cs" />
+    <Compile Include="External\DiskRange.cs" />
+    <Compile Include="External\DiskRangeInfo.cs" />
+    <Compile Include="External\DiskRangeList.cs" />
+    <Compile Include="External\DoubleColumnVector.cs" />
+    <Compile Include="External\FileSystem.cs" />
+    <Compile Include="External\Helpers.cs" />
+    <Compile Include="External\HiveDecimal.cs" />
+    <Compile Include="External\InputStream.cs" />
+    <Compile Include="External\JavaDataModel.cs" />
+    <Compile Include="External\LogFactory.cs" />
+    <Compile Include="External\LongColumnVector.cs" />
+    <Compile Include="External\ObjectInspector.cs" />
+    <Compile Include="External\OutputStream.cs" />
+    <Compile Include="External\Murmur3.cs" />
+    <Compile Include="External\SerdeConstants.cs" />
+    <Compile Include="External\StringExpr.cs" />
+    <Compile Include="External\StructField.cs" />
+    <Compile Include="External\TypeDescription.cs" />
+    <Compile Include="External\TypeInfoUtils.cs" />
+    <Compile Include="External\VectorizedRowBatch.cs" />
+    <Compile Include="FileMetadata.cs" />
+    <Compile Include="FileMetaInfo.cs" />
+    <Compile Include="MetadataReader.cs" />
+    <Compile Include="MetadataReaderImpl.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Query\ExpressionTree.cs" />
+    <Compile Include="Query\PredicateLeaf.cs" />
+    <Compile Include="Query\SearchArgument.cs" />
+    <Compile Include="Query\SearchArgumentFactory.cs" />
+    <Compile Include="Query\SearchArgumentImpl.cs" />
+    <Compile Include="BinaryColumnStatistics.cs" />
+    <Compile Include="BitFieldReader.cs" />
+    <Compile Include="BitFieldWriter.cs" />
+    <Compile Include="BooleanColumnStatistics.cs" />
+    <Compile Include="ColumnStatistics.cs" />
+    <Compile Include="ColumnStatisticsImpl.cs" />
+    <Compile Include="CompressionCodec.cs" />
+    <Compile Include="CompressionKind.cs" />
+    <Compile Include="DateColumnStatistics.cs" />
+    <Compile Include="DecimalColumnStatistics.cs" />
+    <Compile Include="DoubleColumnStatistics.cs" />
+    <Compile Include="DynamicByteArray.cs" />
+    <Compile Include="DynamicIntArray.cs" />
+    <Compile Include="InStream.cs" />
+    <Compile Include="IntegerReader.cs" />
+    <Compile Include="IntegerWriter.cs" />
+    <Compile Include="MemoryManager.cs" />
+    <Compile Include="OrcConf.cs" />
+    <Compile Include="OrcFile.cs" />
+    <Compile Include="OrcUtils.cs" />
+    <Compile Include="OutStream.cs" />
+    <Compile Include="PositionedOutputStream.cs" />
+    <Compile Include="PositionProvider.cs" />
+    <Compile Include="PositionRecorder.cs" />
+    <Compile Include="Reader.cs" />
+    <Compile Include="ReaderImpl.cs" />
+    <Compile Include="RecordReader.cs" />
+    <Compile Include="RecordReaderFactory.cs" />
+    <Compile Include="RecordReaderImpl.cs" />
+    <Compile Include="RecordReaderUtils.cs" />
+    <Compile Include="RedBlackTree.cs" />
+    <Compile Include="RunLengthByteReader.cs" />
+    <Compile Include="RunLengthByteWriter.cs" />
+    <Compile Include="RunLengthIntegerReader.cs" />
+    <Compile Include="RunLengthIntegerReaderV2.cs" />
+    <Compile Include="RunLengthIntegerWriter.cs" />
+    <Compile Include="RunLengthIntegerWriterV2.cs" />
+    <Compile Include="SerializationUtils.cs" />
+    <Compile Include="StringRedBlackTree.cs" />
+    <Compile Include="IntegerColumnStatistics.cs" />
+    <Compile Include="OrcStruct.cs" />
+    <Compile Include="OrcUnion.cs" />
+    <Compile Include="OrcProto.cs" />
+    <Compile Include="StreamName.cs" />
+    <Compile Include="StringColumnStatistics.cs" />
+    <Compile Include="StripeInformation.cs" />
+    <Compile Include="StripeStatistics.cs" />
+    <Compile Include="TimestampColumnStatistics.cs" />
+    <Compile Include="TreeReaderFactory.cs" />
+    <Compile Include="Writer.cs" />
+    <Compile Include="WriterImpl.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="notes.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
