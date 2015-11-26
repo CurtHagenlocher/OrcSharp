@@ -210,9 +210,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 this.index = startPos;
             }
 
-            public ulong getNext()
+            public long getNext()
             {
-                return entry.PositionsList[index++];
+                return (long)entry.PositionsList[index++];
             }
         }
 

@@ -101,7 +101,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 {
                     if (currentOffset == this.length)
                     {
-                        return -1;
+                        return 0;
                     }
                     seek(currentOffset);
                 }
@@ -489,7 +489,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-#if VISIBLE_FOR_TESTING
         /**
          * Create an input stream from a list of buffers.
          * @param fileName name of the file
@@ -520,7 +519,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
             return create(fileId, streamName, input, length, codec, bufferSize);
         }
-#endif
 
         /**
          * Create an input stream from a list of disk ranges with data.
@@ -562,7 +560,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @
          */
         public static CodedInputStream createCodedInputStream(long? fileId,
-            String name,
+            string name,
             List<DiskRange> input,
             long length,
             CompressionCodec codec,

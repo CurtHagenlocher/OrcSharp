@@ -23,6 +23,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
      */
     public interface PositionProvider
     {
-        ulong getNext();
+        long getNext();
     }
 }

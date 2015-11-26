@@ -23,12 +23,24 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using org.apache.hadoop.hive.ql.io.orc.external;
     using Xunit;
 
-    public class TestWriter
+    public class TestWriter : IDisposable
     {
+        const string filename = "test.orc";
+
+        public void Dispose()
+        {
+            try
+            {
+                File.Delete(filename);
+            }
+            catch (IOException)
+            {
+            }
+        }
+
         [Fact]
         public void SimpleTest()
         {
-            const string filename = "f:/test.orc";
             OrcFile.WriterOptions options = new OrcFile.WriterOptions(new Properties(), new Configuration());
             options.inspector(PrimitiveObjectInspectorFactory.writableStringObjectInspector);
             using (Stream file = File.Create(filename))
@@ -36,6 +48,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 Writer writer = OrcFile.createWriter(filename, file, options);
                 writer.addRow("hello");
                 writer.close();
+            }
+
+            using (Stream file = File.OpenRead(filename))
+            {
+                Reader reader = OrcFile.createReader(file, filename);
+                RecordReader recordReader = reader.rows();
+                object value = null;
+                value = recordReader.next(value);
+                Assert.True(value is Text);
+                Assert.Equal("hello", ((Text)value).Value);
+                recordReader.close();
             }
         }
     }

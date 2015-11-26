@@ -26,9 +26,16 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     public class Text
     {
+        string value;
+
         internal static string decode(byte[] array, int offset, int len)
         {
-            throw new NotImplementedException();
+            return Encoding.UTF8.GetString(array, offset, len);
+        }
+
+        public string Value
+        {
+            get { return value; }
         }
 
         internal void clear()
@@ -43,7 +50,9 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         internal void readWithKnownLength(InStream stream, int len)
         {
-            throw new NotImplementedException();
+            byte[] tmp = new byte[len];
+            stream.readFully(tmp, 0, len);
+            value = decode(tmp, 0, len);
         }
 
         internal void set(string tmp)

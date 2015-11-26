@@ -22,6 +22,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System.Globalization;
     using System.IO;
     using System.Text;
+    using org.apache.hadoop.hive.ql.io.orc.external;
 
     /// <summary>
     /// A class that is a growable array of bytes.Growth is managed in terms of
@@ -103,6 +104,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int result = length;
             length += 1;
             return result;
+        }
+
+        public int add(byte[] value)
+        {
+            return add(value, 0, value.Length);
         }
 
         /**
@@ -285,7 +291,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return sb.ToString();
         }
 
-#if BYTEBUFFER
         public void setByteBuffer(ByteBuffer result, int offset, int length)
         {
             result.clear();
@@ -301,7 +306,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 currentLength = Math.Min(length, chunkSize - currentOffset);
             }
         }
-#endif
 
         /**
          * Gets all the bytes of the array.

@@ -23,59 +23,95 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     public class ByteBuffer
     {
+        private byte[] buffer;
+        int _offset;
+        int _limit;
+        int _position;
+        int _mark;
+
+        private ByteBuffer(int capacity)
+        {
+            buffer = new byte[capacity];
+            _limit = capacity;
+        }
+
+        private ByteBuffer(byte[] sharedBuffer)
+        {
+            buffer = sharedBuffer;
+        }
+
         public static ByteBuffer allocate(int capacity)
         {
-            throw new NotImplementedException();
+            return new ByteBuffer(capacity);
         }
 
         public static ByteBuffer allocateDirect(int capacity)
         {
-            throw new NotImplementedException();
+            return new ByteBuffer(capacity);
         }
 
         public void clear()
         {
-            throw new NotImplementedException();
+            _position = _offset;
+            _limit = buffer.Length;
+            _mark = 0;
         }
 
         public ByteBuffer duplicate()
         {
-            throw new NotImplementedException();
+            ByteBuffer result = new ByteBuffer(buffer);
+            result._offset = _offset;
+            result._position = _position;
+            result._limit = _limit;
+            result._mark = _mark;
+            return result;
         }
 
-        public int get()
+        public byte get()
         {
-            throw new NotImplementedException();
+            if (_position >= _limit)
+            {
+                throw new InternalBufferOverflowException();
+            }
+            return buffer[_position++];
         }
 
-        public int get(byte[] buffer, int offset, int length)
+        public ByteBuffer get(byte[] buffer, int offset, int length)
         {
-            throw new NotImplementedException();
+            if (length > remaining())
+            {
+                throw new ArgumentException();
+            }
+            Array.Copy(this.buffer, _position, buffer, offset, length);
+            _position += length;
+            return this;
         }
 
         public bool isDirect()
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public int limit()
         {
-            throw new NotImplementedException();
+            return _limit - _offset;
         }
 
         public ByteBuffer limit(int newLimit)
         {
-            throw new NotImplementedException();
+            _limit = newLimit + _offset;
+            return this;
         }
 
         public int position()
         {
-            throw new NotImplementedException();
+            return _position - _offset;
         }
 
         public ByteBuffer position(int newPosition)
         {
-            throw new NotImplementedException();
+            _position = newPosition + _offset;
+            return this;
         }
 
         public ByteBuffer put(ByteBuffer src)
@@ -85,27 +121,36 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         public int remaining()
         {
-            throw new NotImplementedException();
+            return _limit - _position;
         }
 
         public ByteBuffer slice()
         {
-            throw new NotImplementedException();
+            ByteBuffer result = new ByteBuffer(buffer);
+            result._offset = _position;
+            result._position = _position;
+            result._limit = _limit;
+            result._mark = _mark;
+            return result;
         }
 
         internal static ByteBuffer wrap(byte[] buffer)
         {
-            throw new NotImplementedException();
+            ByteBuffer result = new ByteBuffer(buffer);
+            result._offset = 0;
+            result._position = 0;
+            result._limit = buffer.Length;
+            return result;
         }
 
         internal byte[] array()
         {
-            throw new NotImplementedException();
+            return this.buffer;
         }
 
         internal int arrayOffset()
         {
-            throw new NotImplementedException();
+            return this._offset;
         }
 
         internal void put(int position, byte p)
@@ -118,9 +163,14 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             throw new NotImplementedException();
         }
 
-        internal void put(byte[] bytes, int offset, int remaining)
+        internal void put(byte[] bytes, int offset, int length)
         {
-            throw new NotImplementedException();
+            if (length > remaining())
+            {
+                throw new InternalBufferOverflowException();
+            }
+            Array.Copy(bytes, offset, buffer, _position, length);
+            _position += length;
         }
 
         internal int capacity()
@@ -130,7 +180,9 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         internal void flip()
         {
-            throw new NotImplementedException();
+            _limit = _position;
+            _position = _offset;
+            _mark = 0;
         }
 
         internal byte[] contents()
@@ -140,12 +192,12 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         internal int get(int lastByteAbsPos)
         {
-            throw new NotImplementedException();
+            return this.buffer[_offset + lastByteAbsPos];
         }
 
         internal void mark()
         {
-            throw new NotImplementedException();
+            _mark = _position;
         }
 
         internal void put(byte[] buffer)
@@ -155,7 +207,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         internal bool hasArray()
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         internal int readRemaining(Stream file)

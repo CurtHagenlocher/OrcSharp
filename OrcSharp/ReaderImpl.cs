@@ -474,7 +474,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             if (maxFileLength == Int64.MaxValue)
             {
                 // size = fs.getFileStatus(path).getLen();
-                throw new NotImplementedException();
+                size = file.Length;
             }
             else
             {
@@ -529,7 +529,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             // remember position for later
             buffer.mark();
 
-            file.Close();
+            // file.Close();
 
             CompressionKind compressionKind = (CompressionKind)Enum.Parse(
                 typeof(CompressionKind), ps.Compression.ToString(), true);

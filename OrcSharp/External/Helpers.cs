@@ -194,9 +194,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
     public static class Streams
     {
-        public static byte[] readFully(this Stream stream, long x, byte[] buffer, int position, int length)
+        public static byte[] readFully(this Stream stream, long streamPosition, byte[] buffer, int position, int length)
         {
-            throw new NotImplementedException();
+            stream.Position = streamPosition;
+            stream.readFully(buffer, position, length);
+            return buffer;
         }
 
         public static void readFully(this Stream stream, byte[] buffer, int position, int length)
