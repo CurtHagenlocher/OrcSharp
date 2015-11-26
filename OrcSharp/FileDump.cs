@@ -24,7 +24,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System.Text;
     using org.apache.hadoop.hive.ql.io.orc.external;
     using OrcProto = global::orc.proto;
-    using Path = org.apache.hadoop.hive.ql.io.orc.external.Path;
+    using System.Runtime.CompilerServices;
 
     /**
      * A tool for printing out the file structure of ORC files.
@@ -38,20 +38,19 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Configuration conf = new Configuration();
 
             List<int> rowIndexCols = null;
-            Options opts = createOptions();
-            CommandLine cli = new GnuParser().parse(opts, args);
+            CommandLine.Options opts = createOptions();
+            CommandLine cli = CommandLine.parse(opts, args);
 
             if (cli.hasOption('h'))
             {
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp("orcfiledump", opts);
+                CommandLine.printHelp("orcfiledump", opts);
                 return;
             }
 
             bool dumpData = cli.hasOption('d');
-            if (cli.hasOption("r"))
+            if (cli.hasOption('r'))
             {
-                string[] colStrs = cli.getOptionValue("r").split(",");
+                string[] colStrs = cli.getOptionValue('r').Split(',');
                 rowIndexCols = new List<int>(colStrs.Length);
                 foreach (string colStr in colStrs)
                 {
@@ -68,6 +67,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return;
             }
 
+#if STORAGE
             // if the specified path is directory, iterate through all files and print the file dump
             List<string> filesInPath = new List<string>();
             foreach (string filename in files)
@@ -75,6 +75,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 Path path = new Path(filename);
                 filesInPath.AddRange(getAllFilesInPath(path, conf));
             }
+#else
+            List<string> filesInPath = new List<string>(files);
+#endif
 
             if (dumpData)
             {
@@ -85,8 +88,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 if (jsonFormat)
                 {
                     bool prettyPrint = cli.hasOption('p');
-                    JsonFileDump.printJsonMetaData(filesInPath, conf, rowIndexCols, prettyPrint,
-                        printTimeZone);
+                    JsonFileDump.printJsonMetaData(filesInPath, conf, rowIndexCols, prettyPrint, printTimeZone);
                 }
                 else
                 {
@@ -95,7 +97,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        private static List<string> getAllFilesInPath(Path path, Configuration conf)
+#if STORAGE
+        private static List<string> getAllFilesInPath(string path, Configuration conf)
         {
             List<string> filesInPath = new List<string>();
             FileSystem fs = path.getFileSystem(conf);
@@ -122,6 +125,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             return filesInPath;
         }
+#endif
 
         private static void printData(List<string> files, Configuration conf)
         {
@@ -135,15 +139,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        private static void printMetaData(List<string> files, Configuration conf,
-            List<int> rowIndexCols, bool printTimeZone)
+        private static void printMetaData(List<string> files, Configuration conf, List<int> rowIndexCols, bool printTimeZone)
         {
-            foreach (string filename in files)
+            foreach (string path in files)
             {
-                System.Console.WriteLine("Structure for " + filename);
-                Path path = new Path(filename);
+                System.Console.WriteLine("Structure for " + path);
                 Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
-                System.Console.WriteLine("File Version: " + reader.getFileVersion().getName() +
+                System.Console.WriteLine("File Version: " + reader.getFileVersion().ToString() +
                     " with " + reader.getWriterVersion());
                 RecordReaderImpl rows = (RecordReaderImpl)reader.rows();
                 System.Console.WriteLine("Rows: " + reader.getNumberOfRows());
@@ -240,19 +242,18 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     }
                 }
 
-                FileSystem fs = path.getFileSystem(conf);
-                long fileLen = fs.getContentSummary(path).getLength();
+                // TODO: Storage
+                long fileLen = new FileInfo(path).Length;
                 long paddedBytes = getTotalPaddingSize(reader);
                 // empty ORC file is ~45 bytes. Assumption here is file length always >0
                 double percentPadding = ((double)paddedBytes / (double)fileLen) * 100;
-                DecimalFormat format = new DecimalFormat("##.##");
-                System.Console.WriteLine("\nFile length: " + fileLen + " bytes");
-                System.Console.WriteLine("Padding length: " + paddedBytes + " bytes");
-                System.Console.WriteLine("Padding ratio: " + format.format(percentPadding) + "%");
+                System.Console.WriteLine("\nFile length: {0} bytes", fileLen);
+                System.Console.WriteLine("Padding length: {0} bytes", paddedBytes);
+                System.Console.WriteLine("Padding ratio: {0:00.00}%", percentPadding);
                 rows.close();
                 if (files.Count > 1)
                 {
-                    System.Console.WriteLine(new string("=", 80) + "\n");
+                    System.Console.WriteLine(new string('=', 80) + "\n");
                 }
             }
         }
@@ -291,17 +292,16 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int popCount = 0;
             foreach (long l in bf.getBitSet())
             {
-                popCount += Long.bitCount(l);
+                popCount += Long.NumberOfOnes(l);
             }
             int k = bf.getNumHashFunctions();
             float loadFactor = (float)popCount / (float)bitCount;
             float expectedFpp = (float)Math.Pow(loadFactor, k);
-            DecimalFormat df = new DecimalFormat("###.####");
-            sb.Append(" numHashFunctions: ").Append(k);
-            sb.Append(" bitCount: ").Append(bitCount);
-            sb.Append(" popCount: ").Append(popCount);
-            sb.Append(" loadFactor: ").Append(df.format(loadFactor));
-            sb.Append(" expectedFpp: ").Append(expectedFpp);
+            sb.AppendFormat(" numHashFunctions: {0}", k);
+            sb.AppendFormat(" bitCount: {0}", bitCount);
+            sb.AppendFormat(" popCount: {0}", popCount);
+            sb.AppendFormat(" loadFactor: {0:00.0000", loadFactor);
+            sb.AppendFormat(" expectedFpp: {0}", expectedFpp);
             return sb.ToString();
         }
 
@@ -352,7 +352,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public static long getTotalPaddingSize(Reader reader)
         {
             long paddedBytes = 0;
-            List<org.apache.hadoop.hive.ql.io.orc.StripeInformation> stripes = reader.getStripes();
+            IList<StripeInformation> stripes = reader.getStripes();
             for (int i = 1; i < stripes.Count; i++)
             {
                 long prevStripeOffset = stripes[i - 1].getOffset();
@@ -362,41 +362,41 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return paddedBytes;
         }
 
-        static Options createOptions()
+        static CommandLine.Options createOptions()
         {
-            Options result = new Options();
+            CommandLine.Options result = new CommandLine.Options();
 
             // add -d and --data to print the rows
-            result.addOption(OptionBuilder
+            result.addOption(CommandLine.OptionBuilder
                 .withLongOpt("data")
                 .withDescription("Should the data be printed")
                 .create('d'));
 
             // to avoid breaking unit tests (when run in different time zones) for file dump, printing
             // of timezone is made optional
-            result.addOption(OptionBuilder
+            result.addOption(CommandLine.OptionBuilder
                 .withLongOpt("timezone")
                 .withDescription("Print writer's time zone")
                 .create('t'));
 
-            result.addOption(OptionBuilder
+            result.addOption(CommandLine.OptionBuilder
                 .withLongOpt("help")
                 .withDescription("print help message")
                 .create('h'));
 
-            result.addOption(OptionBuilder
+            result.addOption(CommandLine.OptionBuilder
                 .withLongOpt("rowindex")
                 .withArgName("comma separated list of column ids for which row index should be printed")
                 .withDescription("Dump stats for column number(s)")
                 .hasArg()
                 .create('r'));
 
-            result.addOption(OptionBuilder
+            result.addOption(CommandLine.OptionBuilder
                 .withLongOpt("json")
                 .withDescription("Print metadata in JSON format")
                 .create('j'));
 
-            result.addOption(OptionBuilder
+            result.addOption(CommandLine.OptionBuilder
                     .withLongOpt("pretty")
                     .withDescription("Pretty print json metadata output")
                     .create('p'));
@@ -404,7 +404,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return result;
         }
 
-        private static void printMap(JSONWriter writer,
+        private static void printMap(JsonWriter writer,
             Dictionary<object, object> obj,
             IList<OrcProto.Type> types,
             OrcProto.Type type
@@ -425,7 +425,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             writer.endArray();
         }
 
-        private static void printList(JSONWriter writer,
+        private static void printList(JsonWriter writer,
             List<object> obj,
             IList<OrcProto.Type> types,
             OrcProto.Type type
@@ -440,7 +440,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             writer.endArray();
         }
 
-        private static void printUnion(JSONWriter writer,
+        private static void printUnion(JsonWriter writer,
             OrcUnion obj,
             IList<OrcProto.Type> types,
             OrcProto.Type type
@@ -450,7 +450,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             printObject(writer, obj.getObject(), types, subtype);
         }
 
-        static void printStruct(JSONWriter writer,
+        static void printStruct(JsonWriter writer,
             OrcStruct obj,
             IList<OrcProto.Type> types,
             OrcProto.Type type)
@@ -465,7 +465,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             writer.endObject();
         }
 
-        static void printObject(JSONWriter writer, object obj, IList<OrcProto.Type> types, int typeId)
+        static void printObject(JsonWriter writer, object obj, IList<OrcProto.Type> types, int typeId)
         {
             OrcProto.Type type = types[typeId];
             if (obj == null)
@@ -489,25 +489,25 @@ namespace org.apache.hadoop.hive.ql.io.orc
                         printMap(writer, (Dictionary<Object, Object>)obj, types, type);
                         break;
                     case OrcProto.Type.Types.Kind.BYTE:
-                        writer.value(((ByteWritable)obj).get());
+                        writer.value(((StrongBox<byte>)obj).Value);
                         break;
                     case OrcProto.Type.Types.Kind.SHORT:
-                        writer.value(((ShortWritable)obj).get());
+                        writer.value(((StrongBox<short>)obj).Value);
                         break;
                     case OrcProto.Type.Types.Kind.INT:
-                        writer.value(((IntWritable)obj).get());
+                        writer.value(((StrongBox<int>)obj).Value);
                         break;
                     case OrcProto.Type.Types.Kind.LONG:
-                        writer.value(((LongWritable)obj).get());
+                        writer.value(((StrongBox<long>)obj).Value);
                         break;
                     case OrcProto.Type.Types.Kind.FLOAT:
-                        writer.value(((FloatWritable)obj).get());
+                        writer.value(((StrongBox<float>)obj).Value);
                         break;
                     case OrcProto.Type.Types.Kind.DOUBLE:
-                        writer.value(((DoubleWritable)obj).get());
+                        writer.value(((StrongBox<double>)obj).Value);
                         break;
                     case OrcProto.Type.Types.Kind.BOOLEAN:
-                        writer.value(((BooleanWritable)obj).get());
+                        writer.value(((StrongBox<bool>)obj).Value);
                         break;
                     default:
                         writer.value(obj.ToString());
@@ -516,21 +516,23 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        static void printJsonData(Configuration conf, string filename)
+        static void printJsonData(Configuration conf, string path)
         {
-            Path path = new Path(filename);
-            Reader reader = OrcFile.createReader(path.getFileSystem(conf), path);
-            TextWriter @out = System.Console.Out;
-            RecordReader rows = reader.rows(null);
-            object row = null;
-            List<OrcProto.Type> types = reader.getTypes();
-            while (rows.hasNext())
+            using (Stream file = File.OpenRead(path))
             {
-                row = rows.next(row);
-                JSONWriter writer = new JSONWriter(@out);
-                printObject(writer, row, types, 0);
-                @out.Write("\n");
-                @out.Flush();
+                Reader reader = OrcFile.createReader(file, path);
+                TextWriter @out = System.Console.Out;
+                RecordReader rows = reader.rows(null);
+                object row = null;
+                IList<OrcProto.Type> types = reader.getTypes();
+                while (rows.hasNext())
+                {
+                    row = rows.next(row);
+                    JsonWriter writer = new JsonWriter(@out);
+                    printObject(writer, row, types, 0);
+                    @out.Write("\n");
+                    @out.Flush();
+                }
             }
         }
     }

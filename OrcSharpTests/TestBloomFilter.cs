@@ -456,19 +456,4 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(true, bf.testString(v3));
         }
     }
-
-    static class Helpers
-    {
-        public static long NextLong(this Random random)
-        {
-            return random.Next() << 32 | random.Next();
-        }
-
-        public static float NextFloat(this Random random)
-        {
-            byte[] buffer = new byte[4];
-            random.NextBytes(buffer);
-            return BitConverter.ToSingle(buffer, 0);
-        }
-    }
 }

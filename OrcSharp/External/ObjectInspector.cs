@@ -583,6 +583,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class ObjectInspectorFactory
     {
+        internal static ObjectInspector getReflectionObjectInspector(Type type)
+        {
+            throw new NotImplementedException();
+        }
+
         internal static ObjectInspector getStandardListObjectInspector(ObjectInspector elementObjectInspector)
         {
             throw new NotImplementedException();

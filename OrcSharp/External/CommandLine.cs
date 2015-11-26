@@ -20,67 +20,71 @@ namespace org.apache.hadoop.hive.ql.io.orc
 {
     using System;
 
-    class JSONWriter
+    class CommandLine
     {
-        private System.IO.TextWriter @out;
-
-        public JSONWriter(System.IO.TextWriter @out)
-        {
-            // TODO: Complete member initialization
-            this.@out = @out;
-        }
-
-        public void array()
-        {
-        }
-
-        public JSONWriter key(string v)
+        internal static CommandLine parse(Options opts, string[] args)
         {
             throw new NotImplementedException();
         }
 
-        public void endArray()
+        internal bool hasOption(char v)
         {
             throw new NotImplementedException();
         }
 
-        public void newObject()
+        internal static void printHelp(string v, Options opts)
         {
             throw new NotImplementedException();
         }
 
-        public void endObject()
+        internal string[] getArgs()
         {
             throw new NotImplementedException();
         }
 
-        public void value(int v)
+        internal class OptionBuilder
+        {
+            internal Option create(char v)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal static OptionBuilder withLongOpt(string v)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal OptionBuilder withDescription(string v)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal OptionBuilder withArgName(string v)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal OptionBuilder hasArg()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        internal string getOptionValue(char v)
         {
             throw new NotImplementedException();
         }
 
-        public void value(long v)
+        internal class Option
         {
-            throw new NotImplementedException();
         }
 
-        public void value(double v)
+        internal class Options
         {
-            throw new NotImplementedException();
+            internal void addOption(object p)
+            {
+                throw new NotImplementedException();
+            }
         }
-
-        public void value(string v)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void value(bool v)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class JSONStringer : JSONWriter
-    {
     }
 }

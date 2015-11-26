@@ -181,7 +181,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return (sizeof(int) * 8 - NumberOfOnes(x));
         }
 
-        static int NumberOfOnes(int x)
+        public static int NumberOfOnes(int x)
         {
             x -= ((x >> 1) & 0x55555555);
             x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
@@ -189,6 +189,16 @@ namespace org.apache.hadoop.hive.ql.io.orc
             x += (x >> 8);
             x += (x >> 16);
             return (x & 0x0000003f);
+        }
+    }
+
+    public static class Long
+    {
+        public static int NumberOfOnes(long i)
+        {
+            i = i - ((i >> 1) & 0x5555555555555555);
+            i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
+            return (int)((((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56);
         }
     }
 

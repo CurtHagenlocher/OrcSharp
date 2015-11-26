@@ -53,6 +53,8 @@
     <Compile Include="External\BloomFilterIO.cs" />
     <Compile Include="External\ByteBuffer.cs" />
     <Compile Include="External\BytesColumnVector.cs" />
+    <Compile Include="External\CommandLine.cs" />
+    <Compile Include="External\JsonWriter.cs" />
     <Compile Include="External\Text.cs" />
     <Compile Include="External\BytesWritable.cs" />
     <Compile Include="External\ColumnVector.cs" />
@@ -78,8 +80,10 @@
     <Compile Include="External\TypeDescription.cs" />
     <Compile Include="External\TypeInfoUtils.cs" />
     <Compile Include="External\VectorizedRowBatch.cs" />
+    <Compile Include="FileDump.cs" />
     <Compile Include="FileMetadata.cs" />
     <Compile Include="FileMetaInfo.cs" />
+    <Compile Include="JsonFileDump.cs" />
     <Compile Include="MetadataReader.cs" />
     <Compile Include="MetadataReaderImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

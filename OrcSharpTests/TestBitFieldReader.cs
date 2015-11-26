@@ -18,6 +18,7 @@
 
 namespace org.apache.hadoop.hive.ql.io.orc
 {
+    using org.apache.hadoop.hive.ql.io.orc.external;
     using Xunit;
 
     public class TestBitFieldReader
@@ -49,9 +50,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ByteBuffer inBuf = ByteBuffer.allocate(collect.buffer.size());
             collect.buffer.setByteBuffer(inBuf, 0, collect.buffer.size());
             inBuf.flip();
+#pragma warning disable 612
             BitFieldReader @in = new BitFieldReader(InStream.create(null, "test",
                 new ByteBuffer[] { inBuf }, new long[] { 0 }, inBuf.remaining(),
                 codec, 500), 1);
+#pragma warning restore 612
             for (int i = 0; i < COUNT; ++i)
             {
                 int x = @in.next();
@@ -85,11 +88,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             runSeekTest(null);
         }
 
+#if COMPRESSION
         [Fact]
         public void testCompressedSeek()
         {
             runSeekTest(new ZlibCodec());
         }
+#endif
 
         [Fact]
         public void testBiggerItems()
@@ -114,9 +119,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ByteBuffer inBuf = ByteBuffer.allocate(collect.buffer.size());
             collect.buffer.setByteBuffer(inBuf, 0, collect.buffer.size());
             inBuf.flip();
+#pragma warning disable 612
             BitFieldReader @in = new BitFieldReader(InStream.create(null, "test",
                 new ByteBuffer[] { inBuf }, new long[] { 0 }, inBuf.remaining(),
                 null, 500), 3);
+#pragma warning restore 612
             for (int i = 0; i < COUNT; ++i)
             {
                 int x = @in.next();
@@ -153,9 +160,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ByteBuffer inBuf = ByteBuffer.allocate(collect.buffer.size());
             collect.buffer.setByteBuffer(inBuf, 0, collect.buffer.size());
             inBuf.flip();
+#pragma warning disable 612
             BitFieldReader @in = new BitFieldReader(InStream.create
                 (null, "test", new ByteBuffer[] { inBuf }, new long[] { 0 }, inBuf.remaining(),
                     null, 100), 1);
+#pragma warning restore 612
             for (int i = 0; i < COUNT; i += 5)
             {
                 int x = (int)@in.next();

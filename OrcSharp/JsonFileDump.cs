@@ -22,6 +22,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System.Collections.Generic;
     using org.apache.hadoop.hive.ql.io.orc.external;
     using OrcProto = global::orc.proto;
+    using System.IO;
 
     /**
      * File dump tool with json formatted output.
@@ -31,7 +32,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public static void printJsonMetaData(List<string> files, Configuration conf,
             List<int> rowIndexCols, bool prettyPrint, bool printTimeZone)
         {
-            JSONStringer writer = new JSONStringer();
+            JsonWriter writer = new JsonWriter();
             bool multiFile = files.Count > 1;
             if (multiFile)
             {
@@ -48,10 +49,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     writer.newObject();
                 }
                 writer.key("fileName").value(filename);
-                Path path = new Path(filename);
-                Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
-                writer.key("fileVersion").value(reader.getFileVersion().getName());
-                writer.key("writerVersion").value(reader.getWriterVersion());
+                Reader reader = OrcFile.createReader(filename, OrcFile.readerOptions(conf));
+                writer.key("fileVersion").value(reader.getFileVersion().ToString());
+                writer.key("writerVersion").value(reader.getWriterVersion().ToString());
                 RecordReaderImpl rows = (RecordReaderImpl)reader.rows();
                 writer.key("numberOfRows").value(reader.getNumberOfRows());
                 writer.key("compression").value(reader.getCompression().ToString());
@@ -169,8 +169,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 }
                 writer.endArray();
 
-                FileSystem fs = path.getFileSystem(conf);
-                long fileLen = fs.getContentSummary(path).getLength();
+                long fileLen = new FileInfo(filename).Length;
                 long paddedBytes = FileDump.getTotalPaddingSize(reader);
                 // empty ORC file is ~45 bytes. Assumption here is file length always >0
                 double percentPadding = ((double)paddedBytes / (double)fileLen) * 100;
@@ -188,6 +187,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             if (prettyPrint)
             {
+#if false
                 string prettyJson;
                 if (multiFile)
                 {
@@ -199,6 +199,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     JSONObject jsonObject = new JSONObject(writer.toString());
                     prettyJson = jsonObject.toString(2);
                 }
+#else
+                string prettyJson = writer.ToString();
+#endif
                 System.Console.WriteLine(prettyJson);
             }
             else
@@ -207,7 +210,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        private static void writeSchema(JSONStringer writer, List<OrcProto.Type> types)
+        private static void writeSchema(JsonWriter writer, IList<OrcProto.Type> types)
         {
             int i = 0;
             foreach (OrcProto.Type type in types)
@@ -248,7 +251,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        private static void writeStripeInformation(JSONWriter writer, StripeInformation stripe)
+        private static void writeStripeInformation(JsonWriter writer, StripeInformation stripe)
         {
             writer.newObject();
             writer.key("offset").value(stripe.getOffset());
@@ -259,7 +262,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             writer.endObject();
         }
 
-        private static void writeColumnStatistics(JSONWriter writer, ColumnStatistics cs)
+        private static void writeColumnStatistics(JsonWriter writer, ColumnStatistics cs)
         {
             if (cs != null)
             {
@@ -293,30 +296,36 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 } else if (cs is DateColumnStatistics) {
                     if (((DateColumnStatistics)cs).getMaximum() != null)
                     {
+#if false
                         writer.key("min").value(((DateColumnStatistics)cs).getMinimum());
                         writer.key("max").value(((DateColumnStatistics)cs).getMaximum());
+#endif
                     }
                     writer.key("type").value(OrcProto.Type.Types.Kind.DATE.ToString());
                 } else if (cs is TimestampColumnStatistics) {
                     if (((TimestampColumnStatistics)cs).getMaximum() != null)
                     {
+#if false
                         writer.key("min").value(((TimestampColumnStatistics)cs).getMinimum());
                         writer.key("max").value(((TimestampColumnStatistics)cs).getMaximum());
+#endif
                     }
                     writer.key("type").value(OrcProto.Type.Types.Kind.TIMESTAMP.ToString());
                 } else if (cs is DecimalColumnStatistics) {
                     if (((DecimalColumnStatistics)cs).getMaximum() != null)
                     {
+#if false
                         writer.key("min").value(((DecimalColumnStatistics)cs).getMinimum());
                         writer.key("max").value(((DecimalColumnStatistics)cs).getMaximum());
                         writer.key("sum").value(((DecimalColumnStatistics)cs).getSum());
+#endif
                     }
                     writer.key("type").value(OrcProto.Type.Types.Kind.DECIMAL.ToString());
                 }
             }
         }
 
-        private static void writeBloomFilterIndexes(JSONWriter writer, int col,
+        private static void writeBloomFilterIndexes(JsonWriter writer, int col,
             OrcProto.BloomFilterIndex[] bloomFilterIndex)
         {
             BloomFilter stripeLevelBF = null;
@@ -351,13 +360,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        private static void writeBloomFilterStats(JSONWriter writer, BloomFilter bf)
+        private static void writeBloomFilterStats(JsonWriter writer, BloomFilter bf)
         {
             int bitCount = bf.getBitSize();
             int popCount = 0;
             foreach (long l in bf.getBitSet())
             {
-                popCount += Long.bitCount(l);
+                popCount += Long.NumberOfOnes(l);
             }
             int k = bf.getNumHashFunctions();
             float loadFactor = (float)popCount / (float)bitCount;
@@ -369,7 +378,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             writer.key("expectedFpp").value(expectedFpp);
         }
 
-        private static void writeRowGroupIndexes(JSONWriter writer, int col,
+        private static void writeRowGroupIndexes(JsonWriter writer, int col,
             OrcProto.RowIndex[] rowGroupIndex)
         {
 

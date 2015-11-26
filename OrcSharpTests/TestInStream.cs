@@ -36,7 +36,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        class PositionCollector : PositionProvider, PositionRecorder
+        internal class PositionCollector : PositionProvider, PositionRecorder
         {
             private List<long> positions = new List<long>();
             private int index = 0;

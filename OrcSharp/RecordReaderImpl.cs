@@ -1423,7 +1423,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return readRowIndex(stripeIndex, included, null, null, sargColumns);
         }
 
-        Index readRowIndex(int stripeIndex, bool[] included, OrcProto.RowIndex[] indexes,
+        internal Index readRowIndex(int stripeIndex, bool[] included, OrcProto.RowIndex[] indexes,
             OrcProto.BloomFilterIndex[] bloomFilterIndex, bool[] sargColumns)
         {
             StripeInformation stripe = stripes[stripeIndex];
