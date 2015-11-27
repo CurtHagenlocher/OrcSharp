@@ -20,6 +20,9 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
 
     public class ObjectInspector
     {
@@ -36,6 +39,18 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class PrimitiveObjectInspector : ObjectInspector
     {
+        private readonly PrimitiveTypeInfo typeInfo;
+
+        protected PrimitiveObjectInspector(PrimitiveTypeInfo typeInfo)
+        {
+            this.typeInfo = typeInfo;
+        }
+
+        public override string getTypeName()
+        {
+            return typeInfo.getTypeName();
+        }
+
         public override ObjectInspectorCategory getCategory()
         {
             return ObjectInspectorCategory.PRIMITIVE;
@@ -43,17 +58,22 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         public virtual PrimitiveCategory getPrimitiveCategory()
         {
-            throw new NotImplementedException();
+            return typeInfo.getPrimitiveCategory();
         }
 
         public virtual TypeInfo getTypeInfo()
         {
-            throw new NotImplementedException();
+            return typeInfo;
         }
     }
 
     class ListObjectInspector : ObjectInspector
     {
+        public override ObjectInspectorCategory getCategory()
+        {
+            return ObjectInspectorCategory.LIST;
+        }
+
         public virtual ObjectInspector getListElementObjectInspector()
         {
             throw new NotImplementedException();
@@ -70,8 +90,38 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         }
     }
 
+    class ArrayObjectInspector<T> : ListObjectInspector
+    {
+        private readonly ObjectInspector elementInspector;
+
+        public ArrayObjectInspector(ObjectInspector elementInspector)
+        {
+            this.elementInspector = elementInspector;
+        }
+
+        public override ObjectInspector getListElementObjectInspector()
+        {
+            return elementInspector;
+        }
+
+        public override object getListElement(object list, int position)
+        {
+            return ((IList<T>)list)[position];
+        }
+
+        public override int getListLength(object list)
+        {
+            return ((IList<T>)list).Count;
+        }
+    }
+
     class MapObjectInspector : ObjectInspector
     {
+        public override ObjectInspectorCategory getCategory()
+        {
+            return ObjectInspectorCategory.MAP;
+        }
+
         public virtual ObjectInspector getMapKeyObjectInspector()
         {
             throw new NotImplementedException();
@@ -98,8 +148,54 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         }
     }
 
+    class DictionaryObjectInspector<K, V> : MapObjectInspector
+    {
+        private readonly ObjectInspector keyInspector;
+        private readonly ObjectInspector valueInspector;
+
+        public DictionaryObjectInspector(ObjectInspector keyInspector, ObjectInspector valueInspector)
+        {
+            this.keyInspector = keyInspector;
+            this.valueInspector = valueInspector;
+        }
+
+        public override ObjectInspector getMapKeyObjectInspector()
+        {
+            return keyInspector;
+        }
+
+        public override ObjectInspector getMapValueObjectInspector()
+        {
+            return valueInspector;
+        }
+
+        public override int getMapSize(object map)
+        {
+            return ((IDictionary<K, V>)map).Count;
+        }
+
+        public override object getMapValueElement(object map, object key)
+        {
+            return ((IDictionary<K, V>)map)[(K)key];
+        }
+
+        public override IDictionary<object, object> getMap(object map)
+        {
+            if (typeof(K) == typeof(object) && typeof(V) == typeof(object))
+            {
+                return (IDictionary<object, object>)map;
+            }
+            return ((IDictionary<K, V>)map).Select(pair => new KeyValuePair<object, object>(pair.Key, pair.Value)).ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+    }
+
     public class StructObjectInspector : ObjectInspector
     {
+        public override ObjectInspectorCategory getCategory()
+        {
+            return ObjectInspectorCategory.STRUCT;
+        }
+
         public virtual IList<StructField> getAllStructFieldRefs()
         {
             throw new NotImplementedException();
@@ -125,8 +221,43 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
     {
     }
 
+    class FieldsObjectInspector : SettableStructObjectInspector
+    {
+        private FieldInfoField[] fields;
+
+        public FieldsObjectInspector(FieldInfoField[] fields)
+        {
+            this.fields = fields;
+        }
+
+        public override IList<StructField> getAllStructFieldRefs()
+        {
+            return fields;
+        }
+
+        public override StructField getStructFieldRef(string fieldName)
+        {
+            return fields.Where(f => f.getFieldName() == fieldName).FirstOrDefault();
+        }
+
+        public override object getStructFieldData(object data, StructField fieldRef)
+        {
+            return ((FieldInfoField)fieldRef).GetFieldValue(data);
+        }
+
+        public override List<object> getStructFieldsDataAsList(object data)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     class UnionObjectInspector : ObjectInspector
     {
+        public override ObjectInspectorCategory getCategory()
+        {
+            return ObjectInspectorCategory.UNION;
+        }
+
         public virtual IList<ObjectInspector> getObjectInspectors()
         {
             throw new NotImplementedException();
@@ -145,59 +276,94 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class LongObjectInspector : PrimitiveObjectInspector
     {
-        internal long get(object obj)
+        public LongObjectInspector()
+            : base(TypeInfoFactory.longTypeInfo)
         {
-            throw new NotImplementedException();
+        }
+
+        public long get(object obj)
+        {
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (long)obj;
         }
     }
 
     class BooleanObjectInspector : PrimitiveObjectInspector
     {
+        public BooleanObjectInspector()
+            : base(TypeInfoFactory.booleanTypeInfo)
+        {
+        }
+
         internal bool get(object obj)
         {
-            throw new NotImplementedException();
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (bool)obj;
         }
     }
 
     class ShortObjectInspector : PrimitiveObjectInspector
     {
+        public ShortObjectInspector()
+            : base(TypeInfoFactory.shortTypeInfo)
+        {
+        }
+
         internal short get(object obj)
         {
-            throw new NotImplementedException();
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (short)obj;
         }
     }
 
     class IntObjectInspector : PrimitiveObjectInspector
     {
+        public IntObjectInspector()
+            : base(TypeInfoFactory.intTypeInfo)
+        {
+        }
+
         internal int get(object obj)
         {
-            throw new NotImplementedException();
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (int)obj;
         }
     }
 
     class ByteObjectInspector : PrimitiveObjectInspector
     {
+        public ByteObjectInspector()
+            : base(TypeInfoFactory.byteTypeInfo)
+        {
+        }
+
         internal byte get(object obj)
         {
-            throw new NotImplementedException();
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (byte)obj;
         }
     }
 
     class StringObjectInspector : PrimitiveObjectInspector
     {
-        public override string getTypeName()
+        public StringObjectInspector()
+            : base(TypeInfoFactory.stringTypeInfo)
         {
-            return serdeConstants.STRING_TYPE_NAME;
-        }
-
-        public override PrimitiveCategory getPrimitiveCategory()
-        {
-            return PrimitiveCategory.STRING;
-        }
-
-        public override TypeInfo getTypeInfo()
-        {
-            return TypeInfoFactory.stringTypeInfo;
         }
 
         internal string get(object obj)
@@ -208,30 +374,58 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class BinaryObjectInspector : PrimitiveObjectInspector
     {
+        public BinaryObjectInspector()
+            : base(TypeInfoFactory.binaryTypeInfo)
+        {
+        }
+
         internal byte[] get(object obj)
         {
-            throw new NotImplementedException();
+            return (byte[])obj;
         }
     }
 
     class FloatObjectInspector : PrimitiveObjectInspector
     {
+        public FloatObjectInspector()
+            : base(TypeInfoFactory.floatTypeInfo)
+        {
+        }
+
         internal float get(object obj)
         {
-            throw new NotImplementedException();
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (float)obj;
         }
     }
 
     class DoubleObjectInspector : PrimitiveObjectInspector
     {
+        public DoubleObjectInspector()
+            : base(TypeInfoFactory.doubleTypeInfo)
+        {
+        }
+
         internal double get(object obj)
         {
-            throw new NotImplementedException();
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (double)obj;
         }
     }
 
     class HiveCharObjectInspector : PrimitiveObjectInspector
     {
+        public HiveCharObjectInspector()
+            : base(null)
+        {
+        }
+
         internal string get(object obj)
         {
             throw new NotImplementedException();
@@ -240,6 +434,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class HiveVarcharObjectInspector : PrimitiveObjectInspector
     {
+        public HiveVarcharObjectInspector()
+            : base(null)
+        {
+        }
+
         internal string get()
         {
             throw new NotImplementedException();
@@ -248,22 +447,41 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class HiveDecimalObjectInspector : PrimitiveObjectInspector
     {
-        internal HiveDecimal get()
+        public HiveDecimalObjectInspector(int precision, int scale)
+            : base(TypeInfoFactory.getDecimalTypeInfo(precision, scale))
         {
-            throw new NotImplementedException();
+        }
+
+        internal HiveDecimal get(object obj)
+        {
+            return (HiveDecimal)obj;
         }
     }
 
     class DateObjectInspector : PrimitiveObjectInspector
     {
+        public DateObjectInspector()
+            : base(TypeInfoFactory.dateTypeInfo)
+        {
+        }
+
         internal DateTime get(object obj)
         {
-            throw new NotImplementedException();
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            return (DateTime)obj;
         }
     }
 
     class TimestampObjectInspector : PrimitiveObjectInspector
     {
+        public TimestampObjectInspector()
+            : base(TypeInfoFactory.timestampTypeInfo)
+        {
+        }
+
         internal DateTime get()
         {
             throw new NotImplementedException();
@@ -303,7 +521,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
     {
         public abstract ObjectInspectorCategory getCategory();
 
-        public virtual object getTypeName()
+        public virtual string getTypeName()
         {
             throw new NotImplementedException();
         }
@@ -336,7 +554,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             return primitiveCategory;
         }
 
-        public override object getTypeName()
+        public override string getTypeName()
         {
             return typeName;
         }
@@ -583,9 +801,94 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class ObjectInspectorFactory
     {
+        static Dictionary<Type, ObjectInspector> cache = new Dictionary<Type, ObjectInspector>();
+
         internal static ObjectInspector getReflectionObjectInspector(Type type)
         {
-            throw new NotImplementedException();
+            ObjectInspector result;
+            lock (cache)
+            {
+                if (cache.TryGetValue(type, out result))
+                {
+                    return result;
+                }
+            }
+
+            result = makeReflectionObjectInspector(type);
+
+            lock (cache)
+            {
+                cache[type] = result;
+            }
+            return result;
+        }
+
+        private static ObjectInspector makeReflectionObjectInspector(Type type)
+        {
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Boolean:
+                    return PrimitiveObjectInspectorFactory.writableBooleanObjectInspector;
+                case TypeCode.Byte:
+                    return PrimitiveObjectInspectorFactory.writableByteObjectInspector;
+                case TypeCode.DateTime:
+                    return PrimitiveObjectInspectorFactory.writableTimestampObjectInspector;
+                case TypeCode.Double:
+                    return PrimitiveObjectInspectorFactory.writableDoubleObjectInspector;
+                case TypeCode.Int16:
+                    return PrimitiveObjectInspectorFactory.writableShortObjectInspector;
+                case TypeCode.Int32:
+                    return PrimitiveObjectInspectorFactory.writableIntObjectInspector;
+                case TypeCode.Int64:
+                    return PrimitiveObjectInspectorFactory.writableLongObjectInspector;
+                case TypeCode.Single:
+                    return PrimitiveObjectInspectorFactory.writableFloatObjectInspector;
+                case TypeCode.String:
+                    return PrimitiveObjectInspectorFactory.writableStringObjectInspector;
+                case TypeCode.Char:
+                case TypeCode.DBNull:
+                case TypeCode.Decimal:
+                case TypeCode.Empty:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    throw new NotSupportedException();
+            }
+
+            if (type == typeof(HiveDecimal))
+            {
+                return new HiveDecimalObjectInspector(HiveDecimal.MAX_PRECISION, HiveDecimal.MAX_SCALE);
+            }
+
+            if (type.IsArray && type.GetArrayRank() == 1)
+            {
+                Type elementType = type.GetElementType();
+                ObjectInspector elementInspector = getReflectionObjectInspector(elementType);
+                ConstructorInfo ctor = typeof(ArrayObjectInspector<>).MakeGenericType(elementType).GetConstructor(new[] { typeof(ObjectInspector) });
+                return (ObjectInspector)ctor.Invoke(new[] { elementInspector });
+            }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                Type elementType = type.GetGenericArguments()[0];
+                ObjectInspector elementInspector = getReflectionObjectInspector(elementType);
+                ConstructorInfo ctor = typeof(ArrayObjectInspector<>).MakeGenericType(elementType).GetConstructor(new[] { typeof(ObjectInspector) });
+                return (ObjectInspector)ctor.Invoke(new[] { elementInspector });
+            }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            {
+                Type[] types = type.GetGenericArguments();
+                Type keyType = types[0];
+                ObjectInspector keyInspector = getReflectionObjectInspector(keyType);
+                Type valueType = types[0];
+                ObjectInspector valueInspector = getReflectionObjectInspector(valueType);
+                ConstructorInfo ctor = typeof(DictionaryObjectInspector<,>).MakeGenericType(keyType, valueType).GetConstructor(new[] { typeof(ObjectInspector), typeof(ObjectInspector) });
+                return (ObjectInspector)ctor.Invoke(new[] { keyInspector, valueInspector });
+            }
+
+            FieldInfo[] objectFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            FieldInfoField[] fields = objectFields.Select(f => new FieldInfoField(f, getReflectionObjectInspector(f.FieldType))).ToArray();
+            return new FieldsObjectInspector(fields);
         }
 
         internal static ObjectInspector getStandardListObjectInspector(ObjectInspector elementObjectInspector)
@@ -611,17 +914,17 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     class PrimitiveObjectInspectorFactory
     {
-        public static readonly ObjectInspector writableFloatObjectInspector = new PrimitiveObjectInspector<float>(serdeConstants.FLOAT_TYPE_NAME);
-        public static readonly ObjectInspector writableDoubleObjectInspector = new PrimitiveObjectInspector<double>(serdeConstants.DOUBLE_TYPE_NAME);
-        public static readonly ObjectInspector writableBooleanObjectInspector = new PrimitiveObjectInspector<bool>(serdeConstants.BOOLEAN_TYPE_NAME);
-        public static readonly ObjectInspector writableByteObjectInspector = new PrimitiveObjectInspector<sbyte>(serdeConstants.TINYINT_TYPE_NAME);
-        public static readonly ObjectInspector writableShortObjectInspector = new PrimitiveObjectInspector<short>(serdeConstants.SMALLINT_TYPE_NAME);
-        public static readonly ObjectInspector writableIntObjectInspector = new PrimitiveObjectInspector<int>(serdeConstants.INT_TYPE_NAME);
-        public static readonly ObjectInspector writableLongObjectInspector = new PrimitiveObjectInspector<long>(serdeConstants.BIGINT_TYPE_NAME);
-        public static readonly ObjectInspector writableBinaryObjectInspector = new PrimitiveObjectInspector<byte[]>(serdeConstants.BINARY_TYPE_NAME);
+        public static readonly ObjectInspector writableFloatObjectInspector = new FloatObjectInspector();
+        public static readonly ObjectInspector writableDoubleObjectInspector = new DoubleObjectInspector();
+        public static readonly ObjectInspector writableBooleanObjectInspector = new BooleanObjectInspector();
+        public static readonly ObjectInspector writableByteObjectInspector = new ByteObjectInspector();
+        public static readonly ObjectInspector writableShortObjectInspector = new ShortObjectInspector();
+        public static readonly ObjectInspector writableIntObjectInspector = new IntObjectInspector();
+        public static readonly ObjectInspector writableLongObjectInspector = new LongObjectInspector();
+        public static readonly ObjectInspector writableBinaryObjectInspector = new BinaryObjectInspector();
         public static readonly ObjectInspector writableStringObjectInspector = new StringObjectInspector();
-        public static readonly ObjectInspector writableTimestampObjectInspector = new PrimitiveObjectInspector<DateTime>(serdeConstants.TIMESTAMP_TYPE_NAME);
-        public static readonly ObjectInspector writableDateObjectInspector = new PrimitiveObjectInspector<DateTime>(serdeConstants.DATE_TYPE_NAME);
+        public static readonly ObjectInspector writableTimestampObjectInspector = new TimestampObjectInspector();
+        public static readonly ObjectInspector writableDateObjectInspector = new DateObjectInspector();
 
         internal static ObjectInspector getPrimitiveWritableObjectInspector(PrimitiveTypeInfo primitiveTypeInfo)
         {
@@ -641,21 +944,6 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         internal static ObjectInspector getPrimitiveJavaObjectInspector(PrimitiveTypeInfo primitiveTypeInfo)
         {
             throw new NotImplementedException();
-        }
-
-        class PrimitiveObjectInspector<T> : ObjectInspector
-        {
-            private readonly string typeName;
-
-            public PrimitiveObjectInspector(string typeName)
-            {
-                this.typeName = typeName;
-            }
-
-            public override string getTypeName()
-            {
-                return typeName;
-            }
         }
     }
 

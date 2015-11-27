@@ -18,6 +18,9 @@
 
 namespace org.apache.hadoop.hive.ql.io.orc.external
 {
+    using System;
+    using System.Reflection;
+
     public class StructField
     {
         public virtual ObjectInspector getFieldObjectInspector()
@@ -33,6 +36,33 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         public virtual string getFieldComment()
         {
             throw new System.NotImplementedException();
+        }
+    }
+
+    public class FieldInfoField : StructField
+    {
+        private readonly FieldInfo field;
+        private readonly ObjectInspector inspector;
+
+        public FieldInfoField(FieldInfo field, ObjectInspector inspector)
+        {
+            this.field = field;
+            this.inspector = inspector;
+        }
+
+        public override ObjectInspector getFieldObjectInspector()
+        {
+            return inspector;
+        }
+
+        public override string getFieldName()
+        {
+            return field.Name;
+        }
+
+        public object GetFieldValue(object data)
+        {
+            return field.GetValue(data);
         }
     }
 }

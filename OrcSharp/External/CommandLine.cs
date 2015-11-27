@@ -19,17 +19,44 @@
 namespace org.apache.hadoop.hive.ql.io.orc
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     class CommandLine
     {
+        private readonly string[] args;
+        private readonly Dictionary<char, string> options;
+
+        private CommandLine(string[] args, Dictionary<char, string> options)
+        {
+            this.args = args;
+            this.options = options;
+        }
+
         internal static CommandLine parse(Options opts, string[] args)
         {
-            throw new NotImplementedException();
+            List<string> newArgs = new List<string>(args.Length);
+            Dictionary<char, string> options = new Dictionary<char, string>(args.Length);
+            for (int i = 0; i < args.Length; i++)
+            {
+                char option;
+                string value;
+                if (args[i].StartsWith("-") && opts.TryGetOption(args[i], out option, out value))
+                {
+                    options[option] = value;
+                }
+                else
+                {
+                    newArgs.Add(args[i]);
+                }
+            }
+
+            return new CommandLine(newArgs.ToArray(), options);
         }
 
         internal bool hasOption(char v)
         {
-            throw new NotImplementedException();
+            return options.ContainsKey(v);
         }
 
         internal static void printHelp(string v, Options opts)
@@ -39,51 +66,98 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         internal string[] getArgs()
         {
-            throw new NotImplementedException();
+            return args;
         }
 
-        internal class OptionBuilder
+        internal class OptionBuilder : Option
         {
-            internal Option create(char v)
+            internal Option create(char shortOption)
             {
-                throw new NotImplementedException();
+                this.shortOption = shortOption;
+                return this;
             }
 
-            internal static OptionBuilder withLongOpt(string v)
+            internal static OptionBuilder withLongOpt(string longOption)
             {
-                throw new NotImplementedException();
+                return new OptionBuilder { longOption = longOption };
             }
 
-            internal OptionBuilder withDescription(string v)
+            internal OptionBuilder withDescription(string description)
             {
-                throw new NotImplementedException();
+                this.description = description;
+                return this;
             }
 
-            internal OptionBuilder withArgName(string v)
+            internal OptionBuilder withArgName(string argumentName)
             {
-                throw new NotImplementedException();
+                this.argumentName = argumentName;
+                return this;
             }
 
             internal OptionBuilder hasArg()
             {
-                throw new NotImplementedException();
+                hasArgument = true;
+                return this;
             }
         }
 
         internal string getOptionValue(char v)
         {
-            throw new NotImplementedException();
+            return options[v];
         }
 
         internal class Option
         {
+            protected char shortOption;
+            protected string longOption;
+            protected string description;
+            protected string argumentName;
+            protected bool hasArgument;
+
+            public char ShortOption { get { return shortOption; } }
+            public string LongOption { get { return longOption; } }
+            public bool HasArgument { get { return hasArgument; } }
         }
 
-        internal class Options
+        internal class Options : List<Option>
         {
-            internal void addOption(object p)
+            internal void addOption(Option option)
             {
-                throw new NotImplementedException();
+                Add(option);
+            }
+
+            public bool TryGetOption(string arg, out char option, out string value)
+            {
+                string[] args = arg.Split('=');
+                arg = args[0];
+
+                Option opt;
+                if (arg.Length == 2 && arg[0] == '-')
+                {
+                    opt = this.Where(o => o.ShortOption == arg[1]).FirstOrDefault();
+                }
+                else if (arg.Length > 2 && arg[0] == '-' && arg[1] == '-')
+                {
+                    arg = arg.Substring(2);
+                    opt = this.Where(o => o.LongOption == arg).FirstOrDefault();
+                }
+                else
+                {
+                    opt = null;
+                }
+
+                if (opt == null)
+                {
+                    option = (char)0;
+                    value = null;
+                    return false;
+                }
+                else
+                {
+                    option = opt.ShortOption;
+                    value = opt.HasArgument ? args[1] : null;
+                    return true;
+                }
             }
         }
     }

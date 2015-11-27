@@ -25,12 +25,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
     class JsonWriter
     {
         private MemoryStream buffer;
-        private System.IO.TextWriter @out;
+        private TextWriter @out;
+        private bool first = false;
 
         public JsonWriter()
         {
-            this.buffer = new MemoryStream();
-            this.@out = new StreamWriter(this.buffer);
+            buffer = new MemoryStream();
+            @out = new StreamWriter(this.buffer);
         }
 
         public JsonWriter(TextWriter @out)
@@ -41,57 +42,94 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public void array()
         {
+            @out.Write('[');
+            first = true;
         }
 
-        public JsonWriter key(string v)
+        public JsonWriter key(string value)
         {
-            throw new NotImplementedException();
+            First();
+            WriteQuotedString(value);
+            @out.Write(':');
+            return this;
         }
 
         public void endArray()
         {
-            throw new NotImplementedException();
+            @out.Write(']');
         }
 
         public void newObject()
         {
-            throw new NotImplementedException();
+            @out.Write('{');
+            first = true;
         }
 
         public void endObject()
         {
-            throw new NotImplementedException();
+            @out.Write('}');
         }
 
-        public void value(int v)
+        public void value(int value)
         {
-            throw new NotImplementedException();
+            First();
+            @out.Write(value);
         }
 
-        public void value(long v)
+        public void value(long value)
         {
-            throw new NotImplementedException();
+            First();
+            @out.Write(value);
         }
 
-        public void value(double v)
+        public void value(double value)
         {
-            throw new NotImplementedException();
+            First();
+            @out.Write(value);
         }
 
-        public void value(string v)
+        public void value(string value)
         {
-            throw new NotImplementedException();
+            First();
+            if (value == null)
+            {
+                @out.Write("null");
+            }
+            else
+            {
+                WriteQuotedString(value);
+            }
         }
 
-        public void value(bool v)
+        public void value(bool value)
         {
-            throw new NotImplementedException();
+            First();
+            @out.Write(value ? "true" : "false");
         }
 
         public override string ToString()
         {
             this.@out.Flush();
             return Encoding.UTF8.GetString(this.buffer.ToArray());
+        }
+
+        private void First()
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                @out.Write(',');
+            }
+        }
+
+        private void WriteQuotedString(string value)
+        {
+            @out.Write('"');
+            @out.Write(value);
+            @out.Write('"');
         }
     }
 }

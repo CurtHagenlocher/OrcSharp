@@ -169,7 +169,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private void readPatchedBaseValues(int firstByte)
         {
-
             // extract the number of fixed bits
             int fbo = (firstByte >> 1) & 0x1f;
             int fb = utils.decodeBitWidth(fbo);

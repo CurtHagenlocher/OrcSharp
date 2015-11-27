@@ -55,9 +55,9 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             value = decode(tmp, 0, len);
         }
 
-        internal void set(string tmp)
+        internal void set(string value)
         {
-            throw new NotImplementedException();
+            this.value = value;
         }
     }
 }

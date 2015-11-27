@@ -65,7 +65,16 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public static HiveDecimal Parse(string text)
         {
-            throw new NotImplementedException();
+            // TODO: Yuck
+            int position = text.IndexOf('.');
+            int scale = 0;
+            if (position >= 0)
+            {
+                text = text.Remove(position, 1);
+                scale = position - text.Length;
+            }
+
+            return new HiveDecimal(BigInteger.Parse(text), scale);
         }
 
         public static HiveDecimal operator +(HiveDecimal left, HiveDecimal right)
@@ -109,11 +118,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             if (x._scale < y._scale)
             {
-                y = y.UpdateScale(x._scale);
+                x = x.UpdateScale(y._scale);
             }
             else if (y._scale < x._scale)
             {
-                x = x.UpdateScale(y._scale);
+                y = y.UpdateScale(x._scale);
             }
         }
 
@@ -133,7 +142,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         internal BigInteger unscaledValue()
         {
-            throw new NotImplementedException();
+            return mantissa;
         }
 
         internal object doubleValue()

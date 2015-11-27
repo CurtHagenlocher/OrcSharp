@@ -134,7 +134,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 printJsonData(conf, file);
                 if (files.Count > 1)
                 {
-                    System.Console.WriteLine(new string('=', 80) + "\n");
+                    System.Console.WriteLine(new string('=', 80) + Environment.NewLine);
                 }
             }
         }
@@ -155,7 +155,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     System.Console.WriteLine("Compression size: " + reader.getCompressionSize());
                 }
                 System.Console.WriteLine("Type: " + reader.getObjectInspector().getTypeName());
-                System.Console.WriteLine("\nStripe Statistics:");
+                System.Console.WriteLine();
+                System.Console.WriteLine("Stripe Statistics:");
                 List<StripeStatistics> stripeStats = reader.getStripeStatistics();
                 for (int n = 0; n < stripeStats.Count; n++)
                 {
@@ -169,12 +170,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 }
                 ColumnStatistics[] stats = reader.getStatistics();
                 int colCount = stats.Length;
-                System.Console.WriteLine("\nFile Statistics:");
+                System.Console.WriteLine();
+                System.Console.WriteLine("File Statistics:");
                 for (int i = 0; i < stats.Length; ++i)
                 {
                     System.Console.WriteLine("  Column " + i + ": " + stats[i].ToString());
                 }
-                System.Console.WriteLine("\nStripes:");
+                System.Console.WriteLine();
+                System.Console.WriteLine("Stripes:");
                 int stripeIx = -1;
                 foreach (StripeInformation stripe in reader.getStripes())
                 {
@@ -247,13 +250,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 long paddedBytes = getTotalPaddingSize(reader);
                 // empty ORC file is ~45 bytes. Assumption here is file length always >0
                 double percentPadding = ((double)paddedBytes / (double)fileLen) * 100;
-                System.Console.WriteLine("\nFile length: {0} bytes", fileLen);
+                System.Console.WriteLine();
+                System.Console.WriteLine("File length: {0} bytes", fileLen);
                 System.Console.WriteLine("Padding length: {0} bytes", paddedBytes);
                 System.Console.WriteLine("Padding ratio: {0:00.00}%", percentPadding);
                 rows.close();
                 if (files.Count > 1)
                 {
-                    System.Console.WriteLine(new string('=', 80) + "\n");
+                    System.Console.WriteLine(new string('=', 80) + Environment.NewLine);
                 }
             }
         }
@@ -265,11 +269,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             if (bloomFilterIndex != null && bloomFilterIndex[col] != null)
             {
                 int idx = 0;
-                buf.Append("\n    Bloom filters for column ").Append(col).Append(":");
+                buf.AppendLine();
+                buf.AppendFormat("    Bloom filters for column {0}:", col);
                 foreach (OrcProto.BloomFilter bf in bloomFilterIndex[col].BloomFilterList)
                 {
                     BloomFilter toMerge = BloomFilterIO.Create(bf);
-                    buf.Append("\n      Entry ").Append(idx++).Append(":").Append(getBloomFilterStats(toMerge));
+                    buf.AppendLine();
+                    buf.AppendFormat("      Entry {0}:{1}", idx++, getBloomFilterStats(toMerge));
                     if (stripeLevelBF == null)
                     {
                         stripeLevelBF = toMerge;
@@ -280,7 +286,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     }
                 }
                 string bloomFilterStats = getBloomFilterStats(stripeLevelBF);
-                buf.Append("\n      Stripe level merge:").Append(bloomFilterStats);
+                buf.AppendLine();
+                buf.Append("      Stripe level merge:").Append(bloomFilterStats);
             }
             return buf.ToString();
         }
@@ -309,21 +316,23 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             StringBuilder buf = new StringBuilder();
             OrcProto.RowIndex index;
-            buf.Append("    Row group indices for column ").Append(col).Append(":");
+            buf.AppendLine();
+            buf.AppendFormat("    Row group indices for column {0}:", col);
             if (rowGroupIndex == null || (col >= rowGroupIndex.Length) ||
                 ((index = rowGroupIndex[col]) == null))
             {
-                buf.Append(" not found\n");
+                buf.AppendLine(" not found");
                 return buf.ToString();
             }
 
             for (int entryIx = 0; entryIx < index.EntryCount; ++entryIx)
             {
-                buf.Append("\n      Entry ").Append(entryIx).Append(": ");
+                buf.AppendLine();
+                buf.AppendFormat("      Entry {0}:", entryIx);
                 OrcProto.RowIndexEntry entry = index.EntryList[entryIx];
                 if (entry == null)
                 {
-                    buf.Append("unknown\n");
+                    buf.AppendLine("unknown");
                     continue;
                 }
                 OrcProto.ColumnStatistics colStats = entry.Statistics;
@@ -530,7 +539,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     row = rows.next(row);
                     JsonWriter writer = new JsonWriter(@out);
                     printObject(writer, row, types, 0);
-                    @out.Write("\n");
+                    @out.WriteLine();
                     @out.Flush();
                 }
             }

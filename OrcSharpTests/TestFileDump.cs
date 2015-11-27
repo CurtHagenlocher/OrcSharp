@@ -60,6 +60,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             // fs.setWorkingDirectory(workDir);
             // fs.delete(testFilePath, false);
             workDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(workDir);
         }
 
         public void Dispose()

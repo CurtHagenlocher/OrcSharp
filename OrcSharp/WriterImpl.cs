@@ -769,7 +769,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 for (int i = 0; i < rowIndex.EntryCount; ++i)
                 {
-                    OrcProto.RowIndexEntry.Builder entry = rowIndex.GetEntry(i).CreateBuilderForType();
+                    OrcProto.RowIndexEntry.Builder entry = rowIndex.GetEntry(i).ToBuilder();
                     IList<ulong> positions = entry.PositionsList;
                     // bit streams use 3 positions if uncompressed, 4 if compressed
                     positions = positions.subList(isCompressed ? 4 : 3, positions.Count);
@@ -1803,12 +1803,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return MakeEncoding(OrcProto.ColumnEncoding.Types.Kind.DIRECT);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
                 {
-                    HiveDecimal @decimal = ((HiveDecimalObjectInspector)inspector).get();
+                    HiveDecimal @decimal = ((HiveDecimalObjectInspector)inspector).get(obj);
                     if (@decimal == null)
                     {
                         return;
