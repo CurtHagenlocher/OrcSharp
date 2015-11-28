@@ -66,7 +66,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     throw new EndOfStreamException("End of stream in RLE Integer from " + input);
                 }
                 // convert from 0 to 255 to -128 to 127 by converting to a signed byte
-                delta = (byte)(0 + delta);
+                delta = unchecked((sbyte)(byte)delta);
                 if (signed)
                 {
                     literals[0] = utils.readVslong(input);
