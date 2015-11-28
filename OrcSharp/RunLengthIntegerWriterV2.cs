@@ -163,8 +163,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         private SerializationUtils utils;
         private bool alignedBitpacking;
 
-        public RunLengthIntegerWriterV2(PositionedOutputStream output, bool signed,
-            bool alignedBitpacking = true)
+        public RunLengthIntegerWriterV2(PositionedOutputStream output, bool signed, bool alignedBitpacking = true)
         {
             this.output = output;
             this.signed = signed;
@@ -377,7 +376,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private void writeDirectValues()
         {
-
             // write the number of fixed bits required in next 5 bits
             int fb = zzBits100p;
 
@@ -453,7 +451,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private void determineEncoding()
         {
-
             // we need to compute zigzag values for DIRECT encoding if we decide to
             // break early for delta overflows or for shorter runs
             computeZigZagLiterals();

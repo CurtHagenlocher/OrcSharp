@@ -25,53 +25,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System.Text;
     using Xunit;
 
-    // Temporary
-    public class TestOrcFile
+    public class TestFileDump : WithLocalDirectory
     {
-    }
+        const string testFileName = "TestFileDump.orc";
 
-    public class TestFileDump : IDisposable
-    {
-        static readonly string[] words = new string[]
-            {
-                "It", "was", "the", "best", "of", "times,",
-                "it", "was", "the", "worst", "of", "times,", "it", "was", "the", "age",
-                "of", "wisdom,", "it", "was", "the", "age", "of", "foolishness,", "it",
-                "was", "the", "epoch", "of", "belief,", "it", "was", "the", "epoch",
-                "of", "incredulity,", "it", "was", "the", "season", "of", "Light,",
-                "it", "was", "the", "season", "of", "Darkness,", "it", "was", "the",
-                "spring", "of", "hope,", "it", "was", "the", "winter", "of", "despair,",
-                "we", "had", "everything", "before", "us,", "we", "had", "nothing",
-                "before", "us,", "we", "were", "all", "going", "direct", "to",
-                "Heaven,", "we", "were", "all", "going", "direct", "the", "other",
-                "way"
-            };
-
-        string workDir;
-        Configuration conf;
-        // FileSystem fs;
-        const string testFilePath = "TestFileDump.testDump.orc";
-
-        public TestFileDump()
+        public TestFileDump() : base(testFileName)
         {
-            conf = new Configuration();
-            // workDir = new Path(System.getProperty("test.tmp.dir"));
-            // fs = FileSystem.getLocal(conf);
-            // fs.setWorkingDirectory(workDir);
-            // fs.delete(testFilePath, false);
-            workDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            Directory.CreateDirectory(workDir);
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                Directory.Delete(workDir, true);
-            }
-            catch (IOException)
-            {
-            }
         }
 
         internal class MyRecord
@@ -155,26 +114,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        static void checkOutput(string expected, string actual)
-        {
-            using (StreamReader eStream = File.OpenText(expected))
-            using (StreamReader aStream = File.OpenText(actual))
-            {
-                string expectedLine = eStream.ReadLine().Trim();
-                while (expectedLine != null)
-                {
-                    string actualLine = aStream.ReadLine().Trim();
-                    System.Console.WriteLine("actual:   " + actualLine);
-                    System.Console.WriteLine("expected: " + expectedLine);
-                    Assert.Equal(expectedLine, actualLine);
-                    expectedLine = eStream.ReadLine();
-                    expectedLine = expectedLine == null ? null : expectedLine.Trim();
-                }
-                Assert.Null(eStream.ReadLine());
-                Assert.Null(aStream.ReadLine());
-            }
-        }
-
         [Fact]
         public void testDump()
         {
@@ -192,7 +131,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 for (int i = 0; i < 21000; ++i)
                 {
                     writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
-                        words[r1.Next(words.Length)]));
+                        TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
                 }
                 writer.close();
             }
@@ -203,7 +142,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=1,2,3" });
             }
 
-            checkOutput(outputFilename, Path.Combine(workDir, outputFilename));
+            TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
         }
 
         [Fact]
@@ -275,7 +214,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 FileDump.Main(new string[] { testFilePath.ToString(), "-d" });
                 capture.Flush();
 
-                lines = Encoding.UTF8.GetString(buffer.ToArray()).Split('\n');
+                lines = Encoding.UTF8.GetString(buffer.ToArray()).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             }
             Assert.Equal(2, lines.Length);
 
@@ -309,13 +248,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     // distinct strings is 0.5
                     if (i % 2 == 0)
                     {
-                        nextInt = r1.Next(words.Length);
+                        nextInt = r1.Next(TestHelpers.words.Length);
                         // Append the value of i to the word, this guarantees when an index or word is repeated
                         // the actual string is unique.
-                        words[nextInt] += "-" + i;
+                        TestHelpers.words[nextInt] += "-" + i;
                     }
-                    writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
-                        words[nextInt]));
+                    writer.addRow(new MyRecord(r1.Next(), r1.NextLong(), TestHelpers.words[nextInt]));
                 }
                 writer.close();
             }
@@ -326,7 +264,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=1,2,3" });
             }
 
-            checkOutput(outputFilename, Path.Combine(workDir, outputFilename));
+            TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
         }
 
         [Fact]
@@ -347,7 +285,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 for (int i = 0; i < 21000; ++i)
                 {
                     writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
-                        words[r1.Next(words.Length)]));
+                        TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
                 }
                 writer.close();
             }
@@ -358,7 +296,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=3" });
             }
 
-            checkOutput(outputFilename, Path.Combine(workDir, outputFilename));
+            TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
         }
 
         [Fact]
@@ -380,7 +318,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 for (int i = 0; i < 21000; ++i)
                 {
                     writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
-                        words[r1.Next(words.Length)]));
+                        TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
                 }
                 writer.close();
             }
@@ -391,39 +329,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=2" });
             }
 
-            checkOutput(outputFilename, Path.Combine(workDir, outputFilename));
-        }
-
-        class CaptureStdout : IDisposable
-        {
-            private TextWriter original;
-            private Stream output;
-
-            public CaptureStdout(string path)
-            {
-                original = System.Console.Out;
-                output = File.OpenWrite(path);
-                System.Console.SetOut(new StreamWriter(output));
-            }
-
-            public CaptureStdout(Stream stream)
-            {
-                original = System.Console.Out;
-                output = stream;
-                System.Console.SetOut(new StreamWriter(output));
-            }
-
-            public void Flush()
-            {
-                System.Console.Out.Flush();
-            }
-
-            void IDisposable.Dispose()
-            {
-                System.Console.Out.Flush();
-                System.Console.SetOut(original);
-                output.Close();
-            }
+            TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
         }
     }
 }

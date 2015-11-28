@@ -928,7 +928,36 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         internal static ObjectInspector getPrimitiveWritableObjectInspector(PrimitiveTypeInfo primitiveTypeInfo)
         {
-            throw new NotImplementedException();
+            switch (primitiveTypeInfo.getPrimitiveCategory())
+            {
+                case PrimitiveCategory.BINARY:
+                    return writableBinaryObjectInspector;
+                case PrimitiveCategory.BOOLEAN:
+                    return writableBooleanObjectInspector;
+                case PrimitiveCategory.BYTE:
+                    return writableByteObjectInspector;
+                case PrimitiveCategory.DATE:
+                    return writableDateObjectInspector;
+                case PrimitiveCategory.DECIMAL:
+                    DecimalTypeInfo decimalInfo = (DecimalTypeInfo)primitiveTypeInfo;
+                    return new HiveDecimalObjectInspector(decimalInfo.precision(), decimalInfo.scale());
+                case PrimitiveCategory.DOUBLE:
+                    return writableDoubleObjectInspector;
+                case PrimitiveCategory.FLOAT:
+                    return writableFloatObjectInspector;
+                case PrimitiveCategory.INT:
+                    return writableIntObjectInspector;
+                case PrimitiveCategory.LONG:
+                    return writableLongObjectInspector;
+                case PrimitiveCategory.SHORT:
+                    return writableShortObjectInspector;
+                case PrimitiveCategory.STRING:
+                    return writableStringObjectInspector;
+                case PrimitiveCategory.TIMESTAMP:
+                    return writableTimestampObjectInspector;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         internal static ObjectInspector getPrimitiveJavaObjectInspector(PrimitiveCategory primitiveCategory)

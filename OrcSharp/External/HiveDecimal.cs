@@ -21,7 +21,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System;
     using System.Numerics;
 
-    public class HiveDecimal
+    sealed public class HiveDecimal : IEquatable<HiveDecimal>
     {
         public const int MAX_PRECISION = 38;
         public const int MAX_SCALE = 38;
@@ -106,7 +106,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public static HiveDecimal enforcePrecisionScale(HiveDecimal hiveDec, int precision, int scale)
         {
-            throw new NotImplementedException();
+            // TODO:
+            return hiveDec;
         }
 
         public int scale()
@@ -148,6 +149,19 @@ namespace org.apache.hadoop.hive.ql.io.orc
         internal object doubleValue()
         {
             throw new NotImplementedException();
+        }
+
+        public override bool Equals(object obj)
+        {
+            HiveDecimal other = obj as HiveDecimal;
+            return other == null ? false : Equals(other);
+        }
+
+        public bool Equals(HiveDecimal other)
+        {
+            HiveDecimal x = this;
+            Normalize(ref x, ref other);
+            return x._scale == other._scale && x.mantissa == other.mantissa;
         }
     }
 }

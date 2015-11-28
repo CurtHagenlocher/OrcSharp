@@ -18,17 +18,33 @@
 
 namespace org.apache.hadoop.hive.ql.io.orc
 {
-    using System.Linq;
-    using OrcProto = global::orc.proto;
+    using System;
+    using System.IO;
+    using org.apache.hadoop.hive.ql.io.orc.external;
 
-    public static class BloomFilterIO
+    public class WithLocalDirectory : IDisposable
     {
-        /**
-         * Initializes the BloomFilter from the given Orc BloomFilter
-         */
-        public static BloomFilter Create(OrcProto.BloomFilter bloomFilter)
+        protected readonly string workDir;
+        protected readonly Configuration conf;
+        protected readonly string testFilePath;
+
+        public WithLocalDirectory(string filename)
         {
-            return new BloomFilter(bloomFilter.BitsetList, (int)bloomFilter.NumHashFunctions);
+            conf = new Configuration();
+            workDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(workDir);
+            testFilePath = Path.Combine(workDir, filename);
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(workDir, true);
+            }
+            catch (IOException)
+            {
+            }
         }
     }
 }

@@ -536,7 +536,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @return the normalized expression, which may share some or all of the
              * nodes of the original expression.
              */
-            static ExpressionTree pushDownNot(ExpressionTree root)
+            internal static ExpressionTree pushDownNot(ExpressionTree root)
             {
                 if (root.getOperator() == ExpressionTree.Operator.NOT)
                 {
@@ -546,7 +546,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                         case ExpressionTree.Operator.NOT:
                             return pushDownNot(child.getChildren()[0]);
                         case ExpressionTree.Operator.CONSTANT:
-                            return new ExpressionTree(child.getConstant().not());
+                            return new ExpressionTree(child.getConstant().Value.not());
                         case ExpressionTree.Operator.AND:
                             root = new ExpressionTree(ExpressionTree.Operator.OR);
                             foreach (ExpressionTree kid in child.getChildren())
@@ -586,7 +586,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param expr The expression to clean up
              * @return The cleaned up expression
              */
-            static ExpressionTree foldMaybe(ExpressionTree expr)
+            internal static ExpressionTree foldMaybe(ExpressionTree expr)
             {
                 if (expr.getChildren() != null)
                 {
@@ -628,7 +628,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @return the flattened expression, which will always be root with
              *   potentially modified children.
              */
-            static ExpressionTree flatten(ExpressionTree root)
+            internal static ExpressionTree flatten(ExpressionTree root)
             {
                 if (root.getChildren() != null)
                 {
@@ -729,7 +729,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param root the expression
              * @return the normalized expression
              */
-            static ExpressionTree convertToCNF(ExpressionTree root)
+            internal static ExpressionTree convertToCNF(ExpressionTree root)
             {
                 if (root.getChildren() != null)
                 {

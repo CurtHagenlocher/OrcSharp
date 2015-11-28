@@ -206,8 +206,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
     {
         public static byte[] readFully(this Stream stream, long streamPosition, byte[] buffer, int position, int length)
         {
+            long originalPosition = stream.Position;
             stream.Position = streamPosition;
             stream.readFully(buffer, position, length);
+            stream.Position = originalPosition;
             return buffer;
         }
 

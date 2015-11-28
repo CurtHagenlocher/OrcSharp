@@ -89,7 +89,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private void readDeltaValues(int firstByte)
         {
-
             // extract the number of fixed bits
             int fb = (firstByte >> 1) & 0x1f;
             if (fb != 0)
@@ -288,12 +287,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     literals[numLiterals++] = @base + unpacked[i];
                 }
             }
-
         }
 
         private void readDirectValues(int firstByte)
         {
-
             // extract the number of fixed bits
             int fbo = (firstByte >> 1) & 0x1f;
             int fb = utils.decodeBitWidth(fbo);
@@ -322,7 +319,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private void readShortRepeatValues(int firstByte)
         {
-
             // read the number of bytes occupied by the value
             int size = (firstByte >> 3) & 0x07;
             // #bytes are one off

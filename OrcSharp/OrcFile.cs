@@ -21,6 +21,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System;
     using System.IO;
     using org.apache.hadoop.hive.ql.io.orc.external;
+    using System.Threading;
 
     /// <summary>
     /// Contains factory methods to read or write ORC files.
@@ -52,9 +53,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public static class VersionHelper
         {
-            public static Version CURRENT = Version.V_0_12;
-            public static int CURRENT_Major = getMajor(CURRENT);
-            public static int CURRENT_Minor = getMinor(CURRENT);
+            public static readonly Version CURRENT = Version.V_0_12;
+            public static readonly int CURRENT_Major = getMajor(CURRENT);
+            public static readonly int CURRENT_Minor = getMinor(CURRENT);
 
             public static Version byName(string name)
             {
@@ -503,15 +504,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
                                   opts._bloomFilterColumns, opts._bloomFilterFpp);
         }
 
-        private static MemoryManager memoryManager = null;
+        private static ThreadLocal<MemoryManager> memoryManager = new ThreadLocal<MemoryManager>(
+            () => new MemoryManager(10000000));
 
-        private static /* synchronized */ MemoryManager getMemoryManager(Configuration conf)
+        private static MemoryManager getMemoryManager(Configuration conf)
         {
-            if (memoryManager == null)
-            {
-                memoryManager = new MemoryManager(10000000);
-            }
-            return memoryManager;
+            return memoryManager.Value;
         }
     }
 }

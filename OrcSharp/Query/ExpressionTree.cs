@@ -158,9 +158,9 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
             return children;
         }
 
-        public TruthValue getConstant()
+        public TruthValue? getConstant()
         {
-            return constant.Value;
+            return constant;
         }
 
         public int getLeaf()

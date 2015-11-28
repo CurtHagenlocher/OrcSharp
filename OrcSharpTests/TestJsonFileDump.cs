@@ -16,123 +16,75 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc {
+namespace org.apache.hadoop.hive.ql.io.orc
+{
+    using System;
+    using System.IO;
+    using org.apache.hadoop.hive.ql.io.orc.external;
+    using Xunit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+    public class TestJsonFileDump : WithLocalDirectory
+    {
+        const string testFileName = "TestJsonFileDump.orc";
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.PrintStream;
-import java.util.Random;
+        public TestJsonFileDump() : base(testFileName)
+        {
+        }
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.apache.hive.common.util.HiveTestUtils;
-import org.junit.Before;
-import org.junit.Test;
+        class MyRecord
+        {
+            int i;
+            long l;
+            string s;
 
-public class TestJsonFileDump {
+            public MyRecord(int i, long l, string s)
+            {
+                this.i = i;
+                this.l = l;
+                this.s = s;
+            }
+        }
 
-  Path workDir = new Path(System.getProperty("test.tmp.dir"));
-  Configuration conf;
-  FileSystem fs;
-  Path testFilePath;
+        [Fact]
+        public void testJsonDump()
+        {
+            ObjectInspector inspector;
+            inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyRecord));
+            // conf.set(HiveConf.ConfVars.HIVE_ORC_ENCODING_STRATEGY.varname, "COMPRESSION");
+            OrcFile.WriterOptions options = OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.ZLIB)
+                .bufferSize(10000)
+                .rowIndexStride(1000)
+                .bloomFilterColumns("s");
+            using (Stream file = File.OpenWrite(testFilePath))
+            {
+                Writer writer = OrcFile.createWriter(testFilePath, file, options);
+                Random r1 = new Random(1);
+                for (int i = 0; i < 21000; ++i)
+                {
+                    if (i % 100 == 0)
+                    {
+                        writer.addRow(new MyRecord(r1.Next(), r1.NextLong(), null));
+                    }
+                    else
+                    {
+                        writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
+                            TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
+                    }
+                }
 
-  @Before
-  public void openFileSystem ()  {
-    conf = new Configuration();
-    fs = FileSystem.getLocal(conf);
-    fs.setWorkingDirectory(workDir);
-    testFilePath = new Path("TestFileDump.testDump.orc");
-    fs.delete(testFilePath, false);
-  }
+                writer.close();
+            }
 
-  static class MyRecord {
-    int i;
-    long l;
-    String s;
-    MyRecord(int i, long l, String s) {
-      this.i = i;
-      this.l = l;
-      this.s = s;
+            const string outputFilename = "orc-file-dump.json";
+            using (CaptureStdout capture = new CaptureStdout(Path.Combine(workDir, outputFilename)))
+            {
+                FileDump.Main(new string[] { testFilePath.ToString(), "-j", "-p", "--rowindex=3" });
+            }
+
+            TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
+        }
     }
-  }
-
-  static void checkOutput(String expected,
-                                  String actual)  {
-    BufferedReader eStream =
-        new BufferedReader(new FileReader(HiveTestUtils.getFileFromClasspath(expected)));
-    BufferedReader aStream =
-        new BufferedReader(new FileReader(actual));
-    String expectedLine = eStream.readLine();
-    while (expectedLine != null) {
-      String actualLine = aStream.readLine();
-      System.out.println("actual:   " + actualLine);
-      System.out.println("expected: " + expectedLine);
-      Assert.Equal(expectedLine, actualLine);
-      expectedLine = eStream.readLine();
-    }
-    assertNull(eStream.readLine());
-    assertNull(aStream.readLine());
-  }
-
-  [Fact]
-  public void testJsonDump()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector
-          (MyRecord.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-    }
-    conf.set(HiveConf.ConfVars.HIVE_ORC_ENCODING_STRATEGY.varname, "COMPRESSION");
-    OrcFile.WriterOptions options = OrcFile.writerOptions(conf)
-        .fileSystem(fs)
-        .inspector(inspector)
-        .stripeSize(100000)
-        .compress(CompressionKind.ZLIB)
-        .bufferSize(10000)
-        .rowIndexStride(1000)
-        .bloomFilterColumns("s");
-    Writer writer = OrcFile.createWriter(testFilePath, options);
-    Random r1 = new Random(1);
-    String[] words = new String[]{"It", "was", "the", "best", "of", "times,",
-        "it", "was", "the", "worst", "of", "times,", "it", "was", "the", "age",
-        "of", "wisdom,", "it", "was", "the", "age", "of", "foolishness,", "it",
-        "was", "the", "epoch", "of", "belief,", "it", "was", "the", "epoch",
-        "of", "incredulity,", "it", "was", "the", "season", "of", "Light,",
-        "it", "was", "the", "season", "of", "Darkness,", "it", "was", "the",
-        "spring", "of", "hope,", "it", "was", "the", "winter", "of", "despair,",
-        "we", "had", "everything", "before", "us,", "we", "had", "nothing",
-        "before", "us,", "we", "were", "all", "going", "direct", "to",
-        "Heaven,", "we", "were", "all", "going", "direct", "the", "other",
-        "way"};
-    for(int i=0; i < 21000; ++i) {
-      if (i % 100 == 0) {
-        writer.addRow(new MyRecord(r1.nextInt(), r1.nextLong(), null));
-      } else {
-        writer.addRow(new MyRecord(r1.nextInt(), r1.nextLong(),
-            words[r1.nextInt(words.length)]));
-      }
-    }
-
-    writer.close();
-    PrintStream origOut = System.out;
-    String outputFilename = "orc-file-dump.json";
-    FileOutputStream myOut = new FileOutputStream(workDir + File.separator + outputFilename);
-
-    // replace stdout and run command
-    System.setOut(new PrintStream(myOut));
-    FileDump.main(new String[]{testFilePath.toString(), "-j", "-p", "--rowindex=3"});
-    System.out.flush();
-    System.setOut(origOut);
-
-
-    checkOutput(outputFilename, workDir + File.separator + outputFilename);
-  }
 }

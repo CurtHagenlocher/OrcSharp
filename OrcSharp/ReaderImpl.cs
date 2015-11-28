@@ -31,10 +31,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
     public class ReaderImpl : Reader
     {
+        private static readonly Log LOG = LogFactory.getLog(typeof(ReaderImpl));
 
-        private static Log LOG = LogFactory.getLog(typeof(ReaderImpl));
-
-        private static int DIRECTORY_SIZE_GUESS = 16 * 1024;
+        private const int DIRECTORY_SIZE_GUESS = 16 * 1024;
 
         protected Stream baseStream;
         protected string path;

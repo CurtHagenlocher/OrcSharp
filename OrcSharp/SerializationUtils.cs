@@ -25,7 +25,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
     public class SerializationUtils
     {
-        private static int BUFFER_SIZE = 64;
+        private const int BUFFER_SIZE = 64;
         private byte[] readBuffer;
         private byte[] writeBuffer;
 

@@ -221,7 +221,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return metadata.readStripeFooter(stripe);
         }
 
-        enum Location
+        internal enum Location
         {
             BEFORE, MIN, MIDDLE, MAX, AFTER
         }
@@ -235,7 +235,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @param <T> the type of the comparision
          * @return the location of the point
          */
-        static Location compareToRange(IComparable point, object min, object max)
+        internal static Location compareToRange(IComparable point, object min, object max)
         {
             int minCompare = point.CompareTo(min);
             if (minCompare < 0)
@@ -264,7 +264,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          *          the index entry
          * @return the object for the maximum value or null if there isn't one
          */
-        static object getMax(ColumnStatistics index)
+        internal static object getMax(ColumnStatistics index)
         {
             if (index is IntegerColumnStatistics)
             {
@@ -313,7 +313,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          *          the index entry
          * @return the object for the minimum value or null if there isn't one
          */
-        static object getMin(ColumnStatistics index)
+        internal static object getMin(ColumnStatistics index)
         {
             if (index is IntegerColumnStatistics)
             {
@@ -365,7 +365,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @return the set of truth values that may be returned for the given
          *   predicate.
          */
-        static TruthValue evaluatePredicateProto(OrcProto.ColumnStatistics statsProto,
+        internal static TruthValue evaluatePredicateProto(OrcProto.ColumnStatistics statsProto,
             PredicateLeaf predicate, OrcProto.BloomFilter bloomFilter)
         {
             ColumnStatistics cs = ColumnStatisticsImpl.deserialize(statsProto);
@@ -387,7 +387,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @return the set of truth values that may be returned for the given
          *   predicate.
          */
-        static TruthValue evaluatePredicate(ColumnStatistics stats,
+        internal static TruthValue evaluatePredicate(ColumnStatistics stats,
             PredicateLeaf predicate, BloomFilter bloomFilter)
         {
             object minValue = getMin(stats);
@@ -751,7 +751,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     if (obj is IConvertible)
                     {
                         // widening conversion
-                        return ((IConvertible)obj).ToSingle(CultureInfo.InvariantCulture);
+                        return ((IConvertible)obj).ToDouble(CultureInfo.InvariantCulture);
                     }
                     else if (obj is HiveDecimal)
                     {
@@ -831,8 +831,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public class SargApplier
         {
-            public static bool[] READ_ALL_RGS = null;
-            public static bool[] READ_NO_RGS = new bool[0];
+            public static readonly bool[] READ_ALL_RGS = null;
+            public static readonly bool[] READ_NO_RGS = new bool[0];
 
             private SearchArgument sarg;
             private List<PredicateLeaf> sargLeaves;
@@ -1114,7 +1114,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @param compressionSize   the compression block size
          * @return the list of disk ranges that will be loaded
          */
-        static DiskRangeList planReadPartialDataStreams(
+        internal static DiskRangeList planReadPartialDataStreams(
             IList<OrcProto.Stream> streamList,
             OrcProto.RowIndex[] indexes,
             bool[] includedColumns,

@@ -39,7 +39,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * How often should we check the memory sizes? Measured in rows added
          * to all of the writers.
          */
-        private static int ROWS_BETWEEN_CHECKS = 5000;
+        private const int ROWS_BETWEEN_CHECKS = 5000;
         private long totalMemoryPool;
         private Dictionary<string, WriterInfo> writerList = new Dictionary<string, WriterInfo>();
         private long totalAllocation = 0;

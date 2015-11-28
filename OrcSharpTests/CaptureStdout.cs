@@ -18,17 +18,38 @@
 
 namespace org.apache.hadoop.hive.ql.io.orc
 {
-    using System.Linq;
-    using OrcProto = global::orc.proto;
+    using System;
+    using System.IO;
 
-    public static class BloomFilterIO
+    class CaptureStdout : IDisposable
     {
-        /**
-         * Initializes the BloomFilter from the given Orc BloomFilter
-         */
-        public static BloomFilter Create(OrcProto.BloomFilter bloomFilter)
+        private TextWriter original;
+        private Stream output;
+
+        public CaptureStdout(string path)
         {
-            return new BloomFilter(bloomFilter.BitsetList, (int)bloomFilter.NumHashFunctions);
+            original = System.Console.Out;
+            output = File.OpenWrite(path);
+            System.Console.SetOut(new StreamWriter(output));
+        }
+
+        public CaptureStdout(Stream stream)
+        {
+            original = System.Console.Out;
+            output = stream;
+            System.Console.SetOut(new StreamWriter(output));
+        }
+
+        public void Flush()
+        {
+            System.Console.Out.Flush();
+        }
+
+        void IDisposable.Dispose()
+        {
+            System.Console.Out.Flush();
+            System.Console.SetOut(original);
+            output.Close();
         }
     }
 }

@@ -104,7 +104,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @param rightB B's right point
          * @return Does region A overlap region B?
          */
-        static bool overlap(long leftA, long rightA, long leftB, long rightB)
+        internal static bool overlap(long leftA, long rightA, long leftB, long rightB)
         {
             if (leftA <= leftB)
             {
@@ -152,10 +152,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return isLast ? streamLength : Math.Min(streamLength, nextGroupOffset + slop);
         }
 
-        private static int BYTE_STREAM_POSITIONS = 1;
-        private static int RUN_LENGTH_BYTE_POSITIONS = BYTE_STREAM_POSITIONS + 1;
-        private static int BITFIELD_POSITIONS = RUN_LENGTH_BYTE_POSITIONS + 1;
-        private static int RUN_LENGTH_INT_POSITIONS = BYTE_STREAM_POSITIONS + 1;
+        private const int BYTE_STREAM_POSITIONS = 1;
+        private const int RUN_LENGTH_BYTE_POSITIONS = BYTE_STREAM_POSITIONS + 1;
+        private const int BITFIELD_POSITIONS = RUN_LENGTH_BYTE_POSITIONS + 1;
+        private const int RUN_LENGTH_INT_POSITIONS = BYTE_STREAM_POSITIONS + 1;
 
         /**
          * Get the offset in the index positions for the column that the given
@@ -238,7 +238,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         // for uncompressed streams, what is the most overlap with the following set
         // of rows (long vint literal group).
-        static int WORST_UNCOMPRESSED_SLOP = 2 + 8 * 512;
+        internal const int WORST_UNCOMPRESSED_SLOP = 2 + 8 * 512;
 
         /**
          * Is this stream part of a dictionary?

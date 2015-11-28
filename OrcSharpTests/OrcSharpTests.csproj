@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CaptureStdout.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestBitFieldReader.cs" />
@@ -73,13 +74,20 @@
     <Compile Include="TestDynamicArray.cs" />
     <Compile Include="TestFileDump.cs" />
     <Compile Include="TestInStream.cs" />
+    <Compile Include="TestIntegerCompressionReader.cs" />
+    <Compile Include="TestJsonFileDump.cs" />
     <Compile Include="TestMurmur3.cs" />
+    <Compile Include="TestNewIntegerEncoding.cs" />
     <Compile Include="TestOrcStruct.cs" />
+    <Compile Include="TestRecordReaderImpl.cs" />
+    <Compile Include="TestSearchArgumentImpl.cs" />
     <Compile Include="TestSerializationUtils.cs" />
     <Compile Include="TestStreamName.cs" />
     <Compile Include="TestStringRedBlackTree.cs" />
     <Compile Include="TestTypeDescription.cs" />
+    <Compile Include="TestUnrolledBitPack.cs" />
     <Compile Include="TestWriter.cs" />
+    <Compile Include="WithLocalDirectory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

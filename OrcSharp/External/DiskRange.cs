@@ -44,7 +44,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         public override bool Equals(object other)
         {
             DiskRange range = other as DiskRange;
-            if (range == null || other.GetType() != typeof(DiskRange))
+            if (range == null || other.GetType() != GetType())
             {
                 return false;
             }

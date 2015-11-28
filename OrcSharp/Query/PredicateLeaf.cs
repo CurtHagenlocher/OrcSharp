@@ -92,7 +92,25 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
     {
         public static Type getValueClass(this PredicateLeaf.Type type)
         {
-            throw new NotImplementedException();
+            switch (type)
+            {
+                case PredicateLeaf.Type.BOOLEAN:
+                    return typeof(bool);
+                case PredicateLeaf.Type.DATE:
+                    return typeof(DateTime);
+                case PredicateLeaf.Type.DECIMAL:
+                    return typeof(HiveDecimal);
+                case PredicateLeaf.Type.FLOAT:
+                    return typeof(double);
+                case PredicateLeaf.Type.LONG:
+                    return typeof(long);
+                case PredicateLeaf.Type.STRING:
+                    return typeof(string);
+                case PredicateLeaf.Type.TIMESTAMP:
+                    return typeof(DateTime);
+                default:
+                    throw new InvalidOperationException();
+            }
         }
     }
 }

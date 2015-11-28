@@ -22,11 +22,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System.IO;
     using System.Text;
 
+    // TODO: Replace with production-quality code
     class JsonWriter
     {
         private MemoryStream buffer;
         private TextWriter @out;
         private bool first = false;
+        private StringBuilder stack = new StringBuilder();
 
         public JsonWriter()
         {
@@ -36,19 +38,19 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public JsonWriter(TextWriter @out)
         {
-            // TODO: Complete member initialization
             this.@out = @out;
         }
 
         public void array()
         {
             @out.Write('[');
+            stack.Append('[');
             first = true;
         }
 
         public JsonWriter key(string value)
         {
-            First();
+            First(true);
             WriteQuotedString(value);
             @out.Write(':');
             return this;
@@ -56,17 +58,20 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public void endArray()
         {
+            stack.Remove(stack.Length - 1, 1);
             @out.Write(']');
         }
 
         public void newObject()
         {
             @out.Write('{');
+            stack.Append('{');
             first = true;
         }
 
         public void endObject()
         {
+            stack.Remove(stack.Length - 1, 1);
             @out.Write('}');
         }
 
@@ -113,9 +118,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return Encoding.UTF8.GetString(this.buffer.ToArray());
         }
 
-        private void First()
+        private void First(bool forKey = false)
         {
-            if (first)
+            if (stack[stack.Length - 1] == '{' && !forKey)
+            {
+            }
+            else if (first)
             {
                 first = false;
             }

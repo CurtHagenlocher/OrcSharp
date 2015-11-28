@@ -67,7 +67,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             this.description = description;
         }
 
-        internal static OrcConfDetails[] details = new OrcConfDetails[] {
+        internal static readonly OrcConfDetails[] details = new OrcConfDetails[] {
             new OrcConfDetails(OrcConf.STRIPE_SIZE, "orc.stripe.size", "hive.exec.orc.default.stripe.size",
                 64L * 1024 * 1024,
                 "Define the default ORC stripe size, in bytes." ),

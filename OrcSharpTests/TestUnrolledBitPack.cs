@@ -16,76 +16,68 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc {
+namespace org.apache.hadoop.hive.ql.io.orc
+{
     using System;
-using Xunit;
+    using System.Runtime.CompilerServices;
+    using org.apache.hadoop.hive.ql.io.orc.external;
+    using Xunit;
+    using System.IO;
 
-@RunWith(value = Parameterized.class)
-public class TestUnrolledBitPack {
+    public class TestUnrolledBitPack : WithLocalDirectory
+    {
+        const string testFileName = "TestUnrolledBitPack.orc";
 
-  private long val;
+        public TestUnrolledBitPack() : base(testFileName)
+        {
+        }
 
-  public TestUnrolledBitPack(long val) {
-    this.val = val;
-  }
+        [Theory]
+        [InlineData(-1L)]
+        [InlineData(1L)]
+        [InlineData(7L)]
+        [InlineData(-128L)]
+        [InlineData(32000L)]
+        [InlineData(8300000L)]
+        [InlineData((long)Int32.MaxValue)]
+        [InlineData(540000000000L)]
+        [InlineData(140000000000000L)]
+        [InlineData(36000000000000000L)]
+        [InlineData(Int64.MaxValue)]
+        public void testBitPacking(long val)
+        {
+            long[] input = new long[]
+            {
+                val, 0, val, val, 0, val, 0, val, val, 0, val, 0, val, val, 0, 0,
+                val, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val,
+                0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0,
+                0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0,
+                val, 0, val, 0, 0, val, 0, val, 0, 0, val, val
+            };
 
-  @Parameters
-  public static Collection<object[]> data() {
-    object[][] data = new object[][] { { -1 }, { 1 }, { 7 }, { -128 }, { 32000 }, { 8300000 },
-        { Int32.MaxValue }, { 540000000000L }, { 140000000000000L }, { 36000000000000000L },
-        { Int64.MaxValue } };
-    return Arrays.asList(data);
-  }
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(long));
+            using (Stream file = File.OpenWrite(testFilePath))
+            {
+                Writer writer = OrcFile.createWriter(
+                    testFilePath,
+                    file,
+                    OrcFile.writerOptions(conf).inspector(inspector).stripeSize(100000)
+                        .compress(CompressionKind.NONE).bufferSize(10000));
+                foreach (long l in input)
+                {
+                    writer.addRow(l);
+                }
+                writer.close();
+            }
 
-  Path workDir = new Path(System.getProperty("test.tmp.dir", "target" + File.separator + "test"
-      + File.separator + "tmp"));
-
-  Configuration conf;
-  FileSystem fs;
-  Path testFilePath;
-
-  @Rule
-  public TestName testCaseName = new TestName();
-
-  @Before
-  public void openFileSystem()  {
-    conf = new Configuration();
-    fs = FileSystem.getLocal(conf);
-    testFilePath = new Path(workDir, "TestOrcFile." + testCaseName.getMethodName() + ".orc");
-    fs.delete(testFilePath, false);
-  }
-
-  [Fact]
-  public void testBitPacking()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Long.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            RecordReader rows = reader.rows();
+            int idx = 0;
+            while (rows.hasNext())
+            {
+                object row = rows.next(null);
+                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+            }
+        }
     }
-
-    long[] inp = new long[] { val, 0, val, val, 0, val, 0, val, val, 0, val, 0, val, val, 0, 0,
-        val, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val,
-        0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0,
-        0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0, val, 0, val, 0, 0, val, 0,
-        val, 0, val, 0, 0, val, 0, val, 0, 0, val, val };
-    List<Long> input = Lists.newArrayList(Longs.asList(inp));
-
-    Writer writer = OrcFile.createWriter(
-        testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).stripeSize(100000)
-            .compress(CompressionKind.NONE).bufferSize(10000));
-    for (Long l : input) {
-      writer.addRow(l);
-    }
-    writer.close();
-
-    Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf).filesystem(fs));
-    RecordReader rows = reader.rows();
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Assert.Equal(input.get(idx++).longValue(), ((LongWritable) row).get());
-    }
-  }
-
 }

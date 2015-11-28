@@ -684,8 +684,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     bloomFilterEntry = OrcProto.BloomFilter.CreateBuilder();
                     bloomFilterIndex = OrcProto.BloomFilterIndex.CreateBuilder();
                     bloomFilterStream = streamFactory.createStream(id, OrcProto.Stream.Types.Kind.BLOOM_FILTER);
-                    bloomFilter = BloomFilterIO.Create(streamFactory.getRowIndexStride(),
-                        streamFactory.getBloomFilterFPP());
+                    bloomFilter = new BloomFilter(streamFactory.getRowIndexStride(), streamFactory.getBloomFilterFPP());
                 }
                 else
                 {
@@ -1215,7 +1214,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private class StringTreeWriter : TreeWriter
         {
-            private static int INITIAL_DICTIONARY_SIZE = 4096;
+            private const int INITIAL_DICTIONARY_SIZE = 4096;
             private OutStream stringOutput;
             private IntegerWriter lengthOutput;
             private IntegerWriter rowOutput;

@@ -31,7 +31,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
      */
     public static class FileDump
     {
-        public static readonly string UNKNOWN = "UNKNOWN";
+        public const string UNKNOWN = "UNKNOWN";
 
         public static void Main(string[] args)
         {
@@ -307,7 +307,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             sb.AppendFormat(" numHashFunctions: {0}", k);
             sb.AppendFormat(" bitCount: {0}", bitCount);
             sb.AppendFormat(" popCount: {0}", popCount);
-            sb.AppendFormat(" loadFactor: {0:00.0000", loadFactor);
+            sb.AppendFormat(" loadFactor: {0:00.0000}", loadFactor);
             sb.AppendFormat(" expectedFpp: {0}", expectedFpp);
             return sb.ToString();
         }

@@ -19,6 +19,7 @@
 namespace org.apache.hadoop.hive.ql.io.orc
 {
     using System;
+    using org.apache.hadoop.hive.ql.io.orc.external;
     using Xunit;
 
     public class TestIntegerCompressionReader
@@ -32,9 +33,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 new TestInStream.PositionCollector[4096];
             Random random = new Random(99);
             int[] junk = new int[2048];
-            for (int i = 0; i < junk.length; ++i)
+            for (int i = 0; i < junk.Length; ++i)
             {
-                junk[i] = random.nextInt();
+                junk[i] = random.Next();
             }
             for (int i = 0; i < 4096; ++i)
             {
@@ -104,11 +105,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             runSeekTest(null);
         }
 
+#if COMPRESSION
         [Fact]
         public void testCompressedSeek()
         {
             runSeekTest(new ZlibCodec());
         }
+#endif
 
         [Fact]
         public void testSkips()

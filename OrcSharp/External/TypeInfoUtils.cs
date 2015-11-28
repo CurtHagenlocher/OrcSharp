@@ -19,6 +19,7 @@
 namespace org.apache.hadoop.hive.ql.io.orc.external
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
@@ -35,8 +36,8 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         // are common/convertible to one another. Probably better to rely on the
         // ordering explicitly defined here than to assume that the enum values
         // that were arbitrarily assigned in PrimitiveCategory work for our purposes.
-        public static Dictionary<PrimitiveCategory, int> numericTypes =
-            new Dictionary<PrimitiveCategory, int>();
+        public static ConcurrentDictionary<PrimitiveCategory, int> numericTypes =
+            new ConcurrentDictionary<PrimitiveCategory, int>();
 
         static TypeInfoUtils()
         {
@@ -978,7 +979,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         public static void registerNumericType(PrimitiveCategory primitiveCategory, int level)
         {
             numericTypeList.Add(primitiveCategory);
-            numericTypes.Add(primitiveCategory, level);
+            numericTypes.AddOrUpdate(primitiveCategory, v => level, (v, x) => x);
         }
 
         public static bool implicitConvertible(PrimitiveCategory from, PrimitiveCategory to)
@@ -1072,7 +1073,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             return false;
         }
 
-        class ConcurrentHashMap<K, V> : Dictionary<K, V>
+        class ConcurrentHashMap<K, V> : ConcurrentDictionary<K, V>
         {
             internal ObjectInspector putIfAbsent(TypeInfo typeInfo, ObjectInspector result)
             {
