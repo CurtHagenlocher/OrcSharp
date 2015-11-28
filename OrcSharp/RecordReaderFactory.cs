@@ -172,8 +172,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private static IList<OrcProto.Type> getSchemaOnRead(int numCols, Configuration conf)
         {
-            String columnTypeProperty = conf.get(serdeConstants.LIST_COLUMN_TYPES);
-            String columnNameProperty = conf.get(serdeConstants.LIST_COLUMNS);
+            string columnTypeProperty = conf.get(serdeConstants.LIST_COLUMN_TYPES);
+            string columnNameProperty = conf.get(serdeConstants.LIST_COLUMNS);
             if (columnTypeProperty == null || columnNameProperty == null)
             {
                 return null;

@@ -29,7 +29,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
         {
             return new SearchArgumentImpl.BuilderImpl();
         }
-        public static void setPredicateLeafColumn(PredicateLeaf leaf, String newName)
+        public static void setPredicateLeafColumn(PredicateLeaf leaf, string newName)
         {
             SearchArgumentImpl.PredicateLeafImpl.setColumnName(leaf, newName);
         }

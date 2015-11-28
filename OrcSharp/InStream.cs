@@ -178,7 +178,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                   desired + " is outside of the data");
             }
 
-            public override String ToString()
+            public override string ToString()
             {
                 return "uncompressed stream " + name + " position: " + currentOffset +
                     " length: " + length + " range: " + currentRange +
@@ -450,7 +450,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 throw new IOException("Seek outside of data in " + this + " to " + desired);
             }
 
-            private String rangeString()
+            private string rangeString()
             {
                 StringBuilder builder = new StringBuilder();
                 int i = 0;
@@ -467,7 +467,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return builder.ToString();
             }
 
-            public override String ToString()
+            public override string ToString()
             {
                 return "compressed stream " + name + " position: " + currentOffset +
                     " length: " + length + " range: " + currentRange +
@@ -481,7 +481,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public abstract void seek(PositionProvider index);
 
-        private static void logEmptySeek(String name)
+        private static void logEmptySeek(string name)
         {
             if (LOG.isWarnEnabled())
             {
@@ -505,7 +505,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         // VisibleForTesting
         [Obsolete]
         internal static InStream create(long? fileId,
-                                String streamName,
+                                string streamName,
                                 ByteBuffer[] buffers,
                                 long[] offsets,
                                 long length,

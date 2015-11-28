@@ -17,6 +17,7 @@
  */
 namespace org.apache.hadoop.hive.ql.io.orc
 {
+    using org.apache.hadoop.hive.ql.io.orc.external;
     using Xunit;
 
     public class TestRunLengthByteReader
@@ -46,8 +47,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ByteBuffer inBuf = ByteBuffer.allocate(collect.buffer.size());
             collect.buffer.setByteBuffer(inBuf, 0, collect.buffer.size());
             inBuf.flip();
+#pragma warning disable 612
             RunLengthByteReader @in = new RunLengthByteReader(InStream.create(null, "test",
                 new ByteBuffer[] { inBuf }, new long[] { 0 }, inBuf.remaining(), null, 100));
+#pragma warning restore 612
             for (int i = 0; i < 2048; ++i)
             {
                 int x = @in.next() & 0xff;
@@ -75,6 +78,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
+#if COMPRESSION
         [Fact]
         public void testCompressedSeek()
         {
@@ -129,6 +133,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 }
             }
         }
+#endif
 
         [Fact]
         public void testSkips()
@@ -151,8 +156,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ByteBuffer inBuf = ByteBuffer.allocate(collect.buffer.size());
             collect.buffer.setByteBuffer(inBuf, 0, collect.buffer.size());
             inBuf.flip();
+#pragma warning disable 612
             RunLengthByteReader @in = new RunLengthByteReader(InStream.create(null, "test",
                 new ByteBuffer[] { inBuf }, new long[] { 0 }, inBuf.remaining(), null, 100));
+#pragma warning restore 612
             for (int i = 0; i < 2048; i += 10)
             {
                 int x = @in.next() & 0xff;

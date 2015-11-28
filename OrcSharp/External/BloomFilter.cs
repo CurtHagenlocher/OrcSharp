@@ -261,7 +261,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return bitSet.getData();
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "m: " + numBits + " k: " + numHashFunctions;
         }

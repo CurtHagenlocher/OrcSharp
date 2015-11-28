@@ -24,13 +24,27 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
     using System.Text;
     using System.Threading.Tasks;
 
-    public class Text
+    sealed public class Text
     {
-        string value;
+        private string value;
 
         internal static string decode(byte[] array, int offset, int len)
         {
             return Encoding.UTF8.GetString(array, offset, len);
+        }
+
+        public Text() : this(string.Empty)
+        {
+        }
+
+        public Text(string value)
+        {
+            this.value = value;
+        }
+
+        public Text(Text value)
+        {
+            this.value = value.value;
         }
 
         public string Value
@@ -58,6 +72,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         internal void set(string value)
         {
             this.value = value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Text && value == ((Text)obj).value;
         }
     }
 }

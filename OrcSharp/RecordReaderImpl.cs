@@ -530,7 +530,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         // for a single value, look through to see if that value is in the
                         // set
-                        foreach (Object arg in predicate.getLiteralList())
+                        foreach (object arg in predicate.getLiteralList())
                         {
                             predObj = getBaseObjectForComparison(predicate.getType(), arg);
                             loc = compareToRange((IComparable)predObj, minValue, maxValue);
@@ -544,7 +544,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     else
                     {
                         // are all of the values outside of the range?
-                        foreach (Object arg in predicate.getLiteralList())
+                        foreach (object arg in predicate.getLiteralList())
                         {
                             predObj = getBaseObjectForComparison(predicate.getType(), arg);
                             loc = compareToRange((IComparable)predObj, minValue, maxValue);
@@ -557,13 +557,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
                         return hasNull ? TruthValue.NO_NULL : TruthValue.NO;
                     }
                 case PredicateLeaf.Operator.BETWEEN:
-                    List<Object> args = predicate.getLiteralList();
-                    Object predObj1 = getBaseObjectForComparison(predicate.getType(), args[0]);
+                    List<object> args = predicate.getLiteralList();
+                    object predObj1 = getBaseObjectForComparison(predicate.getType(), args[0]);
 
                     loc = compareToRange((IComparable)predObj1, minValue, maxValue);
                     if (loc == Location.BEFORE || loc == Location.MIN)
                     {
-                        Object predObj2 = getBaseObjectForComparison(predicate.getType(), args[1]);
+                        object predObj2 = getBaseObjectForComparison(predicate.getType(), args[1]);
 
                         Location loc2 = compareToRange((IComparable)predObj2, minValue, maxValue);
                         if (loc2 == Location.AFTER || loc2 == Location.MAX)
@@ -609,7 +609,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     foreach (object arg in predicate.getLiteralList())
                     {
                         // if atleast one value in IN list exist in bloom filter, qualify the row group/stripe
-                        Object predObjItem = getBaseObjectForComparison(predicate.getType(), arg);
+                        object predObjItem = getBaseObjectForComparison(predicate.getType(), arg);
                         TruthValue result = checkInBloomFilter(bloomFilter, predObjItem, hasNull);
                         if (result == TruthValue.YES_NO_NULL || result == TruthValue.YES_NO)
                         {
@@ -1284,11 +1284,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return true;
         }
 
-        public Object next(Object previous)
+        public object next(object previous)
         {
             try
             {
-                Object result = reader.next(previous);
+                object result = reader.next(previous);
                 // find the next row
                 rowInStripe++;
                 advanceToNextRow(reader, rowInStripe + rowBaseInStripe, true);
@@ -1484,23 +1484,22 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private const char TRANSLATED_SARG_SEPARATOR = '_';
 
-        public static String encodeTranslatedSargColumn(int rootColumn, int? indexInSourceTable)
+        public static string encodeTranslatedSargColumn(int rootColumn, int? indexInSourceTable)
         {
             return rootColumn + TRANSLATED_SARG_SEPARATOR
                 + ((indexInSourceTable == null) ? -1 : indexInSourceTable.Value).ToString();
         }
 
-        public static int[] mapTranslatedSargColumns(
-            List<OrcProto.Type> types, List<PredicateLeaf> sargLeaves)
+        public static int[] mapTranslatedSargColumns(List<OrcProto.Type> types, List<PredicateLeaf> sargLeaves)
         {
             int[] result = new int[sargLeaves.Count];
             OrcProto.Type lastRoot = null; // Root will be the same for everyone as of now.
-            String lastRootStr = null;
+            string lastRootStr = null;
             for (int i = 0; i < result.Length; ++i)
             {
-                String[] rootAndIndex = sargLeaves[i].getColumnName().Split(TRANSLATED_SARG_SEPARATOR);
+                string[] rootAndIndex = sargLeaves[i].getColumnName().Split(TRANSLATED_SARG_SEPARATOR);
                 Debug.Assert(rootAndIndex.Length == 2);
-                String rootStr = rootAndIndex[0], indexStr = rootAndIndex[1];
+                string rootStr = rootAndIndex[0], indexStr = rootAndIndex[1];
                 int index = Int32.Parse(indexStr);
                 // First, check if the column even maps to anything.
                 if (index == -1)

@@ -174,7 +174,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         StructTypeInfo sinfo = (StructTypeInfo)info;
                         TypeDescription result = TypeDescription.createStruct();
-                        foreach (String fieldName in sinfo.getAllStructFieldNames())
+                        foreach (string fieldName in sinfo.getAllStructFieldNames())
                         {
                             result.addField(fieldName,
                                 convertTypeInfo(sinfo.getStructFieldTypeInfo(fieldName)));

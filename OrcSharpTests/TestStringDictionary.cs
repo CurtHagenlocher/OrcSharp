@@ -15,228 +15,242 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace org.apache.hadoop.hive.ql.io.orc {
+namespace org.apache.hadoop.hive.ql.io.orc
+{
+    using System;
     using System.IO;
+    using org.apache.hadoop.hive.ql.io.orc.external;
     using Xunit;
+    using OrcProto = global::orc.proto;
 
-public class TestStringDictionary {
+    public class TestStringDictionary : WithLocalDirectory
+    {
+        const string testFileName = "TestFileDump.orc";
 
-  Path workDir = new Path(System.getProperty("test.tmp.dir", "target" + File.separator + "test"
-      + File.separator + "tmp"));
+        public TestStringDictionary() : base(testFileName)
+        {
+        }
 
-  Configuration conf;
-  FileSystem fs;
-  Path testFilePath;
+        [Fact]
+        public void testTooManyDistinct()
+        {
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(string));
 
-  [Rule]
-  public TestName testCaseName = new TestName();
+            using (Stream file = File.OpenWrite(testFilePath))
+            {
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(10000));
+                for (int i = 0; i < 20000; i++)
+                {
+                    writer.addRow(i.ToString());
+                }
+                writer.close();
+            }
 
-  [Before]
-  public void openFileSystem()  {
-    conf = new Configuration();
-    fs = FileSystem.getLocal(conf);
-    testFilePath = new Path(workDir, "TestOrcFile." + testCaseName.getMethodName() + ".orc");
-    fs.delete(testFilePath, false);
-  }
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            RecordReader rows = reader.rows();
+            int idx = 0;
+            while (rows.hasNext())
+            {
+                object row = rows.next(null);
+                Assert.Equal(new Text((idx++).ToString()), row);
+            }
 
-  [Fact]
-  public void testTooManyDistinct()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Text.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+            // make sure the encoding type is correct
+            foreach (StripeInformation stripe in reader.getStripes())
+            {
+                // hacky but does the job, this casting will work as long this test resides
+                // within the same package as ORC reader
+                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                for (int i = 0; i < footer.ColumnsCount; ++i)
+                {
+                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DIRECT_V2, encoding.Kind);
+                }
+            }
+        }
+
+        [Fact]
+        public void testHalfDistinct()
+        {
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(string));
+            int[] input = new int[20000];
+
+            using (Stream file = File.OpenWrite(testFilePath))
+            {
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(10000));
+                Random rand = new Random(123);
+                for (int i = 0; i < 20000; i++)
+                {
+                    input[i] = rand.Next(10000);
+                }
+
+                for (int i = 0; i < 20000; i++)
+                {
+                    writer.addRow(input[i].ToString());
+                }
+                writer.close();
+            }
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            RecordReader rows = reader.rows();
+            int idx = 0;
+            while (rows.hasNext())
+            {
+                object row = rows.next(null);
+                Assert.Equal(new Text(input[idx++].ToString()), row);
+            }
+
+            // make sure the encoding type is correct
+            foreach (StripeInformation stripe in reader.getStripes())
+            {
+                // hacky but does the job, this casting will work as long this test resides
+                // within the same package as ORC reader
+                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                for (int i = 0; i < footer.ColumnsCount; ++i)
+                {
+                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2, encoding.Kind);
+                }
+            }
+        }
+
+        [Fact]
+        public void testTooManyDistinctCheckDisabled()
+        {
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(string));
+
+            // conf.setBoolean(ConfVars.HIVE_ORC_ROW_INDEX_STRIDE_DICTIONARY_CHECK.varname, false);
+            using (Stream file = File.OpenWrite(testFilePath))
+            {
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(10000));
+                for (int i = 0; i < 20000; i++)
+                {
+                    writer.addRow(i.ToString());
+                }
+                writer.close();
+            }
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            RecordReader rows = reader.rows();
+            int idx = 0;
+            while (rows.hasNext())
+            {
+                object row = rows.next(null);
+                Assert.Equal(new Text((idx++).ToString()), row);
+            }
+
+            // make sure the encoding type is correct
+            foreach (StripeInformation stripe in reader.getStripes())
+            {
+                // hacky but does the job, this casting will work as long this test resides
+                // within the same package as ORC reader
+                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                for (int i = 0; i < footer.ColumnsCount; ++i)
+                {
+                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DIRECT_V2, encoding.Kind);
+                }
+            }
+        }
+
+        [Fact]
+        public void testHalfDistinctCheckDisabled()
+        {
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(string));
+            int[] input = new int[20000];
+
+            // conf.setBoolean(ConfVars.HIVE_ORC_ROW_INDEX_STRIDE_DICTIONARY_CHECK.varname, false);
+            using (Stream file = File.OpenWrite(testFilePath))
+            {
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(10000));
+                Random rand = new Random(123);
+                for (int i = 0; i < 20000; i++)
+                {
+                    input[i] = rand.Next(10000);
+                }
+
+                for (int i = 0; i < 20000; i++)
+                {
+                    writer.addRow(input[i].ToString());
+                }
+                writer.close();
+            }
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            RecordReader rows = reader.rows();
+            int idx = 0;
+            while (rows.hasNext())
+            {
+                object row = rows.next(null);
+                Assert.Equal(new Text(input[idx++].ToString()), row);
+            }
+
+            // make sure the encoding type is correct
+            foreach (StripeInformation stripe in reader.getStripes())
+            {
+                // hacky but does the job, this casting will work as long this test resides
+                // within the same package as ORC reader
+                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                for (int i = 0; i < footer.ColumnsCount; ++i)
+                {
+                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2, encoding.Kind);
+                }
+            }
+        }
+
+        [Fact]
+        public void testTooManyDistinctV11AlwaysDictionary()
+        {
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(string));
+
+            using (Stream file = File.OpenWrite(testFilePath))
+            {
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .compress(CompressionKind.NONE)
+                    .version(OrcFile.Version.V_0_11)
+                    .bufferSize(10000));
+                for (int i = 0; i < 20000; i++)
+                {
+                    writer.addRow(i.ToString());
+                }
+                writer.close();
+            }
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            RecordReader rows = reader.rows();
+            int idx = 0;
+            while (rows.hasNext())
+            {
+                object row = rows.next(null);
+                Assert.Equal(new Text((idx++).ToString()), row);
+            }
+
+            // make sure the encoding type is correct
+            foreach (StripeInformation stripe in reader.getStripes())
+            {
+                // hacky but does the job, this casting will work as long this test resides
+                // within the same package as ORC reader
+                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                for (int i = 0; i < footer.ColumnsCount; ++i)
+                {
+                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY, encoding.Kind);
+                }
+            }
+        }
     }
-
-    Writer writer = OrcFile.createWriter(
-        testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).compress(CompressionKind.NONE)
-            .bufferSize(10000));
-    for (int i = 0; i < 20000; i++) {
-      writer.addRow(new Text(String.valueOf(i)));
-    }
-    writer.close();
-
-    Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf).filesystem(fs));
-    RecordReader rows = reader.rows();
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Assert.Equal(new Text(String.valueOf(idx++)), row);
-    }
-
-    // make sure the encoding type is correct
-    for (StripeInformation stripe : reader.getStripes()) {
-      // hacky but does the job, this casting will work as long this test resides
-      // within the same package as ORC reader
-      OrcProto.StripeFooter footer = ((RecordReaderImpl) rows).readStripeFooter(stripe);
-      for (int i = 0; i < footer.getColumnsCount(); ++i) {
-        OrcProto.ColumnEncoding encoding = footer.getColumns(i);
-        Assert.Equal(OrcProto.ColumnEncoding.Kind.DIRECT_V2, encoding.getKind());
-      }
-    }
-  }
-
-  [Fact]
-  public void testHalfDistinct()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Text.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-    }
-
-    Writer writer = OrcFile.createWriter(
-        testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).compress(CompressionKind.NONE)
-            .bufferSize(10000));
-    Random rand = new Random(123);
-    int[] input = new int[20000];
-    for (int i = 0; i < 20000; i++) {
-      input[i] = rand.nextInt(10000);
-    }
-
-    for (int i = 0; i < 20000; i++) {
-      writer.addRow(new Text(String.valueOf(input[i])));
-    }
-    writer.close();
-
-    Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf).filesystem(fs));
-    RecordReader rows = reader.rows();
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Assert.Equal(new Text(String.valueOf(input[idx++])), row);
-    }
-
-    // make sure the encoding type is correct
-    for (StripeInformation stripe : reader.getStripes()) {
-      // hacky but does the job, this casting will work as long this test resides
-      // within the same package as ORC reader
-      OrcProto.StripeFooter footer = ((RecordReaderImpl) rows).readStripeFooter(stripe);
-      for (int i = 0; i < footer.getColumnsCount(); ++i) {
-        OrcProto.ColumnEncoding encoding = footer.getColumns(i);
-        Assert.Equal(OrcProto.ColumnEncoding.Kind.DICTIONARY_V2, encoding.getKind());
-      }
-    }
-  }
-
-  [Fact]
-  public void testTooManyDistinctCheckDisabled()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Text.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-    }
-
-    conf.setBoolean(ConfVars.HIVE_ORC_ROW_INDEX_STRIDE_DICTIONARY_CHECK.varname, false);
-    Writer writer = OrcFile.createWriter(
-        testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).compress(CompressionKind.NONE)
-            .bufferSize(10000));
-    for (int i = 0; i < 20000; i++) {
-      writer.addRow(new Text(String.valueOf(i)));
-    }
-    writer.close();
-
-    Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf).filesystem(fs));
-    RecordReader rows = reader.rows();
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Assert.Equal(new Text(String.valueOf(idx++)), row);
-    }
-
-    // make sure the encoding type is correct
-    for (StripeInformation stripe : reader.getStripes()) {
-      // hacky but does the job, this casting will work as long this test resides
-      // within the same package as ORC reader
-      OrcProto.StripeFooter footer = ((RecordReaderImpl) rows).readStripeFooter(stripe);
-      for (int i = 0; i < footer.getColumnsCount(); ++i) {
-        OrcProto.ColumnEncoding encoding = footer.getColumns(i);
-        Assert.Equal(OrcProto.ColumnEncoding.Kind.DIRECT_V2, encoding.getKind());
-      }
-    }
-  }
-
-  [Fact]
-  public void testHalfDistinctCheckDisabled()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Text.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-    }
-
-    conf.setBoolean(ConfVars.HIVE_ORC_ROW_INDEX_STRIDE_DICTIONARY_CHECK.varname, false);
-    Writer writer = OrcFile.createWriter(
-        testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).compress(CompressionKind.NONE)
-            .bufferSize(10000));
-    Random rand = new Random(123);
-    int[] input = new int[20000];
-    for (int i = 0; i < 20000; i++) {
-      input[i] = rand.nextInt(10000);
-    }
-
-    for (int i = 0; i < 20000; i++) {
-      writer.addRow(new Text(String.valueOf(input[i])));
-    }
-    writer.close();
-
-    Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf).filesystem(fs));
-    RecordReader rows = reader.rows();
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Assert.Equal(new Text(String.valueOf(input[idx++])), row);
-    }
-
-    // make sure the encoding type is correct
-    for (StripeInformation stripe : reader.getStripes()) {
-      // hacky but does the job, this casting will work as long this test resides
-      // within the same package as ORC reader
-      OrcProto.StripeFooter footer = ((RecordReaderImpl) rows).readStripeFooter(stripe);
-      for (int i = 0; i < footer.getColumnsCount(); ++i) {
-        OrcProto.ColumnEncoding encoding = footer.getColumns(i);
-        Assert.Equal(OrcProto.ColumnEncoding.Kind.DICTIONARY_V2, encoding.getKind());
-      }
-    }
-  }
-
-  [Fact]
-  public void testTooManyDistinctV11AlwaysDictionary()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Text.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-    }
-
-    Writer writer = OrcFile.createWriter(
-        testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).compress(CompressionKind.NONE)
-            .version(Version.V_0_11).bufferSize(10000));
-    for (int i = 0; i < 20000; i++) {
-      writer.addRow(new Text(String.valueOf(i)));
-    }
-    writer.close();
-
-    Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf).filesystem(fs));
-    RecordReader rows = reader.rows();
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Assert.Equal(new Text(String.valueOf(idx++)), row);
-    }
-
-    // make sure the encoding type is correct
-    for (StripeInformation stripe : reader.getStripes()) {
-      // hacky but does the job, this casting will work as long this test resides
-      // within the same package as ORC reader
-      OrcProto.StripeFooter footer = ((RecordReaderImpl) rows).readStripeFooter(stripe);
-      for (int i = 0; i < footer.getColumnsCount(); ++i) {
-        OrcProto.ColumnEncoding encoding = footer.getColumns(i);
-        Assert.Equal(OrcProto.ColumnEncoding.Kind.DICTIONARY, encoding.getKind());
-      }
-    }
-
-  }
-
 }

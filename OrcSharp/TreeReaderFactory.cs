@@ -1078,7 +1078,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 base_timestamp = getBaseTimestamp(stripeFooter.WriterTimezone);
             }
 
-            private long getBaseTimestamp(String timeZoneId)
+            private long getBaseTimestamp(string timeZoneId)
             {
                 // to make sure new readers read old files in the same way
                 if (string.IsNullOrEmpty(timeZoneId))
@@ -1186,7 +1186,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 }
 
                 result.reset();
-                Object obj = null;
+                object obj = null;
                 for (int i = 0; i < batchSize; i++)
                 {
                     obj = next(obj);
@@ -2368,9 +2368,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
                         result = (OrcUnion)previous;
                     }
                     byte tag = tags.next();
-                    Object previousVal = result.getObject();
-                    result.set(tag, fields[tag].next(tag == result.getTag() ?
-                        previousVal : null));
+                    object previousVal = result.getObject();
+                    result.set(tag, fields[tag].next(tag == result.getTag() ? previousVal : null));
                 }
                 return result;
             }
@@ -2381,9 +2380,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     "NextVector is not supported operation for Union type");
             }
 
-            public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+            public override void startStripe(
+                Dictionary<StreamName, InStream> streams,
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 tags = new RunLengthByteReader(streams.get(new StreamName(columnId,

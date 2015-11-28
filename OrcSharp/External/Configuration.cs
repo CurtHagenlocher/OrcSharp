@@ -36,6 +36,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         {
             return null;
         }
+
+        internal void set(string v, string sargStr)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class Properties

@@ -248,8 +248,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param literal the literal
              * @return this
              */
-            Builder lessThan(String column, PredicateLeaf.Type type,
-                                    Object literal);
+            Builder lessThan(string column, PredicateLeaf.Type type, object literal);
 
             /**
              * Add a less than equals leaf to the current item on the stack.
@@ -258,8 +257,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param literal the literal
              * @return this
              */
-            Builder lessThanEquals(String column, PredicateLeaf.Type type,
-                                          Object literal);
+            Builder lessThanEquals(string column, PredicateLeaf.Type type, object literal);
 
             /**
              * Add an equals leaf to the current item on the stack.
@@ -268,8 +266,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param literal the literal
              * @return this
              */
-            Builder equals(String column, PredicateLeaf.Type type,
-                                  Object literal);
+            Builder equals(string column, PredicateLeaf.Type type, object literal);
 
             /**
              * Add a null safe equals leaf to the current item on the stack.
@@ -278,8 +275,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param literal the literal
              * @return this
              */
-            Builder nullSafeEquals(String column, PredicateLeaf.Type type,
-                                          Object literal);
+            Builder nullSafeEquals(string column, PredicateLeaf.Type type, object literal);
 
             /**
              * Add an in leaf to the current item on the stack.
@@ -288,8 +284,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param literal the literal
              * @return this
              */
-            Builder @in(String column, PredicateLeaf.Type type,
-                              params object[] literal);
+            Builder @in(string column, PredicateLeaf.Type type, params object[] literal);
 
             /**
              * Add an is null leaf to the current item on the stack.
@@ -297,7 +292,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param type the type of the expression
              * @return this
              */
-            Builder isNull(String column, PredicateLeaf.Type type);
+            Builder isNull(string column, PredicateLeaf.Type type);
 
             /**
              * Add a between leaf to the current item on the stack.
@@ -307,8 +302,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
              * @param upper the literal
              * @return this
              */
-            Builder between(String column, PredicateLeaf.Type type,
-                                   Object lower, Object upper);
+            Builder between(string column, PredicateLeaf.Type type, object lower, object upper);
 
             /**
              * Add a truth value to the expression.

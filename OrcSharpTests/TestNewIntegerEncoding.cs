@@ -168,7 +168,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -203,7 +203,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -238,7 +238,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -273,7 +273,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -308,7 +308,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -345,7 +345,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -382,7 +382,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -419,7 +419,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -453,7 +453,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -488,7 +488,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -523,7 +523,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -558,7 +558,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -598,7 +598,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -637,7 +637,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -686,7 +686,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -735,7 +735,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -784,7 +784,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -824,7 +824,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -865,7 +865,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -906,7 +906,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -946,7 +946,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -986,7 +986,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -1026,7 +1026,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -1066,7 +1066,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -1106,7 +1106,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -1148,7 +1148,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -1202,7 +1202,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -1260,7 +1260,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
@@ -1329,7 +1329,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(tslist[idx++].getNanos(),
                       ((TimestampWritable)((OrcStruct)row).getFieldValue(0)).getNanos());
             }
@@ -1410,7 +1410,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             rows.seekToRow(idx);
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }

@@ -492,10 +492,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
                         printUnion(writer, (OrcUnion)obj, types, type);
                         break;
                     case OrcProto.Type.Types.Kind.LIST:
-                        printList(writer, (List<Object>)obj, types, type);
+                        printList(writer, (List<object>)obj, types, type);
                         break;
                     case OrcProto.Type.Types.Kind.MAP:
-                        printMap(writer, (Dictionary<Object, Object>)obj, types, type);
+                        printMap(writer, (Dictionary<object, object>)obj, types, type);
                         break;
                     case OrcProto.Type.Types.Kind.BYTE:
                         writer.value(((StrongBox<byte>)obj).Value);

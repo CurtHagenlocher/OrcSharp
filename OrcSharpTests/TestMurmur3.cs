@@ -29,11 +29,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
      */
     public class TestMurmur3
     {
-#if FALSE
+#if false
         [Fact]
         public void testHashCodesM3_32_string()
         {
-            String key = "test";
+            string key = "test";
             int seed = 123;
             HashFunction hf = Hashing.murmur3_32(seed);
             int hc1 = hf.hashBytes(key.getBytes()).asInt();
@@ -97,7 +97,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         [Fact]
         public void testHashCodesM3_128_string()
         {
-            String key = "test";
+            string key = "test";
             int seed = 123;
             HashFunction hf = Hashing.murmur3_128(seed);
             // guava stores the hashcodes in little endian order
@@ -156,7 +156,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(305830725663368540L, hash);
         }
 
-#if FALSE
+#if false
         [Fact]
         public void testHashCodesM3_128_ints()
         {

@@ -368,10 +368,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public void testBloomFilterString()
         {
             BloomFilter bf = new BloomFilter(100000);
-            String val = "bloo";
-            String val1 = "bloom fil";
-            String val2 = "bloom filter";
-            String val3 = "cuckoo filter";
+            string val = "bloo";
+            string val1 = "bloom fil";
+            string val2 = "bloom filter";
+            string val3 = "cuckoo filter";
 
             Assert.Equal(false, bf.testString(val));
             Assert.Equal(false, bf.testString(val1));
@@ -416,20 +416,20 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public void testMerge()
         {
             BloomFilter bf = new BloomFilter(10000);
-            String val = "bloo";
-            String val1 = "bloom fil";
-            String val2 = "bloom filter";
-            String val3 = "cuckoo filter";
+            string val = "bloo";
+            string val1 = "bloom fil";
+            string val2 = "bloom filter";
+            string val3 = "cuckoo filter";
             bf.addString(val);
             bf.addString(val1);
             bf.addString(val2);
             bf.addString(val3);
 
             BloomFilter bf2 = new BloomFilter(10000);
-            String v = "2_bloo";
-            String v1 = "2_bloom fil";
-            String v2 = "2_bloom filter";
-            String v3 = "2_cuckoo filter";
+            string v = "2_bloo";
+            string v1 = "2_bloom fil";
+            string v2 = "2_bloom filter";
+            string v3 = "2_cuckoo filter";
             bf2.addString(v);
             bf2.addString(v1);
             bf2.addString(v2);

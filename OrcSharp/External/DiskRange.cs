@@ -61,7 +61,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             return (int)(offset ^ (offset >> 32)) * 31 + (int)(end ^ (end >> 32));
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "range start: " + offset + " end: " + end;
         }

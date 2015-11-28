@@ -779,13 +779,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             List<int> colIndices = new List<int>();
             IList<string> fieldNames = type.FieldNamesList;
             int fieldIdx = 0;
-            foreach (String colName in colNames)
+            foreach (string colName in colNames)
             {
                 fieldIdx = fieldNames.IndexOf(colName);
                 if (fieldIdx < 0)
                 {
-                    String s = "Cannot find field for: " + colName + " in ";
-                    foreach (String fn in fieldNames)
+                    string s = "Cannot find field for: " + colName + " in ";
+                    foreach (string fn in fieldNames)
                     {
                         s += fn + ", ";
                     }

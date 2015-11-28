@@ -120,7 +120,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return result;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             StringBuilder buffer = new StringBuilder();
             buffer.Append("{");
@@ -138,18 +138,18 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public class Field : StructField
         {
-            private String name;
+            private string name;
             private ObjectInspector inspector;
             internal int offset;
 
-            public Field(String name, ObjectInspector inspector, int offset)
+            public Field(string name, ObjectInspector inspector, int offset)
             {
                 this.name = name;
                 this.inspector = inspector;
                 this.offset = offset;
             }
 
-            public override String getFieldName()
+            public override string getFieldName()
             {
                 return name;
             }
@@ -164,7 +164,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return offset;
             }
 
-            public override String getFieldComment()
+            public override string getFieldComment()
             {
                 return null;
             }
@@ -256,7 +256,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return result;
             }
 
-            public override String getTypeName()
+            public override string getTypeName()
             {
                 StringBuilder buffer = new StringBuilder();
                 buffer.Append("struct<");
@@ -280,13 +280,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return ObjectInspectorCategory.STRUCT;
             }
 
-            public Object create()
+            public object create()
             {
                 return new OrcStruct(0);
             }
 
-            public Object setStructFieldData(object @struct, StructField field,
-                                             object fieldValue)
+            public object setStructFieldData(object @struct, StructField field, object fieldValue)
             {
                 OrcStruct orcStruct = (OrcStruct)@struct;
                 int offset = ((Field)field).offset;
@@ -299,7 +298,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return @struct;
             }
 
-            public override bool Equals(Object o)
+            public override bool Equals(object o)
             {
                 if (o == null || o.GetType() != GetType())
                 {
@@ -373,7 +372,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return map as IDictionary<object, object>;
             }
 
-            public override int getMapSize(Object map)
+            public override int getMapSize(object map)
             {
                 if (map == null)
                 {

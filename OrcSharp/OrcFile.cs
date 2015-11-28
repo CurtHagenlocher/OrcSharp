@@ -245,7 +245,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             internal EncodingStrategy _encodingStrategy;
             internal CompressionStrategy compressionStrategy;
             internal double _paddingTolerance;
-            internal String _bloomFilterColumns;
+            internal string _bloomFilterColumns;
             internal double _bloomFilterFpp;
 
             public WriterOptions(Properties tableProperties, Configuration conf)
@@ -264,14 +264,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     typeof(CompressionKind),
                     OrcConf.COMPRESS.getString(tableProperties, conf),
                     true);
-                String versionName = OrcConf.WRITE_FORMAT.getString(tableProperties,
+                string versionName = OrcConf.WRITE_FORMAT.getString(tableProperties,
                     conf);
                 versionValue = VersionHelper.byName(versionName);
-                String enString = OrcConf.ENCODING_STRATEGY.getString(tableProperties,
+                string enString = OrcConf.ENCODING_STRATEGY.getString(tableProperties,
                     conf);
                 _encodingStrategy = (EncodingStrategy)Enum.Parse(typeof(EncodingStrategy), enString, true);
 
-                String compString =
+                string compString =
                     OrcConf.COMPRESSION_STRATEGY.getString(tableProperties, conf);
                 compressionStrategy = (CompressionStrategy)Enum.Parse(typeof(CompressionStrategy), compString, true);
 
@@ -358,7 +358,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             /**
              * Comma separated values of column names for which bloom filter is to be created.
              */
-            public WriterOptions bloomFilterColumns(String columns)
+            public WriterOptions bloomFilterColumns(string columns)
             {
                 _bloomFilterColumns = columns;
                 return this;
@@ -438,16 +438,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 memoryManagerValue = value;
                 return this;
-            }
-
-            // the assumption is only one ORC writer open at a time, which holds true for
-            // most of the cases. HIVE-6455 forces single writer case.
-            public long getMemoryAvailableForORC()
-            {
-                double maxLoad = OrcConf.MEMORY_POOL.getDouble(configuration);
-                long maxMemory = 1024*1024*1024; // 1 GB
-                long totalMemoryPool = (long)Math.Round(maxMemory * maxLoad);
-                return totalMemoryPool;
             }
 
             public double getDictionaryKeySizeThreshold()

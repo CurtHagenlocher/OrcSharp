@@ -176,7 +176,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             BytesWritable bytes1;
             Text string1;
 
-            SimpleStruct(BytesWritable b1, String s1)
+            SimpleStruct(BytesWritable b1, string s1)
             {
                 this.bytes1 = b1;
                 if (s1 == null)
@@ -290,7 +290,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             // check the stripe level stats
             List<StripeStatistics> stripeStats = reader.getStripeStatistics();
             // stripe 1 stats
-            StripeStatistics ss1 = stripeStats.get(0);
+            StripeStatistics ss1 = stripeStats[0];
             ColumnStatistics ss1_cs1 = ss1.getColumnStatistics()[0];
             ColumnStatistics ss1_cs2 = ss1.getColumnStatistics()[1];
             ColumnStatistics ss1_cs3 = ss1.getColumnStatistics()[2];
@@ -299,7 +299,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(true, ss1_cs3.hasNull());
 
             // stripe 2 stats
-            StripeStatistics ss2 = stripeStats.get(1);
+            StripeStatistics ss2 = stripeStats[1];
             ColumnStatistics ss2_cs1 = ss2.getColumnStatistics()[0];
             ColumnStatistics ss2_cs2 = ss2.getColumnStatistics()[1];
             ColumnStatistics ss2_cs3 = ss2.getColumnStatistics()[2];
@@ -308,7 +308,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(true, ss2_cs3.hasNull());
 
             // stripe 3 stats
-            StripeStatistics ss3 = stripeStats.get(2);
+            StripeStatistics ss3 = stripeStats[2];
             ColumnStatistics ss3_cs1 = ss3.getColumnStatistics()[0];
             ColumnStatistics ss3_cs2 = ss3.getColumnStatistics()[1];
             ColumnStatistics ss3_cs3 = ss3.getColumnStatistics()[2];
@@ -317,7 +317,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(false, ss3_cs3.hasNull());
 
             // stripe 4 stats
-            StripeStatistics ss4 = stripeStats.get(3);
+            StripeStatistics ss4 = stripeStats[3];
             ColumnStatistics ss4_cs1 = ss4.getColumnStatistics()[0];
             ColumnStatistics ss4_cs2 = ss4.getColumnStatistics()[1];
             ColumnStatistics ss4_cs3 = ss4.getColumnStatistics()[2];

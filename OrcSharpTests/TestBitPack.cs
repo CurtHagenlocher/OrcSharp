@@ -352,7 +352,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int idx = 0;
             while (rows.hasNext())
             {
-                Object row = rows.next(null);
+                object row = rows.next(null);
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }

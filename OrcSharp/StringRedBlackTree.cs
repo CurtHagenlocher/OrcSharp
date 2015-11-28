@@ -20,7 +20,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
 {
     using System.IO;
     using System.Text;
-    using org.apache.hadoop.hive.ql.io.orc.external;
 
 
     /**
@@ -40,8 +39,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public int add(string value)
         {
+            return add(Encoding.UTF8.GetBytes(value));
+        }
+
+        public int add(byte[] bytes)
+        {
             // if the newKey is actually new, add it to our byteArray and store the offset & length
-            byte[] bytes = Encoding.UTF8.GetBytes(value);
             if (addBase(bytes))
             {
                 keyOffsets.add(byteArray.add(bytes, 0, bytes.Length));

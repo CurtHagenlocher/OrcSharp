@@ -18,11 +18,11 @@
 
 namespace org.apache.hadoop.hive.ql.io.orc
 {
-    using org.apache.hadoop.hive.ql.io.orc.external;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using org.apache.hadoop.hive.ql.io.orc.external;
     using Xunit;
 
     public class TestFileDump : WithLocalDirectory

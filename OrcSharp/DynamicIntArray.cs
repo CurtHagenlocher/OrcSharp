@@ -135,7 +135,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             initializedChunks = 0;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             int i;
             StringBuilder sb = new StringBuilder(length * 4);

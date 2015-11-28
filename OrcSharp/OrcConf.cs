@@ -182,7 +182,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public bool getBoolean(Properties tbl, Configuration conf)
         {
-            String value = lookupValue(tbl, conf);
+            string value = lookupValue(tbl, conf);
             if (value != null)
             {
                 return Boolean.Parse(value);

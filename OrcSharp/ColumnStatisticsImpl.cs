@@ -249,7 +249,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return sum;
             }
 
-            public override String ToString()
+            public override string ToString()
             {
                 StringBuilder buf = new StringBuilder(base.ToString());
                 if (hasMinimum)
@@ -525,12 +525,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return result;
             }
 
-            public String getMinimum()
+            public string getMinimum()
             {
                 return minimum == null ? null : minimum.ToString();
             }
 
-            public String getMaximum()
+            public string getMaximum()
             {
                 return maximum == null ? null : maximum.ToString();
             }
@@ -540,7 +540,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return sum;
             }
 
-            public override String ToString()
+            public override string ToString()
             {
                 StringBuilder buf = new StringBuilder(base.ToString());
                 if (getNumberOfValues() != 0)

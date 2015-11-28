@@ -41,9 +41,9 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
             public PredicateLeafImpl(
                 PredicateLeaf.Operator @operator,
                 Type type,
-                String columnName,
-                Object literal,
-                List<Object> literalList)
+                string columnName,
+                object literal,
+                List<object> literalList)
             {
                 this.@operator = @operator;
                 this.type = type;
@@ -91,7 +91,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
 
             public override object getLiteral()
             {
-#if FALSE
+#if false
                 // To get around a kryo 2.22 bug while deserialize a Timestamp into Date
                 // (https://github.com/EsotericSoftware/kryo/issues/88)
                 // When we see a Date, convert back into Timestamp
@@ -122,7 +122,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 }
                 else if (literalList != null)
                 {
-                    foreach (Object lit in literalList)
+                    foreach (object lit in literalList)
                     {
                         buffer.Append(' ');
                         buffer.Append(lit == null ? "null" : lit.ToString());
@@ -132,7 +132,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 return buffer.ToString();
             }
 
-            private static bool isEqual(Object left, Object right)
+            private static bool isEqual(object left, object right)
             {
 
                 return left == right ||
@@ -170,7 +170,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                          103 * 101 * 3 * 17;
             }
 
-            public static void setColumnName(PredicateLeaf leaf, String newName)
+            public static void setColumnName(PredicateLeaf leaf, string newName)
             {
                 Debug.Assert(leaf is PredicateLeafImpl);
                 ((PredicateLeafImpl)leaf).columnName = newName;
@@ -300,8 +300,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 }
             }
 
-            public SearchArgument.Builder lessThan(String column, PredicateLeaf.Type type,
-                                    Object literal)
+            public SearchArgument.Builder lessThan(string column, PredicateLeaf.Type type, object literal)
             {
                 ExpressionTree parent = currentTree.Peek();
                 if (column == null || literal == null)
@@ -318,8 +317,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 return this;
             }
 
-            public SearchArgument.Builder lessThanEquals(String column, PredicateLeaf.Type type,
-                                          Object literal)
+            public SearchArgument.Builder lessThanEquals(string column, PredicateLeaf.Type type, object literal)
             {
                 ExpressionTree parent = currentTree.Peek();
                 if (column == null || literal == null)
@@ -336,8 +334,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 return this;
             }
 
-            public SearchArgument.Builder equals(String column, PredicateLeaf.Type type,
-                                  Object literal)
+            public SearchArgument.Builder equals(string column, PredicateLeaf.Type type, object literal)
             {
                 ExpressionTree parent = currentTree.Peek();
                 if (column == null || literal == null)
@@ -354,8 +351,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 return this;
             }
 
-            public SearchArgument.Builder nullSafeEquals(String column, PredicateLeaf.Type type,
-                                          Object literal)
+            public SearchArgument.Builder nullSafeEquals(string column, PredicateLeaf.Type type, object literal)
             {
                 ExpressionTree parent = currentTree.Peek();
                 if (column == null || literal == null)
@@ -372,8 +368,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 return this;
             }
 
-            public SearchArgument.Builder @in(String column, PredicateLeaf.Type type,
-                              params object[] literal)
+            public SearchArgument.Builder @in(string column, PredicateLeaf.Type type, params object[] literal)
             {
                 ExpressionTree parent = currentTree.Peek();
                 if (column == null || literal == null)
@@ -387,7 +382,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                         throw new ArgumentException("Can't create in expression with "
                             + "no arguments");
                     }
-                    List<Object> argList = new List<Object>();
+                    List<object> argList = new List<object>();
                     argList.AddRange(literal.ToList());
 
                     PredicateLeaf leaf =
@@ -398,7 +393,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 return this;
             }
 
-            public SearchArgument.Builder isNull(String column, PredicateLeaf.Type type)
+            public SearchArgument.Builder isNull(string column, PredicateLeaf.Type type)
             {
                 ExpressionTree parent = currentTree.Peek();
                 if (column == null)
@@ -415,8 +410,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 return this;
             }
 
-            public SearchArgument.Builder between(String column, PredicateLeaf.Type type, Object lower,
-                                   Object upper)
+            public SearchArgument.Builder between(string column, PredicateLeaf.Type type, object lower, object upper)
             {
                 ExpressionTree parent = currentTree.Peek();
                 if (column == null || lower == null || upper == null)
@@ -425,7 +419,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.query
                 }
                 else
                 {
-                    List<Object> argList = new List<Object>();
+                    List<object> argList = new List<object>();
                     argList.Add(lower);
                     argList.Add(upper);
                     PredicateLeaf leaf =

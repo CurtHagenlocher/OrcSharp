@@ -59,11 +59,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ByteBuffer inBuf = ByteBuffer.allocate(collect.buffer.size());
             collect.buffer.setByteBuffer(inBuf, 0, collect.buffer.size());
             inBuf.flip();
+#pragma warning disable 612
             RunLengthIntegerReaderV2 @in =
               new RunLengthIntegerReaderV2(InStream.create
                                            (null, "test", new ByteBuffer[] { inBuf },
                                             new long[] { 0 }, inBuf.remaining(),
                                             codec, 1000), true, false);
+#pragma warning restore 612
             for (int i = 0; i < 2048; ++i)
             {
                 int x = (int)@in.next();
@@ -134,12 +136,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ByteBuffer inBuf = ByteBuffer.allocate(collect.buffer.size());
             collect.buffer.setByteBuffer(inBuf, 0, collect.buffer.size());
             inBuf.flip();
+#pragma warning disable 612
             RunLengthIntegerReaderV2 @in =
               new RunLengthIntegerReaderV2(InStream.create(null, "test",
                                                            new ByteBuffer[] { inBuf },
                                                            new long[] { 0 },
                                                            inBuf.remaining(),
                                                            null, 100), true, false);
+#pragma warning restore 612
             for (int i = 0; i < 2048; i += 10)
             {
                 int x = (int)@in.next();

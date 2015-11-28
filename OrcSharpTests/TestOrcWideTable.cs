@@ -16,49 +16,47 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc {
+namespace org.apache.hadoop.hive.ql.io.orc
+{
 
-import static org.junit.Assert.assertEquals;
+    using Xunit;
 
-import java.io.IOException;
+    public class TestOrcWideTable
+    {
+        [Fact]
+        public void testBufferSizeFor1Col()
+        {
+            Assert.Equal(128 * 1024, WriterImpl.getEstimatedBufferSize(512L * 1024 * 1024, 1, 128 * 1024));
+        }
 
-import org.junit.Test;
+        [Fact]
+        public void testBufferSizeFor50Col()
+        {
+            Assert.Equal(256 * 1024, WriterImpl.getEstimatedBufferSize(256L * 1024 * 1024, 50, 256 * 1024));
+        }
 
-public class TestOrcWideTable {
+        [Fact]
+        public void testBufferSizeFor1000Col()
+        {
+            Assert.Equal(32 * 1024, WriterImpl.getEstimatedBufferSize(512L * 1024 * 1024, 1000, 128 * 1024));
+        }
 
-  [Fact]
-  public void testBufferSizeFor1Col() {
-    Assert.Equal(128 * 1024, WriterImpl.getEstimatedBufferSize(512 * 1024 * 1024,
-        1, 128*1024));
-  }
+        [Fact]
+        public void testBufferSizeFor2000Col()
+        {
+            Assert.Equal(16 * 1024, WriterImpl.getEstimatedBufferSize(512L * 1024 * 1024, 2000, 256 * 1024));
+        }
 
-  [Fact]
-  public void testBufferSizeFor50Col() {
-    Assert.Equal(256 * 1024, WriterImpl.getEstimatedBufferSize(256 * 1024 * 1024,
-        50, 256*1024));
-  }
+        [Fact]
+        public void testBufferSizeFor4000Col()
+        {
+            Assert.Equal(8 * 1024, WriterImpl.getEstimatedBufferSize(512L * 1024 * 1024, 4000, 256 * 1024));
+        }
 
-  [Fact]
-  public void testBufferSizeFor1000Col() {
-    Assert.Equal(32 * 1024, WriterImpl.getEstimatedBufferSize(512 * 1024 * 1024,
-        1000, 128*1024));
-  }
-
-  [Fact]
-  public void testBufferSizeFor2000Col() {
-    Assert.Equal(16 * 1024, WriterImpl.getEstimatedBufferSize(512 * 1024 * 1024,
-        2000, 256*1024));
-  }
-
-  [Fact]
-  public void testBufferSizeFor4000Col() {
-    Assert.Equal(8 * 1024, WriterImpl.getEstimatedBufferSize(512 * 1024 * 1024,
-        4000, 256*1024));
-  }
-
-  [Fact]
-  public void testBufferSizeFor25000Col() {
-    Assert.Equal(4 * 1024, WriterImpl.getEstimatedBufferSize(512 * 1024 * 1024,
-        25000, 256*1024));
-  }
+        [Fact]
+        public void testBufferSizeFor25000Col()
+        {
+            Assert.Equal(4 * 1024, WriterImpl.getEstimatedBufferSize(512L * 1024 * 1024, 25000, 256 * 1024));
+        }
+    }
 }

@@ -100,7 +100,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "Stream for column " + column + " kind " + kind;
         }

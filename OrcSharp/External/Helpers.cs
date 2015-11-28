@@ -24,6 +24,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using org.apache.hadoop.hive.ql.io.orc.external;
 
     public static class Arrays
@@ -120,6 +121,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 result[i] = (uint)array[i];
             }
             return result;
+        }
+
+        public static List<T> newArrayList<T>(params T[] v)
+        {
+            return v.ToList();
         }
     }
 

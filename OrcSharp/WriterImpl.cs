@@ -142,8 +142,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             buildIndex = rowIndexStride > 0;
             codec = createCodec(compress);
             int numColumns = schema.getMaximumId() + 1;
-            this.bufferSize = getEstimatedBufferSize(getMemoryAvailableForORC(),
-                codec != null, numColumns, bufferSize);
+            this.bufferSize = getEstimatedBufferSize(defaultStripeSize, numColumns, bufferSize);
             if (version == OrcFile.Version.V_0_11)
             {
                 /* do not write bloom filters for ORC v11 */
@@ -166,42 +165,24 @@ namespace org.apache.hadoop.hive.ql.io.orc
             memoryManager.addWriter(path, stripeSize, this);
         }
 
-        static int getEstimatedBufferSize(long availableMem,
-                                          bool isCompressed,
-                                          int columnCount, int bs)
+        internal static int getEstimatedBufferSize(long stripeSize, int numColumns, int bs)
         {
-            if (columnCount > COLUMN_COUNT_THRESHOLD)
+            // The worst case is that there are 2 big streams per a column and
+            // we want to guarantee that each stream gets ~10 buffers.
+            // This keeps buffers small enough that we don't get really small stripe
+            // sizes.
+            int estBufferSize = (int)(stripeSize / (20 * numColumns));
+            estBufferSize = getClosestBufferSize(estBufferSize);
+            if (estBufferSize > bs)
             {
-                // In BufferedStream, there are 3 outstream buffers (compressed,
-                // uncompressed and overflow) and list of previously compressed buffers.
-                // Since overflow buffer is rarely used, lets consider only 2 allocation.
-                // Also, initially, the list of compression buffers will be empty.
-                int outStreamBuffers = isCompressed ? 2 : 1;
-
-                // max possible streams per column is 5. For string columns, there is
-                // ROW_INDEX, PRESENT, DATA, LENGTH, DICTIONARY_DATA streams.
-                int maxStreams = 5;
-
-                // Lets assume 10% memory for holding dictionary in memory and other
-                // object allocations
-                long miscAllocation = (long)(0.1f * availableMem);
-
-                // compute the available memory
-                long remainingMem = availableMem - miscAllocation;
-
-                int estBufferSize = (int)(remainingMem /
-                    (maxStreams * outStreamBuffers * columnCount));
-                estBufferSize = getClosestBufferSize(estBufferSize);
-                if (estBufferSize > bs)
-                {
-                    estBufferSize = bs;
-                }
-
-                LOG.info("WIDE TABLE - Number of columns: " + columnCount +
-                    " Chosen compression buffer size: " + estBufferSize);
-                return estBufferSize;
+                estBufferSize = bs;
             }
-            return bs;
+            else
+            {
+                LOG.info("WIDE TABLE - Number of columns: " + numColumns +
+                    " Chosen compression buffer size: " + estBufferSize);
+            }
+            return estBufferSize;
         }
 
         private static int getClosestBufferSize(int estBufferSize)
@@ -241,11 +222,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 return kb256;
             }
-        }
-
-        private long getMemoryAvailableForORC()
-        {
-            return options.getMemoryAvailableForORC();
         }
 
         public static CompressionCodec createCodec(CompressionKind kind)
@@ -949,7 +925,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 recordPosition(rowIndexPosition);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -991,7 +967,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 recordPosition(rowIndexPosition);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1072,7 +1048,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return MakeEncoding(OrcProto.ColumnEncoding.Types.Kind.DIRECT);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1133,7 +1109,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 recordPosition(rowIndexPosition);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1182,7 +1158,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 recordPosition(rowIndexPosition);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1272,7 +1248,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return ((StringObjectInspector)inspector).get(obj);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1281,7 +1257,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     byte[] encodedVal = Encoding.UTF8.GetBytes(val);
                     if (useDictionaryEncoding || !strideDictionaryCheck)
                     {
-                        rows.add(dictionary.add(val));
+                        rows.add(dictionary.add(encodedVal));
                     }
                     else
                     {
@@ -1530,7 +1506,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             /**
              * Override base class implementation to support char values.
              */
-            string getTextValue(Object obj)
+            string getTextValue(object obj)
             {
                 return ((HiveCharObjectInspector)inspector).get(obj);
             }
@@ -1590,7 +1566,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return MakeEncoding(OrcProto.ColumnEncoding.Types.Kind.DIRECT);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1660,7 +1636,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return MakeEncoding(OrcProto.ColumnEncoding.Types.Kind.DIRECT);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1735,7 +1711,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 recordPosition(rowIndexPosition);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1867,7 +1843,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 recordPosition(rowIndexPosition);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -1926,7 +1902,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return MakeEncoding(OrcProto.ColumnEncoding.Types.Kind.DIRECT);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -2067,7 +2043,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 recordPosition(rowIndexPosition);
             }
 
-            public override void write(Object obj)
+            public override void write(object obj)
             {
                 base.write(obj);
                 if (obj != null)
@@ -2593,7 +2569,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             userMetadata[name] = ByteString.CopyFrom(value.contents());
         }
 
-        public void addRow(Object row)
+        public void addRow(object row)
         {
             treeWriter.write(row);
             rowsInStripe += 1;

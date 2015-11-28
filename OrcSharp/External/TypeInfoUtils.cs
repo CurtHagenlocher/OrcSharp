@@ -63,7 +63,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         private static TypeInfo getExtendedTypeInfoFromJavaType(Type t, MethodInfo m)
         {
 
-            if (t == typeof(Object))
+            if (t == typeof(object))
             {
                 return TypeInfoFactory.unknownTypeInfo;
             }
@@ -215,7 +215,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             }
         }
 
-        public static String getBaseName(string typeName)
+        public static string getBaseName(string typeName)
         {
             int idx = typeName.IndexOf('(');
             if (idx == -1)
@@ -264,7 +264,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             private class Token
             {
                 public int position;
-                public String text;
+                public string text;
                 public bool isType;
 
                 public override string ToString()
@@ -313,7 +313,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
                 return tokens;
             }
 
-            public TypeInfoParser(String typeInfoString)
+            public TypeInfoParser(string typeInfoString)
             {
                 this.typeInfoString = typeInfoString;
                 typeInfoTokens = tokenize(typeInfoString);
@@ -363,12 +363,12 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
                 }
             }
 
-            private Token expect(String item)
+            private Token expect(string item)
             {
                 return expect(item, null);
             }
 
-            private Token expect(String item, String alternative)
+            private Token expect(string item, string alternative)
             {
                 if (iToken >= typeInfoTokens.Count)
                 {
@@ -605,14 +605,14 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         public class PrimitiveParts
         {
-            public String typeName;
-            public String[] typeParams;
+            public string typeName;
+            public string[] typeParams;
         }
 
         /**
          * Make some of the TypeInfo parsing available as a utility.
          */
-        public static PrimitiveParts parsePrimitiveParts(String typeInfoString)
+        public static PrimitiveParts parsePrimitiveParts(string typeInfoString)
         {
             TypeInfoParser parser = new TypeInfoParser(typeInfoString);
             return parser.parsePrimitiveParts();
@@ -907,13 +907,13 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             return result;
         }
 
-        public static List<TypeInfo> getTypeInfosFromTypeString(String typeString)
+        public static List<TypeInfo> getTypeInfosFromTypeString(string typeString)
         {
             TypeInfoParser parser = new TypeInfoParser(typeString);
             return parser.parseTypeInfos();
         }
 
-        public static String getTypesString(List<TypeInfo> typeInfos)
+        public static string getTypesString(List<TypeInfo> typeInfos)
         {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < typeInfos.Count; i++)
@@ -927,7 +927,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             return sb.ToString();
         }
 
-        public static TypeInfo getTypeInfoFromTypeString(String typeString)
+        public static TypeInfo getTypeInfoFromTypeString(string typeString)
         {
             TypeInfoParser parser = new TypeInfoParser(typeString);
             return parser.parseTypeInfos()[0];
