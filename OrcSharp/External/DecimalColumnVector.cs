@@ -24,7 +24,6 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
     public class DecimalColumnVector : ColumnVector
     {
-
         /**
          * A vector of HiveDecimalWritable objects.
          *
