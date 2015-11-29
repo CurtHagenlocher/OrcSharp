@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     /// <summary>
     /// An enumeration that lists the generic compression algorithms that

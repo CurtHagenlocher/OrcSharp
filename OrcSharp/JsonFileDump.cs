@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
-    using org.apache.hadoop.hive.ql.io.orc.external;
-    using OrcProto = global::orc.proto;
     using System.IO;
+    using OrcSharp.External;
+    using OrcProto = global::orc.proto;
 
     /**
      * File dump tool with json formatted output.

@@ -16,17 +16,17 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
-    using System.IO;
     using Xunit;
+    using OrcSharp.External;
+    using OrcSharp.Types;
 
     /**
      * Test ColumnStatisticsImpl for ORC.
      */
     public class TestColumnStatistics
     {
-
         [Fact]
         public void testLongMerge()
         {

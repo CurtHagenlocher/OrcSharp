@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System.Collections.Generic;
-    using org.apache.hadoop.hive.ql.io.orc.external;
-    using org.apache.hadoop.hive.ql.io.orc.query;
+    using OrcSharp.External;
+    using OrcSharp.Query;
     using Xunit;
 
 #if HADOOP

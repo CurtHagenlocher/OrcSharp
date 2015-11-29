@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc.external
+namespace OrcSharp.Serialization
 {
     using System;
     using System.Reflection;

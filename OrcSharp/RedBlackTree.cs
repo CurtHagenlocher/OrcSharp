@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     /**
      * A memory efficient red-black tree that does not allocate any objects per

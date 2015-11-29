@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.IO;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.Serialization;
+    using OrcSharp.Types;
     using Xunit;
     using OrcProto = global::orc.proto;
 

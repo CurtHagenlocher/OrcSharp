@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System.IO;
     using System.Text;
-
 
     /**
      * A red-black tree that stores strings. The strings are stored as UTF-8 bytes

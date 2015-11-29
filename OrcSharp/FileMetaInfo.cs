@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System.Collections.Generic;
-    using org.apache.hadoop.hive.ql.io.orc.external;
-
+    using OrcSharp.External;
 
     /**
      * FileMetaInfo - represents file metadata stored in footer and postscript sections of the file

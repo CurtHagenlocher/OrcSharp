@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     /**
      * Statistics for float and double columns.

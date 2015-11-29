@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     /**
      * Information about the stripes in an ORC file that is provided by the Reader.

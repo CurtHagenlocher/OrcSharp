@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using OrcProto = global::orc.proto;

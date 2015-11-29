@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc.external
+namespace OrcSharp.Serialization
 {
     using System;
     using System.Collections.Concurrent;
@@ -24,6 +24,8 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using OrcSharp.External;
+    using OrcSharp.Types;
 
     /**
      * TypeInfoUtils.

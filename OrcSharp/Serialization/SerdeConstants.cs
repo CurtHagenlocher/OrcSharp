@@ -6,7 +6,7 @@
  *  @generated
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc.external
+namespace OrcSharp.Serialization
 {
     using System.Collections.Generic;
 

@@ -16,16 +16,13 @@
  * limitations under the License.
  */
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("OrcSharpTests")]
-
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp.External
 {
     using Google.ProtocolBuffers;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using org.apache.hadoop.hive.ql.io.orc.external;
 
     public static class Arrays
     {

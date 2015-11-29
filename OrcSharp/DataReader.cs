@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
 
     /// <summary>
     /// An abstract data reader that IO formats can use to read bytes from underlying storage.

@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp.External
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
-    using org.apache.hadoop.hive.ql.io.orc.external;
 
     /**
      * BloomFilter is a probabilistic data structure for set membership check. BloomFilters are

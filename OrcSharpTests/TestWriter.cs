@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.IO;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
+    using OrcSharp.Serialization;
+    using OrcSharp.Types;
     using Xunit;
 
     public class TestWriter : IDisposable

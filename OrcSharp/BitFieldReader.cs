@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
-    using external;
     using System;
     using System.Diagnostics;
     using System.IO;
+    using OrcSharp.External;
 
     public class BitFieldReader
     {

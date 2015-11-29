@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
@@ -24,8 +24,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System.Linq;
     using System.Numerics;
     using System.Runtime.CompilerServices;
-    using org.apache.hadoop.hive.ql.io.orc.external;
-    using org.apache.hadoop.hive.ql.io.orc.query;
+    using OrcSharp.External;
+    using OrcSharp.Query;
+    using OrcSharp.Serialization;
+    using OrcSharp.Types;
     using Xunit;
     using OrcProto = global::orc.proto;
 

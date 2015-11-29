@@ -16,13 +16,11 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc.external
+namespace OrcSharp.Types
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Text;
-    using System.Threading.Tasks;
+    using OrcSharp.External;
 
     sealed public class Text
     {

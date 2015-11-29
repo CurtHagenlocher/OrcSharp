@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
+    using OrcSharp.Serialization;
+    using OrcSharp.Types;
     using OrcProto = global::orc.proto;
     using ByteString = Google.ProtocolBuffers.ByteString;
     using System.IO;
@@ -240,7 +242,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         Class<CompressionCodec> lzo =
                             (Class<CompressionCodec>)
-                              JavaUtils.loadClass("org.apache.hadoop.hive.ql.io.orc.LzoCodec");
+                              JavaUtils.loadClass("OrcSharp.LzoCodec");
                         return lzo.newInstance();
                     }
                     catch (ClassNotFoundException e)

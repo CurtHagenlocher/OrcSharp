@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Text;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
     using OrcProto = global::orc.proto;
 
     /**

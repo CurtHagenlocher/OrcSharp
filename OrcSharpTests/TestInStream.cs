@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
     using Xunit;
 
     public class TestInStream

@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc.external
+namespace OrcSharp.External
 {
-
     /**
      * Murmur3 is successor to Murmur2 fast non-crytographic hash algorithms.
      *

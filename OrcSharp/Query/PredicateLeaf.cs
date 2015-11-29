@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc.query
+namespace OrcSharp.Query
 {
     using System;
     using System.Collections.Generic;
+    using OrcSharp.Types;
 
     /**
      * The primitive predicates that form a SearchArgument.

@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc.external
+namespace OrcSharp.External
 {
     using System;
     using System.Numerics;
     using System.Text;
+    using OrcSharp.Types;
 
     public class DecimalColumnVector : ColumnVector
     {

@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Diagnostics;
     using System.IO;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
 
     /**
      * A reader that reads a sequence of light weight compressed integers. Refer

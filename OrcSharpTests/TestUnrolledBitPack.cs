@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Runtime.CompilerServices;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.Serialization;
     using Xunit;
     using System.IO;
 

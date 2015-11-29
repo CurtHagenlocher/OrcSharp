@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Text;
+    using OrcSharp.External;
+    using OrcSharp.Types;
     using OrcProto = global::orc.proto;
 
     class ColumnStatisticsImpl : ColumnStatistics

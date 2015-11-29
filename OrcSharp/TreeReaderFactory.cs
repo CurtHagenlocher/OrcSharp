@@ -16,23 +16,22 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
-    using external;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using OrcProto = global::orc.proto;
     using System.Numerics;
     using System.Runtime.CompilerServices;
-    using System.Text;
+    using OrcSharp.External;
+    using OrcSharp.Types;
+    using OrcProto = global::orc.proto;
 
     /**
      * Factory for creating ORC tree readers.
      */
     public class TreeReaderFactory
     {
-
         public abstract class TreeReader
         {
             protected int columnId;

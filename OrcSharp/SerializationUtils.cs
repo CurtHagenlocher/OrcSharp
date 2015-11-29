@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.IO;
     using System.Numerics;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
 
     public class SerializationUtils
     {

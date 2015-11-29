@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
@@ -24,7 +24,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System.IO;
     using System.Text;
     using Google.ProtocolBuffers;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
 
     public abstract class InStream : InputStream
     {

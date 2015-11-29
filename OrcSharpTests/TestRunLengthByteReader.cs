@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
     using Xunit;
 
     public class TestRunLengthByteReader

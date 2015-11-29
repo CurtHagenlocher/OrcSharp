@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using org.apache.hadoop.hive.ql.io.orc.external;
-    using org.apache.hadoop.hive.ql.io.orc.query;
+    using OrcSharp.External;
+    using OrcSharp.Query;
+    using OrcSharp.Serialization;
     using OrcProto = global::orc.proto;
 
     /**
@@ -32,7 +33,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
      */
     public interface Reader
     {
-
         /**
          * Get the number of rows in the file.
          * @return the number of rows
