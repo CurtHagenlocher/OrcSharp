@@ -157,7 +157,7 @@ namespace OrcSharp
          * Get the total pool size that is available for ORC writers.
          * @return the number of bytes in the pool
          */
-        long getTotalMemoryPool()
+        public virtual long getTotalMemoryPool()
         {
             return totalMemoryPool;
         }
@@ -168,7 +168,7 @@ namespace OrcSharp
          * @return a fraction between 0.0 and 1.0 of the requested size that is
          * available for each writer.
          */
-        double getAllocationScale()
+        public virtual double getAllocationScale()
         {
             return currentScale;
         }
@@ -177,9 +177,10 @@ namespace OrcSharp
          * Give the memory manager an opportunity for doing a memory check.
          * @
          */
-        public void addedRow()
+        public virtual void addedRow(int rows)
         {
-            if (++rowsAddedSinceCheck >= ROWS_BETWEEN_CHECKS)
+            rowsAddedSinceCheck += rows;
+            if (rowsAddedSinceCheck >= ROWS_BETWEEN_CHECKS)
             {
                 notifyWriters();
             }

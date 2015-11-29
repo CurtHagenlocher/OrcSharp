@@ -15,8 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace org.apache.hadoop.hive.ql.io.orc
+
+namespace OrcSharp
 {
+    using System.Collections.Generic;
+    using OrcSharp.External;
     using Xunit;
 
     /**
@@ -24,9 +27,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
      */
     public class TestMemoryManager
     {
-        private static const double ERROR = 0.000001;
+        private const int ERROR = 6; // 0.000001
+        private const long configuredPoolSize = 9000000;
 
-        private static class NullCallback : MemoryManager.Callback
+        private class NullCallback : MemoryManager.Callback
         {
             public bool checkMemory(double newScale)
             {
@@ -34,99 +38,87 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
+        private class LoggingCallback : MemoryManager.Callback
+        {
+            private readonly List<double> log = new List<double>();
+
+            public bool checkMemory(double newScale)
+            {
+                log.Add(newScale);
+                return false;
+            }
+
+            public int LogLength {  get { return this.log.Count; } }
+
+            public IEnumerable<double> Log { get { return this.log; } }
+        }
+
         [Fact]
         public void testBasics()
         {
-            Configuration conf = new Configuration();
-            MemoryManager mgr = new MemoryManager(conf);
+            MemoryManager mgr = new MemoryManager(configuredPoolSize);
             NullCallback callback = new NullCallback();
             long poolSize = mgr.getTotalMemoryPool();
-            Assert.Equal(Math.round(ManagementFactory.getMemoryMXBean().
-                getHeapMemoryUsage().getMax() * 0.5d), poolSize);
-            Assert.Equal(1.0, mgr.getAllocationScale(), 0.00001);
-            mgr.addWriter(new Path("p1"), 1000, callback);
-            Assert.Equal(1.0, mgr.getAllocationScale(), 0.00001);
-            mgr.addWriter(new Path("p1"), poolSize / 2, callback);
-            Assert.Equal(1.0, mgr.getAllocationScale(), 0.00001);
-            mgr.addWriter(new Path("p2"), poolSize / 2, callback);
-            Assert.Equal(1.0, mgr.getAllocationScale(), 0.00001);
-            mgr.addWriter(new Path("p3"), poolSize / 2, callback);
-            Assert.Equal(0.6666667, mgr.getAllocationScale(), 0.00001);
-            mgr.addWriter(new Path("p4"), poolSize / 2, callback);
-            Assert.Equal(0.5, mgr.getAllocationScale(), 0.000001);
-            mgr.addWriter(new Path("p4"), 3 * poolSize / 2, callback);
-            Assert.Equal(0.3333333, mgr.getAllocationScale(), 0.000001);
-            mgr.removeWriter(new Path("p1"));
-            mgr.removeWriter(new Path("p2"));
-            Assert.Equal(0.5, mgr.getAllocationScale(), 0.00001);
-            mgr.removeWriter(new Path("p4"));
-            Assert.Equal(1.0, mgr.getAllocationScale(), 0.00001);
+            Assert.Equal(configuredPoolSize, poolSize);
+            Assert.Equal(1.0, mgr.getAllocationScale(), 5);
+            mgr.addWriter("p1", 1000, callback);
+            Assert.Equal(1.0, mgr.getAllocationScale(), 5);
+            mgr.addWriter("p1", poolSize / 2, callback);
+            Assert.Equal(1.0, mgr.getAllocationScale(), 5);
+            mgr.addWriter("p2", poolSize / 2, callback);
+            Assert.Equal(1.0, mgr.getAllocationScale(), 5);
+            mgr.addWriter("p3", poolSize / 2, callback);
+            Assert.Equal(0.6666667, mgr.getAllocationScale(), 5);
+            mgr.addWriter("p4", poolSize / 2, callback);
+            Assert.Equal(0.5, mgr.getAllocationScale(), 6);
+            mgr.addWriter("p4", 3 * poolSize / 2, callback);
+            Assert.Equal(0.3333333, mgr.getAllocationScale(), 6);
+            mgr.removeWriter("p1");
+            mgr.removeWriter("p2");
+            Assert.Equal(0.5, mgr.getAllocationScale(), 5);
+            mgr.removeWriter("p4");
+            Assert.Equal(1.0, mgr.getAllocationScale(), 5);
         }
 
+#if MEMORYBEAN
         [Fact]
         public void testConfig()
         {
             Configuration conf = new Configuration();
             conf.set("hive.exec.orc.memory.pool", "0.9");
             MemoryManager mgr = new MemoryManager(conf);
-            long mem =
-                ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
-            System.err.print("Memory = " + mem);
+            long mem = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
+            System.Console.WriteLine("Memory = " + mem);
             long pool = mgr.getTotalMemoryPool();
-            assertTrue("Pool too small: " + pool, mem * 0.899 < pool);
-            assertTrue("Pool too big: " + pool, pool < mem * 0.901);
+            Assert.True("Pool too small: " + pool, mem * 0.899 < pool);
+            Assert.True("Pool too big: " + pool, pool < mem * 0.901);
         }
-
-        private class DoubleMatcher : BaseMatcher<Double>
-        {
-            double expected;
-            double error;
-
-            DoubleMatcher(double expected, double error)
-            {
-                this.expected = expected;
-                this.error = error;
-            }
-
-            public bool matches(Object val)
-            {
-                double dbl = (Double)val;
-                return Math.abs(dbl - expected) <= error;
-            }
-
-            public void describeTo(Description description)
-            {
-                description.appendText("not sufficiently close to ");
-                description.appendText(Double.toString(expected));
-            }
-        }
-
-        private static DoubleMatcher closeTo(double value, double error)
-        {
-            return new DoubleMatcher(value, error);
-        }
+#endif
 
         [Fact]
         public void testCallback()
         {
             Configuration conf = new Configuration();
-            MemoryManager mgr = new MemoryManager(conf);
+            MemoryManager mgr = new MemoryManager(configuredPoolSize);
             long pool = mgr.getTotalMemoryPool();
-            MemoryManager.Callback[] calls = new MemoryManager.Callback[20];
-            for (int i = 0; i < calls.length; ++i)
+            LoggingCallback[] calls = new LoggingCallback[20];
+            for (int i = 0; i < calls.Length; ++i)
             {
-                calls[i] = mock(typeof(MemoryManager.Callback));
-                mgr.addWriter(new Path(Integer.toString(i)), pool / 4, calls[i]);
+                calls[i] = new LoggingCallback();
+                mgr.addWriter(i.ToString(), pool / 4, calls[i]);
             }
             // add enough rows to get the memory manager to check the limits
             for (int i = 0; i < 10000; ++i)
             {
                 mgr.addedRow(1);
             }
-            for (int call = 0; call < calls.length; ++call)
+            for (int call = 0; call < calls.Length; ++call)
             {
-                verify(calls[call], times(2))
-                    .checkMemory(doubleThat(closeTo(0.2, ERROR)));
+                Assert.Equal(2, calls[call].LogLength);
+                foreach (double argument in calls[call].Log)
+                {
+                    Assert.Equal(0.2, argument, ERROR);
+                }
             }
         }
     }

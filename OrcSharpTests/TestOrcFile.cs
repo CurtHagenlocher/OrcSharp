@@ -1859,17 +1859,17 @@ namespace OrcSharp
                 this.lastAllocation = 0;
             }
 
-            long getTotalMemoryPool()
+            public override long getTotalMemoryPool()
             {
                 return totalSpace;
             }
 
-            double getAllocationScale()
+            public override double getAllocationScale()
             {
                 return rate;
             }
 
-            void addedRow(int count)
+            public override void addedRow(int count)
             {
                 rows += count;
                 if (rows % 100 == 0)
@@ -1904,8 +1904,7 @@ namespace OrcSharp
                 Assert.Equal(null, memory.path);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
             int j = 0;
             foreach (StripeInformation stripe in reader.getStripes())
             {

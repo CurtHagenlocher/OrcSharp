@@ -2579,7 +2579,7 @@ namespace OrcSharp
                     createRowIndexEntry();
                 }
             }
-            memoryManager.addedRow();
+            memoryManager.addedRow(1);
         }
 
         void IDisposable.Dispose()

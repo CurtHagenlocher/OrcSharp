@@ -76,6 +76,7 @@
     <Compile Include="TestInStream.cs" />
     <Compile Include="TestIntegerCompressionReader.cs" />
     <Compile Include="TestJsonFileDump.cs" />
+    <Compile Include="TestMemoryManager.cs" />
     <Compile Include="TestMurmur3.cs" />
     <Compile Include="TestNewIntegerEncoding.cs" />
     <Compile Include="TestOrcFile.cs" />
