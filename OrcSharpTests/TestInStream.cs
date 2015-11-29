@@ -30,9 +30,9 @@ namespace OrcSharp
         {
             internal DynamicByteArray buffer = new DynamicByteArray();
 
-            public void output(byte[] buffer)
+            public void output(ByteBuffer buffer)
             {
-                this.buffer.add(buffer);
+                this.buffer.add(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining());
             }
         }
 

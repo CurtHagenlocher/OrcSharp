@@ -18,7 +18,6 @@
 
 namespace OrcSharp
 {
-    using System.IO;
     using OrcSharp.External;
 
     public interface CompressionCodec
@@ -31,7 +30,7 @@ namespace OrcSharp
          * @return true if the output is smaller than input
          * @
          */
-        bool compress(MemoryStream @in, MemoryStream @out, MemoryStream overflow);
+        bool compress(ByteBuffer @in, ByteBuffer @out, ByteBuffer overflow);
 
         /**
          * Decompress the in buffer to the out buffer.
@@ -39,7 +38,7 @@ namespace OrcSharp
          * @param out the decompressed bytes
          * @
          */
-        void decompress(MemoryStream @in, MemoryStream @out);
+        void decompress(ByteBuffer @in, ByteBuffer @out);
 
         /**
          * Produce a modified compression codec if the underlying algorithm allows

@@ -31,7 +31,7 @@ namespace OrcSharp
              * @param buffer the buffer to output
              * @
              */
-            void output(byte[] buffer);
+            void output(ByteBuffer buffer);
         }
 
         public const int HEADER_SIZE = 3;
@@ -44,7 +44,7 @@ namespace OrcSharp
          * Stores the uncompressed bytes that have been serialized, but not
          * compressed yet. When this fills, we compress the entire buffer.
          */
-        private MemoryStream current = null;
+        private ByteBuffer current = null;
 
         /**
          * Stores the compressed bytes until we have a full buffer and then outputs
@@ -52,7 +52,7 @@ namespace OrcSharp
          * will always be null and the current buffer will be sent directly to the
          * receiver.
          */
-        private MemoryStream compressed = null;
+        private ByteBuffer compressed = null;
 
         /**
          * Since the compressed buffer may start with contents from previous
@@ -61,7 +61,7 @@ namespace OrcSharp
          * compressed buffer is sent to the receiver, the overflow buffer becomes
          * the new compressed buffer.
          */
-        private MemoryStream overflow = null;
+        private ByteBuffer overflow = null;
         private int _bufferSize;
         private CompressionCodec codec;
         private long compressedBytes = 0;
@@ -109,45 +109,42 @@ namespace OrcSharp
          * @param original is it uncompressed
          */
         private static void writeHeader(
-            MemoryStream buffer,
+            ByteBuffer buffer,
             int position,
             int val,
             bool original)
         {
-            long oldPosition = buffer.Position;
-            buffer.Position = position;
-            buffer.WriteByte((byte)((val << 1) + (original ? 1 : 0)));
-            buffer.WriteByte((byte)(val >> 7));
-            buffer.WriteByte((byte)(val >> 15));
-            buffer.Position = oldPosition;
+            buffer.put(position, (byte)((val << 1) + (original ? 1 : 0)));
+            buffer.put(position + 1, (byte)(val >> 7));
+            buffer.put(position + 2, (byte)(val >> 15));
         }
 
         private void getNewInputBuffer()
         {
             if (codec == null)
             {
-                current = new MemoryStream(_bufferSize);
+                current = ByteBuffer.allocate(_bufferSize);
             }
             else
             {
-                current = new MemoryStream(_bufferSize + HEADER_SIZE);
+                current = ByteBuffer.allocate(_bufferSize + HEADER_SIZE);
                 writeHeader(current, 0, _bufferSize, true);
-                current.Position = HEADER_SIZE;
+                current.position(HEADER_SIZE);
             }
         }
 
         /**
          * Allocate a new output buffer if we are compressing.
          */
-        private MemoryStream getNewOutputBuffer()
+        private ByteBuffer getNewOutputBuffer()
         {
-            return new MemoryStream(_bufferSize + HEADER_SIZE);
+            return ByteBuffer.allocate((int)bufferSize + HEADER_SIZE);
         }
 
         private void flip()
         {
-            current.Capacity = (int)current.Position;
-            current.Position = codec == null ? 0 : HEADER_SIZE;
+            current.limit(current.position());
+            current.position(codec == null ? 0 : HEADER_SIZE);
         }
 
         public override void WriteByte(byte i)
@@ -161,7 +158,7 @@ namespace OrcSharp
                 spill();
             }
             uncompressedBytes++;
-            current.WriteByte(i);
+            current.put(i);
         }
 
         public override void Write(byte[] bytes, int offset, int length)
@@ -171,7 +168,7 @@ namespace OrcSharp
                 getNewInputBuffer();
             }
             int remaining = Math.Min(current.remaining(), length);
-            current.Write(bytes, offset, remaining);
+            current.put(bytes, offset, remaining);
             uncompressedBytes += remaining;
             length -= remaining;
             while (length != 0)
@@ -179,7 +176,7 @@ namespace OrcSharp
                 spill();
                 offset += remaining;
                 remaining = Math.Min(current.remaining(), length);
-                current.Write(bytes, offset, remaining);
+                current.put(bytes, offset, remaining);
                 uncompressedBytes += remaining;
                 length -= remaining;
             }
@@ -189,14 +186,14 @@ namespace OrcSharp
         {
             // if there isn't anything in the current buffer, don't spill
             if (current == null ||
-                current.Position == (codec == null ? 0 : HEADER_SIZE))
+                current.position() == (codec == null ? 0 : HEADER_SIZE))
             {
                 return;
             }
             flip();
             if (codec == null)
             {
-                receiver.output(current.ToArray());
+                receiver.output(current);
                 getNewInputBuffer();
             }
             else
@@ -209,18 +206,19 @@ namespace OrcSharp
                 {
                     overflow = getNewOutputBuffer();
                 }
-                int sizePosn = (int)compressed.Position;
-                compressed.Position += HEADER_SIZE;
+                int sizePosn = compressed.position();
+                compressed.position(sizePosn + HEADER_SIZE);
                 if (codec.compress(current, compressed, overflow))
                 {
                     uncompressedBytes = 0;
                     // move position back to after the header
-                    current.Position = HEADER_SIZE;
+                    current.position(HEADER_SIZE);
+                    current.limit(current.capacity());
                     // find the total bytes in the chunk
-                    int totalBytes = (int)compressed.Position - sizePosn - HEADER_SIZE;
+                    int totalBytes = compressed.position() - sizePosn - HEADER_SIZE;
                     if (overflow != null)
                     {
-                        totalBytes += (int)overflow.Position;
+                        totalBytes += (int)overflow.position();
                     }
                     compressedBytes += totalBytes + HEADER_SIZE;
                     writeHeader(compressed, sizePosn, totalBytes, false);
@@ -228,7 +226,7 @@ namespace OrcSharp
                     if (compressed.remaining() < HEADER_SIZE)
                     {
                         compressed.flip();
-                        receiver.output(compressed.ToArray());
+                        receiver.output(compressed);
                         compressed = overflow;
                         overflow = null;
                     }
@@ -242,9 +240,9 @@ namespace OrcSharp
                     // flip it and add it to done.
                     if (sizePosn != 0)
                     {
-                        compressed.Position = sizePosn;
+                        compressed.position(sizePosn);
                         compressed.flip();
-                        receiver.output(compressed.ToArray());
+                        receiver.output(compressed);
                         compressed = null;
                         // if we have an overflow, clear it and make it the new compress
                         // buffer
@@ -265,10 +263,10 @@ namespace OrcSharp
                     }
 
                     // now add the current buffer into the done list and get a new one.
-                    current.Position = 0;
+                    current.position(0);
                     // update the header with the current length
-                    writeHeader(current, 0, current.Capacity - HEADER_SIZE, true);
-                    receiver.output(current.ToArray());
+                    writeHeader(current, 0, current.limit() - HEADER_SIZE, true);
+                    receiver.output(current);
                     getNewInputBuffer();
                 }
             }
@@ -290,10 +288,10 @@ namespace OrcSharp
         public override void Flush()
         {
             spill();
-            if (compressed != null && compressed.Position != 0)
+            if (compressed != null && compressed.position() != 0)
             {
                 compressed.flip();
-                receiver.output(compressed.ToArray());
+                receiver.output(compressed);
                 compressed = null;
             }
             uncompressedBytes = 0;
@@ -312,15 +310,15 @@ namespace OrcSharp
             long result = 0;
             if (current != null)
             {
-                result += current.Capacity;
+                result += current.capacity();
             }
             if (compressed != null)
             {
-                result += compressed.Capacity;
+                result += compressed.capacity();
             }
             if (overflow != null)
             {
-                result += overflow.Capacity;
+                result += overflow.capacity();
             }
             return result;
         }

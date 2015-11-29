@@ -77,7 +77,7 @@
     <Compile Include="Serialization\SerdeConstants.cs" />
     <Compile Include="External\StringExpr.cs" />
     <Compile Include="Serialization\StructField.cs" />
-    <Compile Include="External\TypeDescription.cs" />
+    <Compile Include="TypeDescription.cs" />
     <Compile Include="Serialization\TypeInfoUtils.cs" />
     <Compile Include="External\VectorizedRowBatch.cs" />
     <Compile Include="FileDump.cs" />

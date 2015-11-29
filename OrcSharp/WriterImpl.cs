@@ -290,7 +290,7 @@ namespace OrcSharp
         private class BufferedStream : OutStream.OutputReceiver
         {
             public OutStream outStream;
-            private List<byte[]> _output = new List<byte[]>();
+            private List<ByteBuffer> _output = new List<ByteBuffer>();
 
             public BufferedStream(string name, int bufferSize, CompressionCodec codec)
             {
@@ -302,7 +302,7 @@ namespace OrcSharp
              * @param buffer the buffer to save
              * @
              */
-            public void output(byte[] buffer)
+            public void output(ByteBuffer buffer)
             {
                 _output.Add(buffer);
             }
@@ -314,9 +314,9 @@ namespace OrcSharp
             public long getBufferSize()
             {
                 long result = 0;
-                foreach (byte[] buf in _output)
+                foreach (ByteBuffer buf in _output)
                 {
-                    result += buf.Length;
+                    result += buf.capacity();
                 }
                 return outStream.getBufferSize() + result;
             }
@@ -357,9 +357,9 @@ namespace OrcSharp
             public long getOutputSize()
             {
                 long result = 0;
-                foreach (byte[] buffer in _output)
+                foreach (ByteBuffer buffer in _output)
                 {
-                    result += buffer.Length;
+                    result += buffer.remaining();
                 }
                 return result;
             }
@@ -371,9 +371,9 @@ namespace OrcSharp
              */
             public void spillTo(Stream @out)
             {
-                foreach (byte[] buffer in _output)
+                foreach (ByteBuffer buffer in _output)
                 {
-                    @out.Write(buffer, 0, buffer.Length);
+                    @out.Write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining());
                 }
             }
 
@@ -396,9 +396,9 @@ namespace OrcSharp
                 this._output = output;
             }
 
-            public void output(byte[] buffer)
+            public void output(ByteBuffer buffer)
             {
-                _output.Write(buffer, 0, buffer.Length);
+                _output.Write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining());
             }
         }
 

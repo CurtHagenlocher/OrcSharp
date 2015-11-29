@@ -11,4 +11,3 @@ Some experiments
 BooleanWritable -> StrongBox<bool>
 ByteWritable -> StrongBox<byte>
 etc.
-Tried to replace ByteBuffer with MemoryStream; need to undo that partial work in writer.

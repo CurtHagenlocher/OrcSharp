@@ -192,7 +192,7 @@ namespace OrcSharp.External
 
         internal int capacity()
         {
-            throw new NotImplementedException();
+            return buffer.Length;
         }
 
         internal void flip()
