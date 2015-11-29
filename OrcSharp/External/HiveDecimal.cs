@@ -26,7 +26,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public const int MAX_PRECISION = 38;
         public const int MAX_SCALE = 38;
         public const int SYSTEM_DEFAULT_PRECISION = 38;
-        public const int SYSTEM_DEFAULT_SCALE = 28;
+        public const int SYSTEM_DEFAULT_SCALE = 18;
         public const int USER_DEFAULT_PRECISION = 10;
         public const int USER_DEFAULT_SCALE = 0;
 
@@ -71,7 +71,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             if (position >= 0)
             {
                 text = text.Remove(position, 1);
-                scale = position - text.Length;
+                scale = text.Length - position;
             }
 
             return new HiveDecimal(BigInteger.Parse(text), scale);
@@ -93,13 +93,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public override string ToString()
         {
             string result = this.mantissa.ToString();
-            if (_scale < 0)
+            if (_scale > 0)
             {
-                result = result.Insert(result.Length + _scale, ".");
+                result = result.Insert(result.Length - _scale, ".");
             }
-            else if (_scale > 0)
+            else if (_scale < 0)
             {
-                result = result + new string('0', _scale);
+                result = result + new string('0', -_scale);
             }
             return result;
         }
@@ -117,11 +117,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         static void Normalize(ref HiveDecimal x, ref HiveDecimal y)
         {
-            if (x._scale < y._scale)
+            if (x._scale > y._scale)
             {
                 x = x.UpdateScale(y._scale);
             }
-            else if (y._scale < x._scale)
+            else if (y._scale > x._scale)
             {
                 y = y.UpdateScale(x._scale);
             }
@@ -129,7 +129,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         HiveDecimal UpdateScale(int newScale)
         {
-            return new HiveDecimal(mantissa * BigInteger.Pow(Ten, newScale - _scale), newScale);
+            return new HiveDecimal(mantissa * BigInteger.Pow(Ten, _scale - newScale), newScale);
         }
 
         public long longValue()

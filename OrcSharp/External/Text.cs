@@ -78,5 +78,10 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         {
             return obj is Text && value == ((Text)obj).value;
         }
+
+        public override string ToString()
+        {
+            return this.value;
+        }
     }
 }

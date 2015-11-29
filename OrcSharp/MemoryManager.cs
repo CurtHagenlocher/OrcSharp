@@ -31,7 +31,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
      * This class is not thread safe, but is re-entrant - ensure creation and all
      * invocations are triggered from the same thread.
      */
-    class MemoryManager
+    public class MemoryManager
     {
         private static Log LOG = LogFactory.getLog(typeof(MemoryManager));
 
@@ -102,7 +102,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * @param path the file that is being written
          * @param requestedAllocation the requested buffer size
          */
-        public void addWriter(string path, long requestedAllocation, Callback callback)
+        public virtual void addWriter(string path, long requestedAllocation, Callback callback)
         {
             checkOwner();
             WriterInfo oldVal = writerList.get(path);
@@ -129,7 +129,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
          * Remove the given writer from the pool.
          * @param path the file that has been closed
          */
-        public void removeWriter(string path)
+        public virtual void removeWriter(string path)
         {
             checkOwner();
             WriterInfo val = writerList.get(path);
@@ -142,6 +142,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     rowsAddedSinceCheck = 0;
                 }
                 updateScale(false);
+            }
+            else
+            {
+                System.Diagnostics.Debugger.Break();
             }
             if (writerList.Count == 0)
             {

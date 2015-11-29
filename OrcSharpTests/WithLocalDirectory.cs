@@ -21,9 +21,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using System;
     using System.IO;
     using org.apache.hadoop.hive.ql.io.orc.external;
+    using System.Reflection;
+    using System.Diagnostics;
 
     public class WithLocalDirectory : IDisposable
     {
+        public static readonly string ResourcesDirectory = GetResourcesDirectory();
+
         protected readonly string workDir;
         protected readonly Configuration conf;
         protected readonly string testFilePath;
@@ -36,6 +40,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             testFilePath = Path.Combine(workDir, filename);
         }
 
+        static string GetResourcesDirectory()
+        {
+            string codebase = Assembly.GetExecutingAssembly().EscapedCodeBase;
+            string location = (new Uri(codebase)).LocalPath;
+            return Path.Combine(Path.GetDirectoryName(location), "resources");
+        }
+
         public void Dispose()
         {
             try
@@ -44,6 +55,119 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
             catch (IOException)
             {
+            }
+        }
+
+        public Stream FileOpenWrite(string path)
+        {
+            return new WrappedStream(path);
+        }
+
+        class WrappedStream : Stream
+        {
+            Stream baseStream;
+            StackTrace closeTrace;
+
+            public WrappedStream(string path)
+            {
+                this.baseStream = File.OpenWrite(path);
+            }
+
+            public override bool CanRead
+            {
+                get { return baseStream.CanRead; }
+            }
+
+            public override bool CanSeek
+            {
+                get { return baseStream.CanSeek; }
+            }
+
+            public override bool CanTimeout
+            {
+                get { return baseStream.CanTimeout; }
+            }
+
+            public override bool CanWrite
+            {
+                get { return baseStream.CanWrite; }
+            }
+
+            public override long Length
+            {
+                get { return baseStream.Length; }
+            }
+
+            public override long Position
+            {
+                get { return baseStream.Position; }
+                set { baseStream.Position = value; }
+            }
+
+            public override int ReadTimeout
+            {
+                get { return baseStream.ReadTimeout; }
+                set { baseStream.ReadTimeout = value; }
+            }
+
+            public override int WriteTimeout
+            {
+                get { return baseStream.WriteTimeout; }
+                set { baseStream.WriteTimeout = value; }
+            }
+
+            public override void Close()
+            {
+                closeTrace = new StackTrace();
+                baseStream.Close();
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    baseStream.Dispose();
+                }
+            }
+
+            public override void Flush()
+            {
+                baseStream.Flush();
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                return baseStream.Read(buffer, offset, count);
+            }
+
+            public override int ReadByte()
+            {
+                return baseStream.ReadByte();
+            }
+
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                return baseStream.Seek(offset, origin);
+            }
+
+            public override void SetLength(long value)
+            {
+                baseStream.SetLength(value);
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                if (closeTrace != null)
+                {
+                    string tmp = closeTrace.ToString();
+                    System.Console.WriteLine(tmp);
+                }
+                baseStream.Write(buffer, offset, count);
+            }
+
+            public override void WriteByte(byte value)
+            {
+                baseStream.WriteByte(value);
             }
         }
     }

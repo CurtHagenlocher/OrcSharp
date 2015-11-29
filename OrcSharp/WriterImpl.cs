@@ -1641,7 +1641,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 base.write(obj);
                 if (obj != null)
                 {
-                    DateTime val = ((TimestampObjectInspector)inspector).get();
+                    DateTime val = ((TimestampObjectInspector)inspector).get(obj);
                     indexStatistics.updateTimestamp(val);
                     seconds.write((val.getTimestamp() / MILLIS_PER_SECOND) - base_timestamp);
                     nanos.write(formatNanos(val.getNanos()));
@@ -2390,8 +2390,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         private long getRawDataSize(TreeWriter child, TypeDescription schema)
         {
-            int ObjectOverhead = IntPtr.Size * 2;
-
             long total = 0;
             long numVals = child.fileStatistics.getNumberOfValues();
             switch (schema.getCategory())
@@ -2401,10 +2399,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 case Category.SHORT:
                 case Category.INT:
                 case Category.FLOAT:
-                    return numVals * 4;
+                    return numVals * JavaDataModel.Four;
                 case Category.LONG:
                 case Category.DOUBLE:
-                    return numVals * 8;
+                    return numVals * JavaDataModel.Eight;
                 case Category.STRING:
                 case Category.VARCHAR:
                 case Category.CHAR:
@@ -2413,20 +2411,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     StringColumnStatistics scs = (StringColumnStatistics)child.fileStatistics;
                     numVals = numVals == 0 ? 1 : numVals;
                     int avgStringLen = (int)(scs.getSum() / numVals);
-                    return numVals * (ObjectOverhead + 2 * (avgStringLen + 1));
+                    return numVals * JavaDataModel.lengthForStringOfLength(avgStringLen);
                 case Category.DECIMAL:
-                    // return numVals * JavaDataModel.get().lengthOfDecimal();
-                    return numVals * 32;
+                    return numVals * JavaDataModel.lengthOfDecimal();
                 case Category.DATE:
-                    // return numVals * JavaDataModel.get().lengthOfDate();
-                    return numVals * 8;
+                    return numVals * JavaDataModel.lengthOfDate();
                 case Category.BINARY:
                     // get total length of binary blob
                     BinaryColumnStatistics bcs = (BinaryColumnStatistics)child.fileStatistics;
                     return bcs.getSum();
                 case Category.TIMESTAMP:
-                    // return numVals * JavaDataModel.get().lengthOfTimestamp();
-                    return numVals * 8;
+                    return numVals * JavaDataModel.lengthOfTimestamp();
                 case Category.LIST:
                 case Category.MAP:
                 case Category.UNION:
@@ -2585,8 +2580,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
             memoryManager.addedRow();
         }
 
+        void IDisposable.Dispose()
+        {
+            close();
+        }
+
         public void close()
         {
+            if (baseStream == null)
+            {
+                return;
+            }
             if (callback != null)
             {
                 callback.preFooterWrite(this);
@@ -2598,8 +2602,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
             int metadataLength = writeMetadata(rawWriter.Position);
             int footerLength = writeFooter(rawWriter.Position - metadataLength);
             rawWriter.WriteByte((byte)writePostScript(footerLength, metadataLength));
-            rawWriter.Close();
-
+            // rawWriter.Close();
+            baseStream = null;
         }
 
         /**

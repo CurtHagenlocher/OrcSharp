@@ -118,7 +118,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public void close()
         {
-            file.Close();
+            // TODO:
+            // file.Close();
         }
     }
 }

@@ -19,21 +19,61 @@
 namespace org.apache.hadoop.hive.ql.io.orc.external
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
-    public class BytesWritable
+    sealed public class BytesWritable : IEquatable<BytesWritable>
     {
-        internal void setSize(int len)
+        private byte[] bytes;
+
+        public BytesWritable()
         {
-            throw new NotImplementedException();
         }
 
-        internal byte[] getBytes()
+        public BytesWritable(byte[] bytes)
         {
-            throw new NotImplementedException();
+            this.bytes = bytes;
+        }
+
+        public void setSize(int len)
+        {
+            bytes = new byte[len];
+        }
+
+        public byte[] getBytes()
+        {
+            return bytes;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as BytesWritable);
+        }
+
+        public bool Equals(BytesWritable other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (bytes == null)
+            {
+                return other.bytes == null;
+            }
+
+            if (other.bytes == null || bytes.Length != other.bytes.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if (bytes[i] != other.bytes[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

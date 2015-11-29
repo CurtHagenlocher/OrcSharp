@@ -62,7 +62,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 if (file != null)
                 {
-                    file.Close();
+                    // TODO:
+                    // file.Close();
                 }
             }
 

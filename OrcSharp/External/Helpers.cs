@@ -196,6 +196,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
             x += (x >> 16);
             return (x & 0x0000003f);
         }
+
+        internal static string toHexString(int v)
+        {
+            return v.ToString("x");
+        }
+
+        internal static string toBinaryString(int v)
+        {
+            // TODO:
+            return v.ToString("x");
+        }
     }
 
     public static class Long
@@ -205,6 +216,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             i = i - ((i >> 1) & 0x5555555555555555);
             i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
             return (int)((((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56);
+        }
+
+        internal static string toHexString(long v)
+        {
+            return v.ToString("x");
         }
     }
 
@@ -238,7 +254,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     {
         public static ByteBuffer asReadOnlyByteBuffer(this ByteString buffer)
         {
-            throw new InvalidOperationException();
+            return new ByteBuffer(buffer.ToByteArray());
         }
     }
 }

@@ -20,6 +20,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using org.apache.hadoop.hive.ql.io.orc.external;
     using Xunit;
@@ -100,14 +101,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Text string1;
             List<InnerStruct> list = new List<InnerStruct>();
             Dictionary<Text, InnerStruct> map = new Dictionary<Text, InnerStruct>();
-            Timestamp ts;
+            DateTime ts; // Timestamp ts;
             HiveDecimal decimal1;
             MiddleStruct middle;
 
             public BigRow(bool b1, byte b2, short s1, int i1, long l1, float f1,
                 double d1,
                 BytesWritable b3, string s2, MiddleStruct m1,
-                List<InnerStruct> l2, Dictionary<Text, InnerStruct> m2, Timestamp ts1,
+                List<InnerStruct> l2, Dictionary<Text, InnerStruct> m2, DateTime ts1, // Timestamp ts1,
                 HiveDecimal dec1)
             {
                 this.boolean1 = b1;
@@ -176,18 +177,21 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(SimpleStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
-                    .bufferSize(10000));
-            writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4), "foo"));
-            writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3), "bar"));
-            writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4, 5), null));
-            writer.addRow(new SimpleStruct(null, "hi"));
-            writer.close();
-            Assert.Equal(4, writer.getNumberOfRows());
-            Assert.Equal(273, writer.getRawDataSize());
+                    .bufferSize(10000)))
+            {
+                writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4), "foo"));
+                writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3), "bar"));
+                writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4, 5), null));
+                writer.addRow(new SimpleStruct(null, "hi"));
+                writer.close();
+                Assert.Equal(4, writer.getNumberOfRows());
+                Assert.Equal(273, writer.getRawDataSize());
+            }
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(4, reader.getNumberOfRows());
@@ -199,17 +203,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();
             Assert.Equal(4, stats[0].getNumberOfValues());
-            Assert.Equal("count: 4 hasNull: false", stats[0].ToString());
+            Assert.Equal("count: 4 hasNull: False", stats[0].ToString());
 
             Assert.Equal(3, stats[1].getNumberOfValues());
             Assert.Equal(15, ((BinaryColumnStatistics)stats[1]).getSum());
-            Assert.Equal("count: 3 hasNull: true sum: 15", stats[1].ToString());
+            Assert.Equal("count: 3 hasNull: True sum: 15", stats[1].ToString());
 
             Assert.Equal(3, stats[2].getNumberOfValues());
             Assert.Equal("bar", ((StringColumnStatistics)stats[2]).getMinimum());
             Assert.Equal("hi", ((StringColumnStatistics)stats[2]).getMaximum());
             Assert.Equal(8, ((StringColumnStatistics)stats[2]).getSum());
-            Assert.Equal("count: 3 hasNull: true min: bar max: hi sum: 8",
+            Assert.Equal("count: 3 hasNull: True min: bar max: hi sum: 8",
                 stats[2].ToString());
 
             // check the inspectors
@@ -266,23 +270,26 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(ListStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(10000)
-                    .bufferSize(10000));
-            for (int row = 0; row < 5000; row++)
+                    .bufferSize(10000)))
             {
-                List<string> test = new List<string>();
-                for (int i = 0; i < 1000; i++)
+                for (int row = 0; row < 5000; row++)
                 {
-                    test.Add("hi");
+                    List<string> test = new List<string>();
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        test.Add("hi");
+                    }
+                    writer.addRow(new ListStruct(test));
                 }
-                writer.addRow(new ListStruct(test));
+                writer.close();
+
+                Assert.Equal(5000, writer.getNumberOfRows());
+                Assert.Equal(430000000, writer.getRawDataSize());
             }
-            writer.close();
-            Assert.Equal(5000, writer.getNumberOfRows());
-            Assert.Equal(430000000, writer.getRawDataSize());
 
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
@@ -297,24 +304,26 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MapStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(10000)
-                    .bufferSize(10000));
-            for (int row = 0; row < 1000; row++)
+                    .bufferSize(10000)))
             {
-                Dictionary<string, double> test = new Dictionary<string, double>();
-                for (int i = 0; i < 10; i++)
+                for (int row = 0; row < 1000; row++)
                 {
-                    test.Add("hi" + i, 2.0);
+                    Dictionary<string, double> test = new Dictionary<string, double>();
+                    for (int i = 0; i < 10; i++)
+                    {
+                        test.Add("hi" + i, 2.0);
+                    }
+                    writer.addRow(new MapStruct(test));
                 }
-                writer.addRow(new MapStruct(test));
+                writer.close();
+                // stats from writer
+                Assert.Equal(1000, writer.getNumberOfRows());
+                Assert.Equal(950000, writer.getRawDataSize());
             }
-            writer.close();
-            // stats from writer
-            Assert.Equal(1000, writer.getNumberOfRows());
-            Assert.Equal(950000, writer.getRawDataSize());
 
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
@@ -329,26 +338,28 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(SimpleStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(10000)
-                    .bufferSize(10000));
-            for (int row = 0; row < 1000; row++)
+                    .bufferSize(10000)))
             {
-                if (row % 2 == 0)
+                for (int row = 0; row < 1000; row++)
                 {
-                    writer.addRow(new SimpleStruct(new BytesWritable(new byte[] { 1, 2, 3 }), "hi"));
+                    if (row % 2 == 0)
+                    {
+                        writer.addRow(new SimpleStruct(new BytesWritable(new byte[] { 1, 2, 3 }), "hi"));
+                    }
+                    else
+                    {
+                        writer.addRow(null);
+                    }
                 }
-                else
-                {
-                    writer.addRow(null);
-                }
+                writer.close();
+                // stats from writer
+                Assert.Equal(1000, writer.getNumberOfRows());
+                Assert.Equal(44500, writer.getRawDataSize());
             }
-            writer.close();
-            // stats from writer
-            Assert.Equal(1000, writer.getNumberOfRows());
-            Assert.Equal(44500, writer.getRawDataSize());
 
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
@@ -365,31 +376,35 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            long rawDataSize;
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
-                    .bufferSize(10000));
-            // 1 + 2 + 4 + 8 + 4 + 8 + 5 + 2 + 4 + 3 + 4 + 4 + 4 + 4 + 4 + 3 = 64
-            writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
-                    Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
+                    .bufferSize(10000)))
+            {
+                // 1 + 2 + 4 + 8 + 4 + 8 + 5 + 2 + 4 + 3 + 4 + 4 + 4 + 4 + 4 + 3 = 64
+                writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
+                        Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
+                        new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
+                        list(inner(3, "good"), inner(4, "bad")),
+                        map(), Timestamp.valueOf("2000-03-12 15:00:00"), HiveDecimal.Parse(
+                            "12345678.6547456")));
+                // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
+                // 97
+                writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
+                    Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
                     new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
-                    list(inner(3, "good"), inner(4, "bad")),
-                    map(), Timestamp.valueOf("2000-03-12 15:00:00"), HiveDecimal.Parse(
-                        "12345678.6547456")));
-            // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
-            // 97
-            writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
-                Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
-                new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
-                list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
-                map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.valueOf("2000-03-11 15:00:00"),
-                HiveDecimal.Parse("12345678.6547452")));
-            writer.close();
-            long rowCount = writer.getNumberOfRows();
-            long rawDataSize = writer.getRawDataSize();
-            Assert.Equal(2, rowCount);
-            Assert.Equal(1740, rawDataSize);
+                    list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
+                    map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.valueOf("2000-03-11 15:00:00"),
+                    HiveDecimal.Parse("12345678.6547452")));
+                writer.close();
+                long rowCount = writer.getNumberOfRows();
+                rawDataSize = writer.getRawDataSize();
+                Assert.Equal(2, rowCount);
+                Assert.Equal(1740, rawDataSize);
+            }
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
 
@@ -424,13 +439,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(2, stats[1].getNumberOfValues());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getFalseCount());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getTrueCount());
-            Assert.Equal("count: 2 hasNull: false true: 1", stats[1].ToString());
+            Assert.Equal("count: 2 hasNull: False true: 1", stats[1].ToString());
 
             Assert.Equal(2048, ((IntegerColumnStatistics)stats[3]).getMaximum());
             Assert.Equal(1024, ((IntegerColumnStatistics)stats[3]).getMinimum());
             Assert.Equal(true, ((IntegerColumnStatistics)stats[3]).isSumDefined());
             Assert.Equal(3072, ((IntegerColumnStatistics)stats[3]).getSum());
-            Assert.Equal("count: 2 hasNull: false min: 1024 max: 2048 sum: 3072",
+            Assert.Equal("count: 2 hasNull: False min: 1024 max: 2048 sum: 3072",
                 stats[3].ToString());
 
             Assert.Equal(Int64.MaxValue,
@@ -438,16 +453,16 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(Int64.MaxValue,
                 ((IntegerColumnStatistics)stats[5]).getMinimum());
             Assert.Equal(false, ((IntegerColumnStatistics)stats[5]).isSumDefined());
-            Assert.Equal("count: 2 hasNull: false min: 9223372036854775807 max: 9223372036854775807",
+            Assert.Equal("count: 2 hasNull: False min: 9223372036854775807 max: 9223372036854775807",
                 stats[5].ToString());
 
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-20.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 2 hasNull: false min: -15.0 max: -5.0 sum: -20.0",
+            Assert.Equal("count: 2 hasNull: False min: -15.0 max: -5.0 sum: -20.0",
                 stats[7].ToString());
 
-            Assert.Equal("count: 2 hasNull: false min: bye max: hi sum: 5", stats[9].ToString());
+            Assert.Equal("count: 2 hasNull: False min: bye max: hi sum: 5", stats[9].ToString());
         }
 
         [Fact]
@@ -455,32 +470,36 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            long rawDataSize;
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
                     .version(OrcFile.Version.V_0_11)
-                    .bufferSize(10000));
-            // 1 + 2 + 4 + 8 + 4 + 8 + 5 + 2 + 4 + 3 + 4 + 4 + 4 + 4 + 4 + 3 = 64
-            writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
-                    Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
+                    .bufferSize(10000)))
+            {
+                // 1 + 2 + 4 + 8 + 4 + 8 + 5 + 2 + 4 + 3 + 4 + 4 + 4 + 4 + 4 + 3 = 64
+                writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
+                        Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
+                        new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
+                        list(inner(3, "good"), inner(4, "bad")),
+                        map(), Timestamp.valueOf("2000-03-12 15:00:00"), HiveDecimal.Parse(
+                            "12345678.6547456")));
+                // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
+                // 97
+                writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
+                    Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
                     new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
-                    list(inner(3, "good"), inner(4, "bad")),
-                    map(), Timestamp.valueOf("2000-03-12 15:00:00"), HiveDecimal.Parse(
-                        "12345678.6547456")));
-            // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
-            // 97
-            writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
-                Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
-                new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
-                list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
-                map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.valueOf("2000-03-11 15:00:00"),
-                HiveDecimal.Parse("12345678.6547452")));
-            writer.close();
-            long rowCount = writer.getNumberOfRows();
-            long rawDataSize = writer.getRawDataSize();
-            Assert.Equal(2, rowCount);
-            Assert.Equal(1740, rawDataSize);
+                    list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
+                    map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.valueOf("2000-03-11 15:00:00"),
+                    HiveDecimal.Parse("12345678.6547452")));
+                writer.close();
+                long rowCount = writer.getNumberOfRows();
+                rawDataSize = writer.getRawDataSize();
+                Assert.Equal(2, rowCount);
+                Assert.Equal(1740, rawDataSize);
+            }
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
 
@@ -514,42 +533,41 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(2, stats[1].getNumberOfValues());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getFalseCount());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getTrueCount());
-            Assert.Equal("count: 2 hasNull: false true: 1", stats[1].ToString());
+            Assert.Equal("count: 2 hasNull: False true: 1", stats[1].ToString());
 
             Assert.Equal(2048, ((IntegerColumnStatistics)stats[3]).getMaximum());
             Assert.Equal(1024, ((IntegerColumnStatistics)stats[3]).getMinimum());
             Assert.Equal(true, ((IntegerColumnStatistics)stats[3]).isSumDefined());
             Assert.Equal(3072, ((IntegerColumnStatistics)stats[3]).getSum());
-            Assert.Equal("count: 2 hasNull: false min: 1024 max: 2048 sum: 3072",
+            Assert.Equal("count: 2 hasNull: False min: 1024 max: 2048 sum: 3072",
                 stats[3].ToString());
 
             Assert.Equal(Int64.MaxValue, ((IntegerColumnStatistics)stats[5]).getMaximum());
             Assert.Equal(Int64.MaxValue, ((IntegerColumnStatistics)stats[5]).getMinimum());
             Assert.Equal(false, ((IntegerColumnStatistics)stats[5]).isSumDefined());
-            Assert.Equal("count: 2 hasNull: false min: 9223372036854775807 max: 9223372036854775807",
+            Assert.Equal("count: 2 hasNull: False min: 9223372036854775807 max: 9223372036854775807",
                 stats[5].ToString());
 
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-20.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 2 hasNull: false min: -15.0 max: -5.0 sum: -20.0",
+            Assert.Equal("count: 2 hasNull: False min: -15.0 max: -5.0 sum: -20.0",
                 stats[7].ToString());
 
             Assert.Equal(5, ((BinaryColumnStatistics)stats[8]).getSum());
-            Assert.Equal("count: 2 hasNull: false sum: 5", stats[8].ToString());
+            Assert.Equal("count: 2 hasNull: False sum: 5", stats[8].ToString());
 
             Assert.Equal("bye", ((StringColumnStatistics)stats[9]).getMinimum());
             Assert.Equal("hi", ((StringColumnStatistics)stats[9]).getMaximum());
             Assert.Equal(5, ((StringColumnStatistics)stats[9]).getSum());
-            Assert.Equal("count: 2 hasNull: false min: bye max: hi sum: 5", stats[9].ToString());
+            Assert.Equal("count: 2 hasNull: False min: bye max: hi sum: 5", stats[9].ToString());
         }
 
         [Fact]
         public void testSerdeStatsOldFormat()
         {
-            Path oldFilePath = new Path(HiveTestUtils.getFileFromClasspath("orc-file-11-format.orc"));
-            Reader reader = OrcFile.createReader(oldFilePath,
-                OrcFile.readerOptions(conf));
+            string testFile = Path.Combine(ResourcesDirectory, "orc-file-11-format.orc");
+            Reader reader = OrcFile.createReader(testFile, OrcFile.readerOptions(conf));
 
             int stripeCount = 0;
             int rowCount = 0;
@@ -571,7 +589,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 }
             }
             Assert.Equal(reader.getNumberOfRows(), rowCount);
+#if JAVA_SIZE
             Assert.Equal(6300000, reader.getRawDataSize());
+#endif
             Assert.Equal(2, stripeCount);
 
             // check the stats
@@ -579,39 +599,48 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(7500, stats[1].getNumberOfValues());
             Assert.Equal(3750, ((BooleanColumnStatistics)stats[1]).getFalseCount());
             Assert.Equal(3750, ((BooleanColumnStatistics)stats[1]).getTrueCount());
-            Assert.Equal("count: 7500 hasNull: true true: 3750", stats[1].ToString());
+            Assert.Equal("count: 7500 hasNull: True true: 3750", stats[1].ToString());
 
             Assert.Equal(2048, ((IntegerColumnStatistics)stats[3]).getMaximum());
             Assert.Equal(1024, ((IntegerColumnStatistics)stats[3]).getMinimum());
             Assert.Equal(true, ((IntegerColumnStatistics)stats[3]).isSumDefined());
             Assert.Equal(11520000, ((IntegerColumnStatistics)stats[3]).getSum());
-            Assert.Equal("count: 7500 hasNull: true min: 1024 max: 2048 sum: 11520000",
+            Assert.Equal("count: 7500 hasNull: True min: 1024 max: 2048 sum: 11520000",
                 stats[3].ToString());
 
             Assert.Equal(Int64.MaxValue, ((IntegerColumnStatistics)stats[5]).getMaximum());
             Assert.Equal(Int64.MaxValue, ((IntegerColumnStatistics)stats[5]).getMinimum());
             Assert.Equal(false, ((IntegerColumnStatistics)stats[5]).isSumDefined());
             Assert.Equal(
-                "count: 7500 hasNull: true min: 9223372036854775807 max: 9223372036854775807",
+                "count: 7500 hasNull: True min: 9223372036854775807 max: 9223372036854775807",
                 stats[5].ToString());
 
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-75000.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 7500 hasNull: true min: -15.0 max: -5.0 sum: -75000.0",
+            Assert.Equal("count: 7500 hasNull: True min: -15 max: -5 sum: -75000",
                 stats[7].ToString());
 
             Assert.Equal("bye", ((StringColumnStatistics)stats[9]).getMinimum());
             Assert.Equal("hi", ((StringColumnStatistics)stats[9]).getMaximum());
             Assert.Equal(0, ((StringColumnStatistics)stats[9]).getSum());
-            Assert.Equal("count: 7500 hasNull: true min: bye max: hi sum: 0", stats[9].ToString());
+            Assert.Equal("count: 7500 hasNull: True min: bye max: hi sum: 0", stats[9].ToString());
 
             // old orc format will not have binary statistics. ToString() will show only
             // the general column statistics
-            Assert.Equal("count: 7500 hasNull: true", stats[8].ToString());
+            Assert.Equal("count: 7500 hasNull: True", stats[8].ToString());
+
             // since old orc format doesn't support binary statistics,
             // this should throw ClassCastException
-            Assert.Equal(5, ((BinaryColumnStatistics)stats[8]).getSum());
+            Assert.Throws<InvalidCastException>(() => ((BinaryColumnStatistics)stats[8]).getSum());
+        }
+
+        static class Timestamp
+        {
+            public static DateTime valueOf(string s)
+            {
+                return DateTime.Parse(s);
+            }
         }
     }
 }

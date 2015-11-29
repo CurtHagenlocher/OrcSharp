@@ -20,21 +20,24 @@ namespace org.apache.hadoop.hive.ql.io.orc
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Numerics;
+    using System.Runtime.CompilerServices;
     using org.apache.hadoop.hive.ql.io.orc.external;
+    using org.apache.hadoop.hive.ql.io.orc.query;
     using Xunit;
     using OrcProto = global::orc.proto;
 
     /**
      * Tests for the top level reader/streamFactory of ORC files.
      */
-    // @RunWith(value = Parameterized.class)
     public class TestOrcFile : WithLocalDirectory
     {
         public class SimpleStruct
         {
-            BytesWritable bytes1;
-            Text string1;
+            internal BytesWritable bytes1;
+            internal Text string1;
 
             public SimpleStruct(BytesWritable b1, string s1)
             {
@@ -52,7 +55,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public class InnerStruct
         {
-            int int1;
+            internal int int1;
             internal Text string1 = new Text();
 
             public InnerStruct(int int1, string string1)
@@ -64,7 +67,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public class MiddleStruct
         {
-            List<InnerStruct> list = new List<InnerStruct>();
+            internal List<InnerStruct> list = new List<InnerStruct>();
 
             public MiddleStruct(params InnerStruct[] items)
             {
@@ -74,18 +77,18 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public class BigRow
         {
-            bool boolean1;
-            byte byte1;
-            short short1;
-            int int1;
-            long long1;
-            float float1;
-            double double1;
-            BytesWritable bytes1;
-            Text string1;
-            MiddleStruct middle;
-            List<InnerStruct> list = new List<InnerStruct>();
-            Dictionary<Text, InnerStruct> map = new Dictionary<Text, InnerStruct>();
+            internal bool boolean1;
+            internal byte byte1;
+            internal short short1;
+            internal int int1;
+            internal long long1;
+            internal float float1;
+            internal double double1;
+            internal BytesWritable bytes1;
+            internal Text string1;
+            internal MiddleStruct middle;
+            internal List<InnerStruct> list = new List<InnerStruct>();
+            internal Dictionary<Text, InnerStruct> map = new Dictionary<Text, InnerStruct>();
 
             public BigRow(bool b1, byte b2, short s1, int i1, long l1, float f1,
                    double d1,
@@ -114,12 +117,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        private static InnerStruct inner(int i, string s)
+        const string testFileName = "TestOrcFile.orc";
+
+        public TestOrcFile() : base(testFileName)
         {
-            return new InnerStruct(i, s);
         }
 
-        private static Dictionary<Text, InnerStruct> map(params InnerStruct[] items)
+        private static Dictionary<Text, InnerStruct> makeMap(params InnerStruct[] items)
         {
             Dictionary<Text, InnerStruct> result = new Dictionary<Text, InnerStruct>();
             foreach (InnerStruct i in items)
@@ -127,11 +131,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 result.Add(new Text(i.string1), i);
             }
             return result;
-        }
-
-        private static List<InnerStruct> list(params InnerStruct[] items)
-        {
-            return items.ToList();
         }
 
         private static BytesWritable bytes(params int[] items)
@@ -156,26 +155,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return result;
         }
 
-        private bool zeroCopy;
-
-        // @Parameters
-        public static Collection<bool[]> data()
-        {
-            return Arrays.asList(new bool[][] { { false }, { true } });
-        }
-
-        public TestOrcFile(bool zcr)
-        {
-            zeroCopy = zcr.booleanValue();
-        }
+        private bool zeroCopy; // TODO: test with both true and false
 
         [Fact]
         public void testReadFormat_0_11()
         {
-            Path oldFilePath =
-                new Path(HiveTestUtils.getFileFromClasspath("orc-file-11-format.orc"));
-            Reader reader = OrcFile.createReader(oldFilePath,
-                OrcFile.readerOptions(conf));
+            string oldFilePath = Path.Combine(ResourcesDirectory, "orc-file-11-format.orc");
+            Reader reader = OrcFile.createReader(oldFilePath, OrcFile.readerOptions(conf));
 
             int stripeCount = 0;
             int rowCount = 0;
@@ -204,29 +190,29 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(7500, stats[1].getNumberOfValues());
             Assert.Equal(3750, ((BooleanColumnStatistics)stats[1]).getFalseCount());
             Assert.Equal(3750, ((BooleanColumnStatistics)stats[1]).getTrueCount());
-            Assert.Equal("count: 7500 hasNull: true true: 3750", stats[1].ToString());
+            Assert.Equal("count: 7500 hasNull: True true: 3750", stats[1].ToString());
 
             Assert.Equal(2048, ((IntegerColumnStatistics)stats[3]).getMaximum());
             Assert.Equal(1024, ((IntegerColumnStatistics)stats[3]).getMinimum());
             Assert.Equal(true, ((IntegerColumnStatistics)stats[3]).isSumDefined());
             Assert.Equal(11520000, ((IntegerColumnStatistics)stats[3]).getSum());
-            Assert.Equal("count: 7500 hasNull: true min: 1024 max: 2048 sum: 11520000",
+            Assert.Equal("count: 7500 hasNull: True min: 1024 max: 2048 sum: 11520000",
                 stats[3].ToString());
 
             Assert.Equal(Int64.MaxValue, ((IntegerColumnStatistics)stats[5]).getMaximum());
             Assert.Equal(Int64.MaxValue, ((IntegerColumnStatistics)stats[5]).getMinimum());
             Assert.Equal(false, ((IntegerColumnStatistics)stats[5]).isSumDefined());
             Assert.Equal(
-                "count: 7500 hasNull: true min: 9223372036854775807 max: 9223372036854775807",
+                "count: 7500 hasNull: True min: 9223372036854775807 max: 9223372036854775807",
                 stats[5].ToString());
 
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-75000.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 7500 hasNull: true min: -15.0 max: -5.0 sum: -75000.0",
+            Assert.Equal("count: 7500 hasNull: True min: -15 max: -5 sum: -75000",
                 stats[7].ToString());
 
-            Assert.Equal("count: 7500 hasNull: true min: bye max: hi sum: 0", stats[9].ToString());
+            Assert.Equal("count: 7500 hasNull: True min: bye max: hi sum: 0", stats[9].ToString());
 
             // check the inspectors
             StructObjectInspector readerInspector = (StructObjectInspector)reader
@@ -299,7 +285,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     fields[7])));
             Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector
                 .getStructFieldData(row, fields[8])));
-            List<object> midRow = midli.getList(mid.getStructFieldData(
+            IList<object> midRow = midli.getList(mid.getStructFieldData(
                 readerInspector.getStructFieldData(row, fields[9]),
                 midFields[0]));
             Assert.NotNull(midRow);
@@ -312,7 +298,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 @in.get(inner.getStructFieldData(midRow[1], inFields[0])));
             Assert.Equal("sigh", st.getPrimitiveJavaObject(inner.getStructFieldData(
                 midRow[1], inFields[1])));
-            List<object> list = li.getList(readerInspector.getStructFieldData(row,
+            IList<object> list = li.getList(readerInspector.getStructFieldData(row,
                 fields[10]));
             Assert.Equal(2, list.Count);
             Assert.Equal(3,
@@ -326,10 +312,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
             IDictionary<object, object> map = ma.getMap(readerInspector.getStructFieldData(row,
                 fields[11]));
             Assert.Equal(0, map.Count);
+#if TIMESTAMP
             Assert.Equal(Timestamp.valueOf("2000-03-12 15:00:00"),
                 tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[12])));
-            Assert.Equal(HiveDecimal.create("12345678.6547456"),
+#endif
+            Assert.Equal(HiveDecimal.Parse("12345678.6547456"),
                 dco.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[13])));
 
@@ -414,10 +402,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
             Assert.Equal(true, found[0]);
             Assert.Equal(true, found[1]);
+#if TIMESTAMP
             Assert.Equal(Timestamp.valueOf("2000-03-12 15:00:01"),
                 tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[12])));
-            Assert.Equal(HiveDecimal.create("12345678.6547457"),
+#endif
+            Assert.Equal(HiveDecimal.Parse("12345678.6547457"),
                 dco.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[13])));
 
@@ -426,34 +416,45 @@ namespace org.apache.hadoop.hive.ql.io.orc
             rows.close();
         }
 
+#if TIMESTAMP
         [Fact]
         public void testTimestamp()
         {
-            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(Timestamp);
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(Timestamp));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf).inspector(inspector).stripeSize(100000).bufferSize(10000)
-                    .version(OrcFile.Version.V_0_11));
             List<Timestamp> tslist = new List<Timestamp>();
-            tslist.Add(Timestamp.valueOf("2037-01-01 00:00:00.000999"));
-            tslist.Add(Timestamp.valueOf("2003-01-01 00:00:00.000000222"));
-            tslist.Add(Timestamp.valueOf("1999-01-01 00:00:00.999999999"));
-            tslist.Add(Timestamp.valueOf("1995-01-01 00:00:00.688888888"));
-            tslist.Add(Timestamp.valueOf("2002-01-01 00:00:00.1"));
-            tslist.Add(Timestamp.valueOf("2010-03-02 00:00:00.000009001"));
-            tslist.Add(Timestamp.valueOf("2005-01-01 00:00:00.000002229"));
-            tslist.Add(Timestamp.valueOf("2006-01-01 00:00:00.900203003"));
-            tslist.Add(Timestamp.valueOf("2003-01-01 00:00:00.800000007"));
-            tslist.Add(Timestamp.valueOf("1996-08-02 00:00:00.723100809"));
-            tslist.Add(Timestamp.valueOf("1998-11-02 00:00:00.857340643"));
-            tslist.Add(Timestamp.valueOf("2008-10-02 00:00:00"));
-
-            foreach (Timestamp ts in tslist)
+            using (Stream file = FileOpenWrite(testFilePath))
             {
-                writer.addRow(ts);
-            }
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(100000)
+                    .bufferSize(10000)
+                    .version(OrcFile.Version.V_0_11));
+                tslist.Add(Timestamp.valueOf("2037-01-01 00:00:00.000999"));
+                tslist.Add(Timestamp.valueOf("2003-01-01 00:00:00.000000222"));
+                tslist.Add(Timestamp.valueOf("1999-01-01 00:00:00.999999999"));
+                tslist.Add(Timestamp.valueOf("1995-01-01 00:00:00.688888888"));
+                tslist.Add(Timestamp.valueOf("2002-01-01 00:00:00.1"));
+                tslist.Add(Timestamp.valueOf("2010-03-02 00:00:00.000009001"));
+                tslist.Add(Timestamp.valueOf("2005-01-01 00:00:00.000002229"));
+                tslist.Add(Timestamp.valueOf("2006-01-01 00:00:00.900203003"));
+                tslist.Add(Timestamp.valueOf("2003-01-01 00:00:00.800000007"));
+                tslist.Add(Timestamp.valueOf("1996-08-02 00:00:00.723100809"));
+                tslist.Add(Timestamp.valueOf("1998-11-02 00:00:00.857340643"));
+                tslist.Add(Timestamp.valueOf("2008-10-02 00:00:00"));
 
-            writer.close();
+                foreach (Timestamp ts in tslist)
+                {
+                    writer.addRow(ts);
+                }
+
+                writer.close();
+
+                Assert.Equal(0, writer.getSchema().getMaximumId());
+                bool[] expected = new bool[] { false };
+                bool[] included = OrcUtils.includeColumns("", writer.getSchema());
+                Assert.Equal(expected, included);
+            }
 
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
@@ -464,58 +465,57 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 object row = rows.next(null);
                 Assert.Equal(tslist[idx++].getNanos(), ((TimestampWritable)row).getNanos());
             }
-            Assert.Equal(0, writer.getSchema().getMaximumId());
-            bool[] expected = new bool[] { false };
-            bool[] included = OrcUtils.includeColumns("", writer.getSchema());
-            Assert.Equal(expected, included);
         }
+#endif
 
         [Fact]
         public void testStringAndBinaryStatistics()
         {
-
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(SimpleStruct));
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(100000)
-                                                 .bufferSize(10000));
-            writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4), "foo"));
-            writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3), "bar"));
-            writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4, 5), null));
-            writer.addRow(new SimpleStruct(null, "hi"));
-            writer.close();
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
 
-            TypeDescription schema = writer.getSchema();
-            Assert.Equal(2, schema.getMaximumId());
-            bool[] expected = new bool[] { false, false, true };
-            bool[] included = OrcUtils.includeColumns("string1", schema);
-            Assert.Equal(expected, included);
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(100000)
+                    .bufferSize(10000)))
+            {
+                writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4), "foo"));
+                writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3), "bar"));
+                writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4, 5), null));
+                writer.addRow(new SimpleStruct(null, "hi"));
+                writer.close();
 
-            expected = new bool[] { false, false, false };
-            included = OrcUtils.includeColumns("", schema);
-            Assert.Equal(expected, included);
+                TypeDescription schema = writer.getSchema();
+                Assert.Equal(2, schema.getMaximumId());
+                bool[] expected = new bool[] { false, false, true };
+                bool[] included = OrcUtils.includeColumns("string1", schema);
+                Assert.Equal(expected, included);
 
-            expected = new bool[] { false, false, false };
-            included = OrcUtils.includeColumns(null, schema);
-            Assert.Equal(expected, included);
+                expected = new bool[] { false, false, false };
+                included = OrcUtils.includeColumns("", schema);
+                Assert.Equal(expected, included);
+
+                expected = new bool[] { false, false, false };
+                included = OrcUtils.includeColumns(null, schema);
+                Assert.Equal(expected, included);
+            }
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
 
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();
             Assert.Equal(4, stats[0].getNumberOfValues());
-            Assert.Equal("count: 4 hasNull: false", stats[0].ToString());
+            Assert.Equal("count: 4 hasNull: False", stats[0].ToString());
 
             Assert.Equal(3, stats[1].getNumberOfValues());
             Assert.Equal(15, ((BinaryColumnStatistics)stats[1]).getSum());
-            Assert.Equal("count: 3 hasNull: true sum: 15", stats[1].ToString());
+            Assert.Equal("count: 3 hasNull: True sum: 15", stats[1].ToString());
 
             Assert.Equal(3, stats[2].getNumberOfValues());
             Assert.Equal("bar", ((StringColumnStatistics)stats[2]).getMinimum());
             Assert.Equal("hi", ((StringColumnStatistics)stats[2]).getMaximum());
             Assert.Equal(8, ((StringColumnStatistics)stats[2]).getSum());
-            Assert.Equal("count: 3 hasNull: true min: bar max: hi sum: 8",
+            Assert.Equal("count: 3 hasNull: True min: bar max: hi sum: 8",
                 stats[2].ToString());
 
             // check the inspectors
@@ -553,13 +553,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
             row = rows.next(row);
             Assert.Equal(bytes(0, 1, 2, 3, 4, 5), bi.getPrimitiveWritableObject(
                 readerInspector.getStructFieldData(row, fields[0])));
-            assertNull(st.getPrimitiveJavaObject(readerInspector.
+            Assert.Null(st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
 
             // check the contents of second row
             Assert.Equal(true, rows.hasNext());
             row = rows.next(row);
-            assertNull(bi.getPrimitiveWritableObject(
+            Assert.Null(bi.getPrimitiveWritableObject(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
@@ -575,40 +575,42 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(InnerStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
-                    .bufferSize(10000));
-            for (int i = 0; i < 11000; i++)
+                    .bufferSize(10000)))
             {
-                if (i >= 5000)
+                for (int i = 0; i < 11000; i++)
                 {
-                    if (i >= 10000)
+                    if (i >= 5000)
                     {
-                        writer.addRow(new InnerStruct(3, "three"));
+                        if (i >= 10000)
+                        {
+                            writer.addRow(new InnerStruct(3, "three"));
+                        }
+                        else
+                        {
+                            writer.addRow(new InnerStruct(2, "two"));
+                        }
                     }
                     else
                     {
-                        writer.addRow(new InnerStruct(2, "two"));
+                        writer.addRow(new InnerStruct(1, "one"));
                     }
                 }
-                else
-                {
-                    writer.addRow(new InnerStruct(1, "one"));
-                }
+
+                writer.close();
+
+                TypeDescription schema = writer.getSchema();
+                Assert.Equal(2, schema.getMaximumId());
+                bool[] expected = new bool[] { false, true, false };
+                bool[] included = OrcUtils.includeColumns("int1", schema);
+                Assert.Equal(expected, included);
             }
 
-            writer.close();
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
-
-            TypeDescription schema = writer.getSchema();
-            Assert.Equal(2, schema.getMaximumId());
-            bool[] expected = new bool[] { false, true, false };
-            bool[] included = OrcUtils.includeColumns("int1", schema);
-            Assert.Equal(expected, included);
-
             List<StripeStatistics> stats = reader.getStripeStatistics();
             int numStripes = stats.Count;
             Assert.Equal(3, numStripes);
@@ -667,73 +669,87 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
-                    .bufferSize(10000));
-            writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
-                Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
-                new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
-                list(inner(3, "good"), inner(4, "bad")),
-                map()));
-            writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
-                Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
-                new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
-                list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
-                map(inner(5, "chani"), inner(1, "mauddib"))));
-            writer.close();
+                    .bufferSize(10000)))
+            {
+                writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
+                    Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
+                    new MiddleStruct(new InnerStruct(1, "bye"), new InnerStruct(2, "sigh")),
+                    new List<InnerStruct> { new InnerStruct(3, "good"), new InnerStruct(4, "bad") },
+                    makeMap()));
+                writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
+                    Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
+                    new MiddleStruct(new InnerStruct(1, "bye"), new InnerStruct(2, "sigh")),
+                    new List<InnerStruct> { new InnerStruct(100000000, "cat"), new InnerStruct(-100000, "in"), new InnerStruct(1234, "hat") },
+                    makeMap(new InnerStruct(5, "chani"), new InnerStruct(1, "mauddib"))));
+                writer.close();
+
+                TypeDescription schema = writer.getSchema();
+                Assert.Equal(23, schema.getMaximumId());
+                bool[] expected = new bool[]
+                {
+                    false, false, false, false, false,
+                    false, false, false, false, false,
+                    false, false, false, false, false,
+                    false, false, false, false, false,
+                    false, false, false, false
+                };
+                bool[] included = OrcUtils.includeColumns("", schema);
+                Assert.Equal(expected, included);
+
+                expected = new bool[]
+                {
+                    false, true, false, false, false,
+                    false, false, false, false, true,
+                    true, true, true, true, true,
+                    false, false, false, false, true,
+                    true, true, true, true
+                };
+                included = OrcUtils.includeColumns("boolean1,string1,middle,map", schema);
+                Assert.Equal(expected, included);
+
+                expected = new bool[]
+                {
+                    false, true, false, false, false,
+                    false, false, false, false, true,
+                    true, true, true, true, true,
+                    false, false, false, false, true,
+                    true, true, true, true
+                };
+                included = OrcUtils.includeColumns("boolean1,string1,middle,map", schema);
+                Assert.Equal(expected, included);
+
+                expected = new bool[] {
+                    false, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true, true,
+                    true, true, true, true
+                };
+                included = OrcUtils.includeColumns(
+                    "boolean1,byte1,short1,int1,long1,float1,double1,bytes1,string1,middle,list,map",
+                    schema);
+                Assert.Equal(expected, included);
+            }
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
-
-            TypeDescription schema = writer.getSchema();
-            Assert.Equal(23, schema.getMaximumId());
-            bool[] expected = new bool[] {false, false, false, false, false,
-        false, false, false, false, false,
-        false, false, false, false, false,
-        false, false, false, false, false,
-        false, false, false, false};
-            bool[] included = OrcUtils.includeColumns("", schema);
-            Assert.Equal(expected, included);
-
-            expected = new bool[] {false, true, false, false, false,
-        false, false, false, false, true,
-        true, true, true, true, true,
-        false, false, false, false, true,
-        true, true, true, true};
-            included = OrcUtils.includeColumns("boolean1,string1,middle,map", schema);
-            Assert.Equal(expected, included);
-
-            expected = new bool[] {false, true, false, false, false,
-        false, false, false, false, true,
-        true, true, true, true, true,
-        false, false, false, false, true,
-        true, true, true, true};
-            included = OrcUtils.includeColumns("boolean1,string1,middle,map", schema);
-            Assert.Equal(expected, included);
-
-            expected = new bool[] {false, true, true, true, true,
-        true, true, true, true, true,
-        true, true, true, true, true,
-        true, true, true, true, true,
-        true, true, true, true};
-            included = OrcUtils.includeColumns(
-                "boolean1,byte1,short1,int1,long1,float1,double1,bytes1,string1,middle,list,map",
-                schema);
-            Assert.Equal(expected, included);
 
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();
             Assert.Equal(2, stats[1].getNumberOfValues());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getFalseCount());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getTrueCount());
-            Assert.Equal("count: 2 hasNull: false true: 1", stats[1].ToString());
+            Assert.Equal("count: 2 hasNull: False true: 1", stats[1].ToString());
 
             Assert.Equal(2048, ((IntegerColumnStatistics)stats[3]).getMaximum());
             Assert.Equal(1024, ((IntegerColumnStatistics)stats[3]).getMinimum());
             Assert.Equal(true, ((IntegerColumnStatistics)stats[3]).isSumDefined());
             Assert.Equal(3072, ((IntegerColumnStatistics)stats[3]).getSum());
-            Assert.Equal("count: 2 hasNull: false min: 1024 max: 2048 sum: 3072",
+            Assert.Equal("count: 2 hasNull: False min: 1024 max: 2048 sum: 3072",
                 stats[3].ToString());
 
             StripeStatistics ss = reader.getStripeStatistics()[0];
@@ -745,10 +761,10 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-20.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 2 hasNull: false min: -15.0 max: -5.0 sum: -20.0",
+            Assert.Equal("count: 2 hasNull: False min: -15 max: -5 sum: -20",
                 stats[7].ToString());
 
-            Assert.Equal("count: 2 hasNull: false min: bye max: hi sum: 5", stats[9].ToString());
+            Assert.Equal("count: 2 hasNull: False min: bye max: hi sum: 5", stats[9].ToString());
 
             // check the inspectors
             StructObjectInspector readerInspector =
@@ -817,7 +833,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 readerInspector.getStructFieldData(row, fields[7])));
             Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[8])));
-            List<object> midRow = midli.getList(mid.getStructFieldData(readerInspector.
+            IList<object> midRow = midli.getList(mid.getStructFieldData(readerInspector.
                 getStructFieldData(row, fields[9]), midFields[0]));
             Assert.NotNull(midRow);
             Assert.Equal(2, midRow.Count);
@@ -829,7 +845,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 inFields[0])));
             Assert.Equal("sigh", st.getPrimitiveJavaObject(inner.getStructFieldData
                 (midRow[1], inFields[1])));
-            List<object> list = li.getList(readerInspector.getStructFieldData(row, fields[10]));
+            IList<object> list = li.getList(readerInspector.getStructFieldData(row, fields[10]));
             Assert.Equal(2, list.Count);
             Assert.Equal(3, @in.get(inner.getStructFieldData(list[0],
                 inFields[0])));
@@ -934,42 +950,45 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(InnerStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(1000)
-                                                 .compress(CompressionKind.NONE)
-                                                 .bufferSize(100)
-                                                 .rowIndexStride(1000));
-            Random r1 = new Random(1);
-            Random r2 = new Random(2);
-            int x;
             int minInt = 0, maxInt = 0;
-            string y;
             string minStr = null, maxStr = null;
-            for (int i = 0; i < 21000; ++i)
+            Random r1 = null, r2 = null;
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(1000)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(100)
+                    .rowIndexStride(1000)))
             {
-                x = r1.Next();
-                y = Long.toHexString(r2.NextLong());
-                if (i == 0 || x < minInt)
+                r1 = new Random(1);
+                r2 = new Random(2);
+                int x;
+                string y;
+                for (int i = 0; i < 21000; ++i)
                 {
-                    minInt = x;
+                    x = r1.Next();
+                    y = Long.toHexString(r2.NextLong());
+                    if (i == 0 || x < minInt)
+                    {
+                        minInt = x;
+                    }
+                    if (i == 0 || x > maxInt)
+                    {
+                        maxInt = x;
+                    }
+                    if (i == 0 || y.CompareTo(minStr) < 0)
+                    {
+                        minStr = y;
+                    }
+                    if (i == 0 || y.CompareTo(maxStr) > 0)
+                    {
+                        maxStr = y;
+                    }
+                    writer.addRow(new InnerStruct(x, y));
                 }
-                if (i == 0 || x > maxInt)
-                {
-                    maxInt = x;
-                }
-                if (i == 0 || y.CompareTo(minStr) < 0)
-                {
-                    minStr = y;
-                }
-                if (i == 0 || y.CompareTo(maxStr) > 0)
-                {
-                    maxStr = y;
-                }
-                writer.addRow(inner(x, y));
+                writer.close();
             }
-            writer.close();
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
 
@@ -1016,7 +1035,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 Assert.Equal(true, rows2.hasNext());
                 row1 = (OrcStruct)rows1.next(row1);
                 row2 = (OrcStruct)rows2.next(row2);
-                Assert.Equal(r1.Next(), ((IntWritable)row1.getFieldValue(0)).get());
+                Assert.Equal(r1.Next(), ((StrongBox<int>)row1.getFieldValue(0)).Value);
                 Assert.Equal(Long.toHexString(r2.NextLong()),
                     row2.getFieldValue(1).ToString());
             }
@@ -1031,22 +1050,25 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(1000)
-                                                 .compress(CompressionKind.NONE)
-                                                 .bufferSize(100));
-            writer.close();
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(1000)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(100)))
+            {
+                writer.close();
+            }
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(false, reader.rows().hasNext());
             Assert.Equal(CompressionKind.NONE, reader.getCompression());
             Assert.Equal(0, reader.getNumberOfRows());
             Assert.Equal(0, reader.getCompressionSize());
-            Assert.Equal(false, reader.getMetadataKeys().iterator().hasNext());
+            Assert.Equal(0, reader.getMetadataKeys().Count);
             Assert.Equal(3, reader.getContentLength());
-            Assert.Equal(false, reader.getStripes().iterator().hasNext());
+            Assert.Equal(0, reader.getStripes().Count);
         }
 
         [Fact]
@@ -1054,26 +1076,29 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(1000)
-                                                 .compress(CompressionKind.NONE)
-                                                 .bufferSize(100));
-            writer.addUserMetadata("my.meta", byteBuf(1, 2, 3, 4, 5, 6, 7, -1, -2, 127,
-                                                      -128));
-            writer.addUserMetadata("clobber", byteBuf(1, 2, 3));
-            writer.addUserMetadata("clobber", byteBuf(4, 3, 2, 1));
             ByteBuffer bigBuf = ByteBuffer.allocate(40000);
-            Random random = new Random(0);
-            random.NextBytes(bigBuf.array());
-            writer.addUserMetadata("big", bigBuf);
-            bigBuf.position(0);
-            writer.addRow(new BigRow(true, (byte)127, (short)1024, 42,
-                42L * 1024 * 1024 * 1024, (float)3.1415, -2.713, null,
-                null, null, null, null));
-            writer.addUserMetadata("clobber", byteBuf(5, 7, 11, 13, 17, 19));
-            writer.close();
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(1000)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(100)))
+            {
+                writer.addUserMetadata("my.meta", byteBuf(1, 2, 3, 4, 5, 6, 7, -1, -2, 127,
+                                                          -128));
+                writer.addUserMetadata("clobber", byteBuf(1, 2, 3));
+                writer.addUserMetadata("clobber", byteBuf(4, 3, 2, 1));
+                Random random = new Random(0);
+                random.NextBytes(bigBuf.array());
+                writer.addUserMetadata("big", bigBuf);
+                bigBuf.position(0);
+                writer.addRow(new BigRow(true, (byte)127, (short)1024, 42,
+                    42L * 1024 * 1024 * 1024, (float)3.1415, -2.713, null,
+                    null, null, null, null));
+                writer.addUserMetadata("clobber", byteBuf(5, 7, 11, 13, 17, 19));
+                writer.close();
+            }
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(byteBuf(5, 7, 11, 13, 17, 19), reader.getMetadataValue("clobber"));
@@ -1108,10 +1133,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(1, numStripes);
         }
 
+#if TIMESTAMP
         /**
          * Generate an ORC file with a range of dates and times.
          */
-        public void createOrcDateFile(Path file, int minYear, int maxYear)
+        public void createOrcDateFile(string path, int minYear, int maxYear)
         {
             List<OrcProto.Type> types = new List<OrcProto.Type>();
             types.Add(OrcProto.Type.CreateBuilder().SetKind(OrcProto.Type.Types.Kind.STRUCT).
@@ -1124,28 +1150,32 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
             ObjectInspector inspector = OrcStruct.createObjectInspector(0, types);
 
-            Writer writer = OrcFile.createWriter(file,
+            OrcStruct row = new OrcStruct(2);
+            using (Stream file = FileOpenWrite(path))
+            {
+                Writer writer = OrcFile.createWriter(path, file,
                 OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
                     .bufferSize(10000)
                     .blockPadding(false));
-            OrcStruct row = new OrcStruct(2);
-            for (int year = minYear; year < maxYear; ++year)
-            {
-                for (int ms = 1000; ms < 2000; ++ms)
+
+                for (int year = minYear; year < maxYear; ++year)
                 {
-                    row.setFieldValue(0,
-                        new TimestampWritable(Timestamp.valueOf(year + "-05-05 12:34:56."
-                            + ms)));
-                    row.setFieldValue(1,
-                        new DateWritable(new Date(year - 1900, 11, 25)));
-                    writer.addRow(row);
+                    for (int ms = 1000; ms < 2000; ++ms)
+                    {
+                        row.setFieldValue(0,
+                            new TimestampWritable(Timestamp.valueOf(year + "-05-05 12:34:56."
+                                + ms)));
+                        row.setFieldValue(1,
+                            new DateWritable(new Date(year - 1900, 11, 25)));
+                        writer.addRow(row);
+                    }
                 }
+                writer.close();
             }
-            writer.close();
-            Reader reader = OrcFile.createReader(file,
-                OrcFile.readerOptions(conf));
+
+            Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
             RecordReader rows = reader.rows();
             for (int year = minYear; year < maxYear; ++year)
             {
@@ -1199,96 +1229,100 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ObjectInspector inspector = OrcStruct.createObjectInspector(0, types);
 
             HiveDecimal maxValue = HiveDecimal.Parse("10000000000000000000");
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(1000)
-                                                 .compress(CompressionKind.NONE)
-                                                 .bufferSize(100)
-                                                 .blockPadding(false));
             OrcStruct row = new OrcStruct(3);
             OrcUnion union = new OrcUnion();
-            row.setFieldValue(1, union);
-            row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf("2000-03-12 15:00:00")));
-            HiveDecimal value = HiveDecimal.Parse("12345678.6547456");
-            row.setFieldValue(2, new HiveDecimalWritable(value));
-            union.set((byte)0, new IntWritable(42));
-            writer.addRow(row);
-            row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf("2000-03-20 12:00:00.123456789")));
-            union.set((byte)1, new Text("hello"));
-            value = HiveDecimal.Parse("-5643.234");
-            row.setFieldValue(2, new HiveDecimalWritable(value));
-            writer.addRow(row);
-            row.setFieldValue(0, null);
-            row.setFieldValue(1, null);
-            row.setFieldValue(2, null);
-            writer.addRow(row);
-            row.setFieldValue(1, union);
-            union.set((byte)0, null);
-            writer.addRow(row);
-            union.set((byte)1, null);
-            writer.addRow(row);
-            union.set((byte)0, new IntWritable(200000));
-            row.setFieldValue(0, new TimestampWritable
-                (Timestamp.valueOf("1970-01-01 00:00:00")));
-            value = HiveDecimal.Parse("10000000000000000000");
-            row.setFieldValue(2, new HiveDecimalWritable(value));
-            writer.addRow(row);
-            Random rand = new Random(42);
-            for (int i = 1970; i < 2038; ++i)
+            Random rand;
+
+            using (Stream file = FileOpenWrite(testFilePath))
             {
-                row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf(i +
-                    "-05-05 12:34:56." + i)));
-                if ((i & 1) == 0)
-                {
-                    union.set((byte)0, new IntWritable(i * i));
-                }
-                else
-                {
-                    union.set((byte)1, new Text(Integer.ToString(i * i)));
-                }
-                value = HiveDecimal.create(new BigInteger(64, rand),
-                    rand.Next(18));
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(1000)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(100)
+                    .blockPadding(false));
+                row.setFieldValue(1, union);
+                row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf("2000-03-12 15:00:00")));
+                HiveDecimal value = HiveDecimal.Parse("12345678.6547456");
                 row.setFieldValue(2, new HiveDecimalWritable(value));
-                if (maxValue.CompareTo(value) < 0)
+                union.set((byte)0, new IntWritable(42));
+                writer.addRow(row);
+                row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf("2000-03-20 12:00:00.123456789")));
+                union.set((byte)1, new Text("hello"));
+                value = HiveDecimal.Parse("-5643.234");
+                row.setFieldValue(2, new HiveDecimalWritable(value));
+                writer.addRow(row);
+                row.setFieldValue(0, null);
+                row.setFieldValue(1, null);
+                row.setFieldValue(2, null);
+                writer.addRow(row);
+                row.setFieldValue(1, union);
+                union.set((byte)0, null);
+                writer.addRow(row);
+                union.set((byte)1, null);
+                writer.addRow(row);
+                union.set((byte)0, new IntWritable(200000));
+                row.setFieldValue(0, new TimestampWritable
+                    (Timestamp.valueOf("1970-01-01 00:00:00")));
+                value = HiveDecimal.Parse("10000000000000000000");
+                row.setFieldValue(2, new HiveDecimalWritable(value));
+                writer.addRow(row);
+                rand = new Random(42);
+                for (int i = 1970; i < 2038; ++i)
                 {
-                    maxValue = value;
+                    row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf(i +
+                        "-05-05 12:34:56." + i)));
+                    if ((i & 1) == 0)
+                    {
+                        union.set((byte)0, new IntWritable(i * i));
+                    }
+                    else
+                    {
+                        union.set((byte)1, new Text(Integer.ToString(i * i)));
+                    }
+                    value = HiveDecimal.create(new BigInteger(64, rand),
+                        rand.Next(18));
+                    row.setFieldValue(2, new HiveDecimalWritable(value));
+                    if (maxValue.CompareTo(value) < 0)
+                    {
+                        maxValue = value;
+                    }
+                    writer.addRow(row);
                 }
+                // let's add a lot of constant rows to test the rle
+                row.setFieldValue(0, null);
+                union.set((byte)0, new IntWritable(1732050807));
+                row.setFieldValue(2, null);
+                for (int i = 0; i < 5000; ++i)
+                {
+                    writer.addRow(row);
+                }
+                union.set((byte)0, new IntWritable(0));
                 writer.addRow(row);
-            }
-            // let's add a lot of constant rows to test the rle
-            row.setFieldValue(0, null);
-            union.set((byte)0, new IntWritable(1732050807));
-            row.setFieldValue(2, null);
-            for (int i = 0; i < 5000; ++i)
-            {
+                union.set((byte)0, new IntWritable(10));
                 writer.addRow(row);
+                union.set((byte)0, new IntWritable(138));
+                writer.addRow(row);
+                writer.close();
+
+                TypeDescription schema = writer.getSchema();
+                Assert.Equal(5, schema.getMaximumId());
+                bool[] expected = new bool[] { false, false, false, false, false, false };
+                bool[] included = OrcUtils.includeColumns("", schema);
+                Assert.Equal(expected, included);
+
+                expected = new bool[] { false, true, false, false, false, true };
+                included = OrcUtils.includeColumns("time,decimal", schema);
+                Assert.Equal(expected, included);
+
+                expected = new bool[] { false, false, true, true, true, false };
+                included = OrcUtils.includeColumns("union", schema);
+                Assert.Equal(expected, included);
             }
-            union.set((byte)0, new IntWritable(0));
-            writer.addRow(row);
-            union.set((byte)0, new IntWritable(10));
-            writer.addRow(row);
-            union.set((byte)0, new IntWritable(138));
-            writer.addRow(row);
-            writer.close();
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
 
-            TypeDescription schema = writer.getSchema();
-            Assert.Equal(5, schema.getMaximumId());
-            bool[] expected = new bool[] { false, false, false, false, false, false };
-            bool[] included = OrcUtils.includeColumns("", schema);
-            Assert.Equal(expected, included);
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
 
-            expected = new bool[] { false, true, false, false, false, true };
-            included = OrcUtils.includeColumns("time,decimal", schema);
-            Assert.Equal(expected, included);
-
-            expected = new bool[] { false, false, true, true, true, false };
-            included = OrcUtils.includeColumns("union", schema);
-            Assert.Equal(expected, included);
-
-            Assert.Equal(false, reader.getMetadataKeys().iterator().hasNext());
+            Assert.Equal(0, reader.getMetadataKeys().Count);
             Assert.Equal(5077, reader.getNumberOfRows());
             DecimalColumnStatistics stats =
                 (DecimalColumnStatistics)reader.getStatistics()[5];
@@ -1404,7 +1438,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("-5643.234")), row.getFieldValue(2));
             rows.close();
         }
+#endif
 
+#if COMPRESSION
         /**
          * Read and write a randomly generated snappy file.
          * @
@@ -1414,19 +1450,23 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(InnerStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(1000)
-                                                 .compress(CompressionKind.SNAPPY)
-                                                 .bufferSize(100));
-            Random rand = new Random(12);
-            for (int i = 0; i < 10000; ++i)
+            Random rand;
+            using (Stream file = FileOpenWrite(testFilePath))
             {
-                writer.addRow(new InnerStruct(rand.Next(),
-                    Integer.toHexString(rand.Next())));
+                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(1000)
+                    .compress(CompressionKind.SNAPPY)
+                    .bufferSize(100));
+                rand = new Random(12);
+                for (int i = 0; i < 10000; ++i)
+                {
+                    writer.addRow(new InnerStruct(rand.Next(),
+                        Integer.toHexString(rand.Next())));
+                }
+                writer.close();
             }
-            writer.close();
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
             RecordReader rows = reader.rows();
@@ -1443,6 +1483,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.Equal(false, rows.hasNext());
             rows.close();
         }
+#endif
 
         /**
          * Read and write a randomly generated snappy file.
@@ -1453,34 +1494,38 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(InnerStruct));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(5000)
-                                                 .compress(CompressionKind.SNAPPY)
-                                                 .bufferSize(1000)
-                                                 .rowIndexStride(0));
-            Random rand = new Random(24);
-            for (int i = 0; i < 10000; ++i)
+            Random rand;
+
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(5000)
+                    .compress(CompressionKind.SNAPPY)
+                    .bufferSize(1000)
+                    .rowIndexStride(0)))
             {
-                InnerStruct row = new InnerStruct(rand.Next(),
-                    Integer.toBinaryString(rand.Next()));
-                for (int j = 0; j < 5; ++j)
+                rand = new Random(24);
+                for (int i = 0; i < 10000; ++i)
                 {
-                    writer.addRow(row);
+                    InnerStruct row = new InnerStruct(rand.Next(), Integer.toBinaryString(rand.Next()));
+                    for (int j = 0; j < 5; ++j)
+                    {
+                        writer.addRow(row);
+                    }
                 }
+                writer.close();
             }
-            writer.close();
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(50000, reader.getNumberOfRows());
             Assert.Equal(0, reader.getRowIndexStride());
-            StripeInformation stripe = reader.getStripes().iterator().next();
+            StripeInformation stripe = reader.getStripes().First();
             Assert.Equal(true, stripe.getDataLength() != 0);
             Assert.Equal(0, stripe.getIndexLength());
             RecordReader rows = reader.rows();
             rand = new Random(24);
-            OrcStruct row = null;
+            OrcStruct orcRow = null;
             for (int i = 0; i < 10000; ++i)
             {
                 int intVal = rand.Next();
@@ -1488,9 +1533,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 for (int j = 0; j < 5; ++j)
                 {
                     Assert.Equal(true, rows.hasNext());
-                    row = (OrcStruct)rows.next(row);
-                    Assert.Equal(intVal, ((IntWritable)row.getFieldValue(0)).get());
-                    Assert.Equal(strVal, row.getFieldValue(1).ToString());
+                    orcRow = (OrcStruct)rows.next(orcRow);
+                    Assert.Equal(intVal, ((StrongBox<int>)orcRow.getFieldValue(0)).Value);
+                    Assert.Equal(strVal, orcRow.getFieldValue(1).ToString());
                 }
             }
             Assert.Equal(false, rows.hasNext());
@@ -1501,44 +1546,47 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public void testSeek()
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
-
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(200000)
-                                                 .bufferSize(65536)
-                                                 .rowIndexStride(1000));
-            Random rand = new Random(42);
             const int COUNT = 32768;
             long[] intValues = new long[COUNT];
             double[] doubleValues = new double[COUNT];
             string[] stringValues = new string[COUNT];
             BytesWritable[] byteValues = new BytesWritable[COUNT];
             string[] words = new string[128];
-            for (int i = 0; i < words.Length; ++i)
+
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(200000)
+                    .bufferSize(65536)
+                    .rowIndexStride(1000)))
             {
-                words[i] = Integer.toHexString(rand.Next());
+                Random rand = new Random(42);
+                for (int i = 0; i < words.Length; ++i)
+                {
+                    words[i] = Integer.toHexString(rand.Next());
+                }
+                for (int i = 0; i < COUNT / 2; ++i)
+                {
+                    intValues[2 * i] = rand.NextLong();
+                    intValues[2 * i + 1] = intValues[2 * i];
+                    stringValues[2 * i] = words[rand.Next(words.Length)];
+                    stringValues[2 * i + 1] = stringValues[2 * i];
+                }
+                for (int i = 0; i < COUNT; ++i)
+                {
+                    doubleValues[i] = rand.NextDouble();
+                    byte[] buf = new byte[20];
+                    rand.NextBytes(buf);
+                    byteValues[i] = new BytesWritable(buf);
+                }
+                for (int i = 0; i < COUNT; ++i)
+                {
+                    writer.addRow(createRandomRow(intValues, doubleValues, stringValues,
+                        byteValues, words, i));
+                }
+                writer.close();
             }
-            for (int i = 0; i < COUNT / 2; ++i)
-            {
-                intValues[2 * i] = rand.NextLong();
-                intValues[2 * i + 1] = intValues[2 * i];
-                stringValues[2 * i] = words[rand.Next(words.Length)];
-                stringValues[2 * i + 1] = stringValues[2 * i];
-            }
-            for (int i = 0; i < COUNT; ++i)
-            {
-                doubleValues[i] = rand.NextDouble();
-                byte[] buf = new byte[20];
-                rand.NextBytes(buf);
-                byteValues[i] = new BytesWritable(buf);
-            }
-            for (int i = 0; i < COUNT; ++i)
-            {
-                writer.addRow(createRandomRow(intValues, doubleValues, stringValues,
-                    byteValues, words, i));
-            }
-            writer.close();
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(COUNT, reader.getNumberOfRows());
@@ -1550,37 +1598,37 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 row = (OrcStruct)rows.next(row);
                 BigRow expected = createRandomRow(intValues, doubleValues,
                     stringValues, byteValues, words, i);
-                Assert.Equal(expected.boolean1.booleanValue(),
-                          ((BooleanWritable)row.getFieldValue(0)).get());
-                Assert.Equal(expected.byte1.byteValue(),
-                    ((ByteWritable)row.getFieldValue(1)).get());
-                Assert.Equal(expected.short1.shortValue(),
-                    ((ShortWritable)row.getFieldValue(2)).get());
-                Assert.Equal(expected.int1.intValue(),
-                    ((IntWritable)row.getFieldValue(3)).get());
-                Assert.Equal(expected.long1.longValue(),
-                    ((LongWritable)row.getFieldValue(4)).get());
+                Assert.Equal(expected.boolean1,
+                          ((StrongBox<bool>)row.getFieldValue(0)).Value);
+                Assert.Equal(expected.byte1,
+                    ((StrongBox<byte>)row.getFieldValue(1)).Value);
+                Assert.Equal(expected.short1,
+                    ((StrongBox<short>)row.getFieldValue(2)).Value);
+                Assert.Equal(expected.int1,
+                    ((StrongBox<int>)row.getFieldValue(3)).Value);
+                Assert.Equal(expected.long1,
+                    ((StrongBox<long>)row.getFieldValue(4)).Value);
                 Assert.Equal(expected.float1,
-                    ((FloatWritable)row.getFieldValue(5)).get(), 0.0001);
+                    ((StrongBox<float>)row.getFieldValue(5)).Value, 4);
                 Assert.Equal(expected.double1,
-                    ((DoubleWritable)row.getFieldValue(6)).get(), 0.0001);
+                    ((StrongBox<double>)row.getFieldValue(6)).Value, 4);
                 Assert.Equal(expected.bytes1, row.getFieldValue(7));
                 Assert.Equal(expected.string1, row.getFieldValue(8));
                 List<InnerStruct> expectedList = expected.middle.list;
-                List<OrcStruct> actualList =
-                    (List<OrcStruct>)((OrcStruct)row.getFieldValue(9)).getFieldValue(0);
+                List<object> actualList =
+                    (List<object>)((OrcStruct)row.getFieldValue(9)).getFieldValue(0);
                 compareList(expectedList, actualList);
-                compareList(expected.list, (List<OrcStruct>)row.getFieldValue(10));
+                compareList(expected.list, (List<object>)row.getFieldValue(10));
             }
             rows.close();
-            Iterator<StripeInformation> stripeIterator =
-              reader.getStripes().iterator();
+
+            IList<StripeInformation> stripes = reader.getStripes();
             long offsetOfStripe2 = 0;
             long offsetOfStripe4 = 0;
             long lastRowOfStripe2 = 0;
             for (int i = 0; i < 5; ++i)
             {
-                StripeInformation stripe = stripeIterator.next();
+                StripeInformation stripe = stripes[i];
                 if (i < 2)
                 {
                     lastRowOfStripe2 += stripe.getNumberOfRows();
@@ -1598,7 +1646,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             bool[] columns = new bool[reader.getStatistics().Length];
             columns[5] = true; // long colulmn
             columns[9] = true; // text column
-            rows = reader.rowsOptions(new Reader.Options()
+            rows = reader.rowsOptions(new RecordReaderOptions()
                 .range(offsetOfStripe2, offsetOfStripe4 - offsetOfStripe2)
                 .include(columns));
             rows.seekToRow(lastRowOfStripe2);
@@ -1609,8 +1657,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
                                                   stringValues, byteValues, words,
                                                   (int)(lastRowOfStripe2 + i));
 
-                Assert.Equal(expected.long1.longValue(),
-                          ((LongWritable)row.getFieldValue(4)).get());
+                Assert.Equal(expected.long1,
+                          ((StrongBox<long>)row.getFieldValue(4)).Value);
                 Assert.Equal(expected.string1, row.getFieldValue(8));
             }
             rows.close();
@@ -1621,50 +1669,54 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .stripeSize(200000)
-                                                 .bufferSize(65536)
-                                                 .rowIndexStride(1000));
-            Random rand = new Random(42);
             const int COUNT = 32768;
             long[] intValues = new long[COUNT];
             double[] doubleValues = new double[COUNT];
             string[] stringValues = new string[COUNT];
             BytesWritable[] byteValues = new BytesWritable[COUNT];
             string[] words = new string[128];
-            for (int i = 0; i < words.Length; ++i)
+
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(200000)
+                    .bufferSize(65536)
+                    .rowIndexStride(1000)))
             {
-                words[i] = Integer.toHexString(rand.Next());
+                Random rand = new Random(42);
+                for (int i = 0; i < words.Length; ++i)
+                {
+                    words[i] = Integer.toHexString(rand.Next());
+                }
+                for (int i = 0; i < COUNT / 2; ++i)
+                {
+                    intValues[2 * i] = rand.NextLong();
+                    intValues[2 * i + 1] = intValues[2 * i];
+                    stringValues[2 * i] = words[rand.Next(words.Length)];
+                    stringValues[2 * i + 1] = stringValues[2 * i];
+                }
+                for (int i = 0; i < COUNT; ++i)
+                {
+                    doubleValues[i] = rand.NextDouble();
+                    byte[] buf = new byte[20];
+                    rand.NextBytes(buf);
+                    byteValues[i] = new BytesWritable(buf);
+                }
+                for (int i = 0; i < COUNT; ++i)
+                {
+                    writer.addRow(createRandomRow(intValues, doubleValues, stringValues,
+                        byteValues, words, i));
+                }
+                writer.close();
             }
-            for (int i = 0; i < COUNT / 2; ++i)
-            {
-                intValues[2 * i] = rand.NextLong();
-                intValues[2 * i + 1] = intValues[2 * i];
-                stringValues[2 * i] = words[rand.Next(words.Length)];
-                stringValues[2 * i + 1] = stringValues[2 * i];
-            }
-            for (int i = 0; i < COUNT; ++i)
-            {
-                doubleValues[i] = rand.NextDouble();
-                byte[] buf = new byte[20];
-                rand.NextBytes(buf);
-                byteValues[i] = new BytesWritable(buf);
-            }
-            for (int i = 0; i < COUNT; ++i)
-            {
-                writer.addRow(createRandomRow(intValues, doubleValues, stringValues,
-                    byteValues, words, i));
-            }
-            writer.close();
-            writer = null;
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
             Assert.Equal(COUNT, reader.getNumberOfRows());
             /* enable zero copy record reader */
+#if false
             Configuration conf = new Configuration();
             HiveConf.setBoolVar(conf, HiveConf.ConfVars.HIVE_ORC_ZEROCOPY, true);
+#endif
             RecordReader rows = reader.rows();
             /* all tests are identical to the other seek() tests */
             OrcStruct row = null;
@@ -1674,37 +1726,36 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 row = (OrcStruct)rows.next(row);
                 BigRow expected = createRandomRow(intValues, doubleValues,
                     stringValues, byteValues, words, i);
-                Assert.Equal(expected.boolean1.booleanValue(),
-                          ((BooleanWritable)row.getFieldValue(0)).get());
-                Assert.Equal(expected.byte1.byteValue(),
-                    ((ByteWritable)row.getFieldValue(1)).get());
-                Assert.Equal(expected.short1.shortValue(),
-                    ((ShortWritable)row.getFieldValue(2)).get());
-                Assert.Equal(expected.int1.intValue(),
-                    ((IntWritable)row.getFieldValue(3)).get());
-                Assert.Equal(expected.long1.longValue(),
-                    ((LongWritable)row.getFieldValue(4)).get());
-                Assert.Equal(expected.float1.floatValue(),
-                    ((FloatWritable)row.getFieldValue(5)).get(), 0.0001);
-                Assert.Equal(expected.double1.doubleValue(),
-                    ((DoubleWritable)row.getFieldValue(6)).get(), 0.0001);
+                Assert.Equal(expected.boolean1,
+                          ((StrongBox<bool>)row.getFieldValue(0)).Value);
+                Assert.Equal(expected.byte1,
+                    ((StrongBox<byte>)row.getFieldValue(1)).Value);
+                Assert.Equal(expected.short1,
+                    ((StrongBox<short>)row.getFieldValue(2)).Value);
+                Assert.Equal(expected.int1,
+                    ((StrongBox<int>)row.getFieldValue(3)).Value);
+                Assert.Equal(expected.long1,
+                    ((StrongBox<long>)row.getFieldValue(4)).Value);
+                Assert.Equal(expected.float1,
+                    ((StrongBox<float>)row.getFieldValue(5)).Value, 4);
+                Assert.Equal(expected.double1,
+                    ((StrongBox<double>)row.getFieldValue(6)).Value, 4);
                 Assert.Equal(expected.bytes1, row.getFieldValue(7));
                 Assert.Equal(expected.string1, row.getFieldValue(8));
                 List<InnerStruct> expectedList = expected.middle.list;
-                List<OrcStruct> actualList =
-                    (List)((OrcStruct)row.getFieldValue(9)).getFieldValue(0);
+                List<object> actualList =
+                    (List<object>)((OrcStruct)row.getFieldValue(9)).getFieldValue(0);
                 compareList(expectedList, actualList);
-                compareList(expected.list, (List)row.getFieldValue(10));
+                compareList(expected.list, (List<object>)row.getFieldValue(10));
             }
             rows.close();
-            Iterator<StripeInformation> stripeIterator =
-              reader.getStripes().iterator();
+            IList<StripeInformation> stripes = reader.getStripes();
             long offsetOfStripe2 = 0;
             long offsetOfStripe4 = 0;
             long lastRowOfStripe2 = 0;
             for (int i = 0; i < 5; ++i)
             {
-                StripeInformation stripe = stripeIterator.next();
+                StripeInformation stripe = stripes[i];
                 if (i < 2)
                 {
                     lastRowOfStripe2 += stripe.getNumberOfRows();
@@ -1723,7 +1774,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             columns[5] = true; // long colulmn
             columns[9] = true; // text column
                                /* use zero copy record reader */
-            rows = reader.rowsOptions(new Reader.Options()
+            rows = reader.rowsOptions(new RecordReaderOptions()
                 .range(offsetOfStripe2, offsetOfStripe4 - offsetOfStripe2)
                 .include(columns));
             rows.seekToRow(lastRowOfStripe2);
@@ -1734,8 +1785,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
                                                   stringValues, byteValues, words,
                                                   (int)(lastRowOfStripe2 + i));
 
-                Assert.Equal(expected.long1.longValue(),
-                          ((LongWritable)row.getFieldValue(4)).get());
+                Assert.Equal(expected.long1,
+                          ((StrongBox<long>)row.getFieldValue(4)).Value);
                 Assert.Equal(expected.string1, row.getFieldValue(8));
             }
             rows.close();
@@ -1750,17 +1801,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
             else
             {
-                Assert.Equal(expect.int1, ((IntWritable)actual.getFieldValue(0)).get());
+                Assert.Equal(expect.int1, ((StrongBox<int>)actual.getFieldValue(0)).Value);
                 Assert.Equal(expect.string1, actual.getFieldValue(1));
             }
         }
 
-        private void compareList(List<InnerStruct> expect, List<OrcStruct> actual)
+        private void compareList(List<InnerStruct> expect, List<object> actual)
         {
             Assert.Equal(expect.Count, actual.Count);
             for (int j = 0; j < expect.Count; ++j)
             {
-                compareInner(expect[j], actual[j]);
+                compareInner(expect[j], (OrcStruct)actual[j]);
             }
         }
 
@@ -1775,14 +1826,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return new BigRow((intValues[i] & 1) == 0, (byte)intValues[i],
                 (short)intValues[i], (int)intValues[i], intValues[i],
                 (float)doubleValues[i], doubleValues[i], byteValues[i], stringValues[i],
-                new MiddleStruct(inner, inner2), list(), map(inner, inner2));
+                new MiddleStruct(inner, inner2), new List<InnerStruct>(), makeMap(inner, inner2));
         }
 
         private class MyMemoryManager : MemoryManager
         {
             long totalSpace;
             double rate;
-            Path path = null;
+            internal string path = null;
             long lastAllocation = 0;
             int rows = 0;
             MemoryManager.Callback callback;
@@ -1793,15 +1844,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 this.rate = rate;
             }
 
-            void addWriter(Path path, long requestedAllocation,
-                           MemoryManager.Callback callback)
+            public override void addWriter(string path, long requestedAllocation, MemoryManager.Callback callback)
             {
                 this.path = path;
                 this.lastAllocation = requestedAllocation;
                 this.callback = callback;
             }
 
-            void removeWriter(Path path)
+            public override void removeWriter(string path)
             {
                 this.path = null;
                 this.lastAllocation = 0;
@@ -1831,34 +1881,37 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public void testMemoryManagementV11()
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(InnerStruct));
-
             MyMemoryManager memory = new MyMemoryManager(conf, 10000, 0.1);
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .compress(CompressionKind.NONE)
-                                                 .stripeSize(50000)
-                                                 .bufferSize(100)
-                                                 .rowIndexStride(0)
-                                                 .memory(memory)
-                                                 .version(OrcFile.Version.V_0_11));
-            Assert.Equal(testFilePath, memory.path);
-            for (int i = 0; i < 2500; ++i)
+
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .compress(CompressionKind.NONE)
+                    .stripeSize(50000)
+                    .bufferSize(100)
+                    .rowIndexStride(0)
+                    .memory(memory)
+                    .version(OrcFile.Version.V_0_11)))
             {
-                writer.addRow(new InnerStruct(i * 300, Integer.toHexString(10 * i)));
+                Assert.Equal(testFilePath, memory.path);
+                for (int i = 0; i < 2500; ++i)
+                {
+                    writer.addRow(new InnerStruct(i * 300, Integer.toHexString(10 * i)));
+                }
+                writer.close();
+                Assert.Equal(null, memory.path);
             }
-            writer.close();
-            Assert.Equal(null, memory.path);
+
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
-            int i = 0;
+            int j = 0;
             foreach (StripeInformation stripe in reader.getStripes())
             {
-                i += 1;
-                Assert.True("stripe " + i + " is too long at " + stripe.getDataLength(),
-                    stripe.getDataLength() < 5000);
+                j++;
+                Assert.True(stripe.getDataLength() < 5000,
+                    "stripe " + j + " is too long at " + stripe.getDataLength());
             }
-            Assert.Equal(25, i);
+            Assert.Equal(25, j);
             Assert.Equal(2500, reader.getNumberOfRows());
         }
 
@@ -1868,35 +1921,37 @@ namespace org.apache.hadoop.hive.ql.io.orc
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(InnerStruct));
 
             MyMemoryManager memory = new MyMemoryManager(conf, 10000, 0.1);
-            Writer writer = OrcFile.createWriter(testFilePath,
-                                                 OrcFile.writerOptions(conf)
-                                                 .inspector(inspector)
-                                                 .compress(CompressionKind.NONE)
-                                                 .stripeSize(50000)
-                                                 .bufferSize(100)
-                                                 .rowIndexStride(0)
-                                                 .memory(memory)
-                                                 .version(Version.V_0_12));
-            Assert.Equal(testFilePath, memory.path);
-            for (int i = 0; i < 2500; ++i)
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .compress(CompressionKind.NONE)
+                    .stripeSize(50000)
+                    .bufferSize(100)
+                    .rowIndexStride(0)
+                    .memory(memory)
+                    .version(OrcFile.Version.V_0_12)))
             {
-                writer.addRow(new InnerStruct(i * 300, Integer.toHexString(10 * i)));
+                Assert.Equal(testFilePath, memory.path);
+                for (int i = 0; i < 2500; ++i)
+                {
+                    writer.addRow(new InnerStruct(i * 300, Integer.toHexString(10 * i)));
+                }
+                writer.close();
+                Assert.Equal(null, memory.path);
             }
-            writer.close();
-            Assert.Equal(null, memory.path);
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
-            int i = 0;
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            int j = 0;
             foreach (StripeInformation stripe in reader.getStripes())
             {
-                i += 1;
-                Assert.True("stripe " + i + " is too long at " + stripe.getDataLength(),
-                    stripe.getDataLength() < 5000);
+                j++;
+                Assert.True(stripe.getDataLength() < 5000,
+                    "stripe " + j + " is too long at " + stripe.getDataLength());
             }
             // with HIVE-7832, the dictionaries will be disabled after writing the first
             // stripe as there are too many distinct values. Hence only 4 stripes as
             // compared to 25 stripes in version 0.11 (above test case)
-            Assert.Equal(4, i);
+            Assert.Equal(4, j);
             Assert.Equal(2500, reader.getNumberOfRows());
         }
 
@@ -1905,26 +1960,32 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(InnerStruct));
 
-            Writer writer = OrcFile.createWriter(fs, testFilePath, conf, inspector,
-                400000L, CompressionKind.NONE, 500, 1000);
-            for (int i = 0; i < 3500; ++i)
+            using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                    .inspector(inspector)
+                    .stripeSize(400000L)
+                    .compress(CompressionKind.NONE)
+                    .bufferSize(500)
+                    .rowIndexStride(1000)))
             {
-                writer.addRow(new InnerStruct(i * 300, Integer.toHexString(10 * i)));
+                for (int i = 0; i < 3500; ++i)
+                {
+                    writer.addRow(new InnerStruct(i * 300, Integer.toHexString(10 * i)));
+                }
+                writer.close();
             }
-            writer.close();
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
             Assert.Equal(3500, reader.getNumberOfRows());
 
-            SearchArgument sarg = SearchArgumentFactory.CreateBuilder()
+            SearchArgument sarg = SearchArgumentFactory.newBuilder()
                 .startAnd()
                   .startNot()
                      .lessThan("int1", PredicateLeaf.Type.LONG, 300000L)
                   .end()
                   .lessThan("int1", PredicateLeaf.Type.LONG, 600000L)
                 .end()
-                .Build();
-            RecordReader rows = reader.rowsOptions(new Reader.Options()
+                .build();
+            RecordReader rows = reader.rowsOptions(new RecordReaderOptions()
                 .range(0L, Int64.MaxValue)
                 .include(new bool[] { true, true, true })
                 .searchArgument(sarg, new String[] { null, "int1", "string1" }));
@@ -1934,19 +1995,19 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 Assert.True(rows.hasNext());
                 row = (OrcStruct)rows.next(row);
-                Assert.Equal(300 * i, ((IntWritable)row.getFieldValue(0)).get());
+                Assert.Equal(300 * i, ((StrongBox<int>)row.getFieldValue(0)).Value);
                 Assert.Equal(Integer.toHexString(10 * i), row.getFieldValue(1).ToString());
             }
             Assert.True(!rows.hasNext());
             Assert.Equal(3500, rows.getRowNumber());
 
             // look through the file with no rows selected
-            sarg = SearchArgumentFactory.CreateBuilder()
+            sarg = SearchArgumentFactory.newBuilder()
                 .startAnd()
                   .lessThan("int1", PredicateLeaf.Type.LONG, 0L)
                 .end()
-                .Build();
-            rows = reader.rowsOptions(new Reader.Options()
+                .build();
+            rows = reader.rowsOptions(new RecordReaderOptions()
                     .range(0L, Int64.MaxValue)
                     .include(new bool[] { true, true, true })
                     .searchArgument(sarg, new String[] { null, "int1", "string1" }));
@@ -1954,15 +2015,15 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Assert.True(!rows.hasNext());
 
             // select first 100 and last 100 rows
-            sarg = SearchArgumentFactory.CreateBuilder()
+            sarg = SearchArgumentFactory.newBuilder()
                 .startOr()
                   .lessThan("int1", PredicateLeaf.Type.LONG, 300L * 100)
                   .startNot()
                     .lessThan("int1", PredicateLeaf.Type.LONG, 300L * 3400)
                   .end()
                 .end()
-                .Build();
-            rows = reader.rowsOptions(new Reader.Options()
+                .build();
+            rows = reader.rowsOptions(new RecordReaderOptions()
                     .range(0L, Int64.MaxValue)
                     .include(new bool[] { true, true, true })
                     .searchArgument(sarg, new string[] { null, "int1", "string1" }));
@@ -1972,7 +2033,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 Assert.True(rows.hasNext());
                 Assert.Equal(i, rows.getRowNumber());
                 row = (OrcStruct)rows.next(row);
-                Assert.Equal(300 * i, ((IntWritable)row.getFieldValue(0)).get());
+                Assert.Equal(300 * i, ((StrongBox<int>)row.getFieldValue(0)).Value);
                 Assert.Equal(Integer.toHexString(10 * i), row.getFieldValue(1).ToString());
             }
             for (int i = 3000; i < 3500; ++i)
@@ -1980,7 +2041,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 Assert.True(rows.hasNext());
                 Assert.Equal(i, rows.getRowNumber());
                 row = (OrcStruct)rows.next(row);
-                Assert.Equal(300 * i, ((IntWritable)row.getFieldValue(0)).get());
+                Assert.Equal(300 * i, ((StrongBox<int>)row.getFieldValue(0)).Value);
                 Assert.Equal(Integer.toHexString(10 * i), row.getFieldValue(1).ToString());
             }
             Assert.True(!rows.hasNext());

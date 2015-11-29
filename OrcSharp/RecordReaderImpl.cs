@@ -45,8 +45,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         private int currentStripe = -1;
         private long rowBaseInStripe = 0;
         private long rowCountInStripe = 0;
-        private Dictionary<StreamName, InStream> streams =
-            new Dictionary<StreamName, InStream>();
+        private Dictionary<StreamName, InStream> streams = new Dictionary<StreamName, InStream>();
         DiskRangeList bufferChunks = null;
         private TreeReaderFactory.TreeReader reader;
         private OrcProto.RowIndex[] indexes;

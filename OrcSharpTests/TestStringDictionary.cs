@@ -25,7 +25,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
     public class TestStringDictionary : WithLocalDirectory
     {
-        const string testFileName = "TestFileDump.orc";
+        const string testFileName = "TestStringDictionary.orc";
 
         public TestStringDictionary() : base(testFileName)
         {

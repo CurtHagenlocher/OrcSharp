@@ -26,7 +26,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     /// <summary>
     /// The interface for writing ORC files.
     /// </summary>
-    public interface Writer
+    public interface Writer : IDisposable
     {
         /// <summary>
         /// Gets the schema for this writer.

@@ -434,7 +434,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             /**
              * A package local option to set the memory manager.
              */
-            WriterOptions memory(MemoryManager value)
+            public WriterOptions memory(MemoryManager value)
             {
                 memoryManagerValue = value;
                 return this;

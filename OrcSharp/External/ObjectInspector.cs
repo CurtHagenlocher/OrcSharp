@@ -20,6 +20,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -87,6 +88,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         public virtual int getListLength(object list)
         {
             throw new NotImplementedException();
+        }
+
+        internal IList<object> getList(object list)
+        {
+            return (IList<object>)list;
         }
     }
 
@@ -366,9 +372,31 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         {
         }
 
-        internal string get(object obj)
+        internal virtual string get(object obj)
         {
             return (string)obj;
+        }
+
+        internal virtual string getPrimitiveJavaObject(object obj)
+        {
+            if (obj is Text)
+            {
+                return ((Text)obj).Value;
+            }
+            return (string)obj;
+        }
+    }
+
+    class TextObjectInspector : StringObjectInspector
+    {
+        internal override string get(object obj)
+        {
+            return ((Text)obj).Value;
+        }
+
+        internal override string getPrimitiveJavaObject(object obj)
+        {
+            return ((Text)obj).Value;
         }
     }
 
@@ -379,9 +407,27 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         {
         }
 
-        internal byte[] get(object obj)
+        internal virtual byte[] get(object obj)
         {
             return (byte[])obj;
+        }
+
+        internal virtual BytesWritable getPrimitiveWritableObject(object obj)
+        {
+            return (BytesWritable)obj;
+        }
+    }
+
+    class BytesWritableObjectInspector : BinaryObjectInspector
+    {
+        internal override byte[] get(object obj)
+        {
+            return ((BytesWritable)obj).getBytes();
+        }
+
+        internal override BytesWritable getPrimitiveWritableObject(object obj)
+        {
+            return (BytesWritable)obj;
         }
     }
 
@@ -456,6 +502,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         {
             return (HiveDecimal)obj;
         }
+
+        internal HiveDecimal getPrimitiveJavaObject(object obj)
+        {
+            return (HiveDecimal)obj;
+        }
     }
 
     class DateObjectInspector : PrimitiveObjectInspector
@@ -482,9 +533,14 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         {
         }
 
-        internal DateTime get()
+        internal DateTime get(object obj)
         {
-            throw new NotImplementedException();
+            return (DateTime)obj;
+        }
+
+        internal DateTime getPrimitiveJavaObject(object obj)
+        {
+            return (DateTime)obj;
         }
     }
 
@@ -622,6 +678,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         internal int scale()
         {
             return _scale;
+        }
+
+        public override string getTypeName()
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0}({1},{2})", base.getTypeName(), _precision, _scale);
         }
     }
 
@@ -856,17 +917,28 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
                     throw new NotSupportedException();
             }
 
+            if (type == typeof(Text))
+            {
+                return new TextObjectInspector();
+            }
+            if (type == typeof(BytesWritable))
+            {
+                return new BytesWritableObjectInspector();
+            }
             if (type == typeof(HiveDecimal))
             {
                 return new HiveDecimalObjectInspector(HiveDecimal.MAX_PRECISION, HiveDecimal.MAX_SCALE);
             }
-
             if (type.IsArray && type.GetArrayRank() == 1)
             {
                 Type elementType = type.GetElementType();
                 ObjectInspector elementInspector = getReflectionObjectInspector(elementType);
                 ConstructorInfo ctor = typeof(ArrayObjectInspector<>).MakeGenericType(elementType).GetConstructor(new[] { typeof(ObjectInspector) });
                 return (ObjectInspector)ctor.Invoke(new[] { elementInspector });
+            }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return getReflectionObjectInspector(type.GetGenericArguments()[0]);
             }
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
             {
@@ -880,7 +952,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
                 Type[] types = type.GetGenericArguments();
                 Type keyType = types[0];
                 ObjectInspector keyInspector = getReflectionObjectInspector(keyType);
-                Type valueType = types[0];
+                Type valueType = types[1];
                 ObjectInspector valueInspector = getReflectionObjectInspector(valueType);
                 ConstructorInfo ctor = typeof(DictionaryObjectInspector<,>).MakeGenericType(keyType, valueType).GetConstructor(new[] { typeof(ObjectInspector), typeof(ObjectInspector) });
                 return (ObjectInspector)ctor.Invoke(new[] { keyInspector, valueInspector });

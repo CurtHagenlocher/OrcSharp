@@ -56,7 +56,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public long skip(long len)
         {
-            throw new NotImplementedException();
+            int readLength = (int)Math.Min(16384, len);
+            readLength = Read(new byte[readLength], 0, readLength);
+            if (readLength == 0)
+            {
+                throw new InvalidOperationException();
+            }
+            return readLength;
         }
 
         internal class UncompressedStream : InStream
@@ -120,7 +126,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return (int)(length - currentOffset);
             }
 
-            public void close()
+            public override void Close()
             {
                 currentRange = bytes.Count;
                 currentOffset = length;
@@ -323,7 +329,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return uncompressed.remaining();
             }
 
-            public void close()
+            public override void Close()
             {
                 uncompressed = null;
                 compressed = null;

@@ -21,7 +21,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
     using System;
     using System.IO;
 
-    public class ByteBuffer
+    public sealed class ByteBuffer : IEquatable<ByteBuffer>
     {
         private byte[] buffer;
         int _offset;
@@ -35,7 +35,7 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
             _limit = capacity;
         }
 
-        private ByteBuffer(byte[] sharedBuffer)
+        public ByteBuffer(byte[] sharedBuffer)
         {
             buffer = sharedBuffer;
         }
@@ -48,6 +48,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         public static ByteBuffer allocateDirect(int capacity)
         {
             return new ByteBuffer(capacity);
+        }
+
+        public int Length
+        {
+            get { return _limit - _offset; }
         }
 
         public void clear()
@@ -116,7 +121,15 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         public ByteBuffer put(ByteBuffer src)
         {
-            throw new NotImplementedException();
+            int length = src.remaining();
+            if (length > remaining())
+            {
+                throw new ArgumentException();
+            }
+            Array.Copy(src.buffer, src._position, buffer, _position, length);
+            _position += length;
+            src._position += length;
+            return this;
         }
 
         public int remaining()
@@ -160,7 +173,11 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         internal void put(byte p)
         {
-            throw new NotImplementedException();
+            if (remaining() < 1)
+            {
+                throw new InternalBufferOverflowException();
+            }
+            buffer[_position++] = p;
         }
 
         internal void put(byte[] bytes, int offset, int length)
@@ -187,7 +204,9 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
 
         internal byte[] contents()
         {
-            throw new NotImplementedException();
+            byte[] result = new byte[_limit - _offset];
+            Array.Copy(buffer, _offset, result, 0, result.Length);
+            return result;
         }
 
         internal int get(int lastByteAbsPos)
@@ -213,6 +232,29 @@ namespace org.apache.hadoop.hive.ql.io.orc.external
         internal int readRemaining(Stream file)
         {
             throw new NotImplementedException();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ByteBuffer);
+        }
+
+        public bool Equals(ByteBuffer other)
+        {
+            if (other == null || this.Length != other.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < Length; i++)
+            {
+                if (buffer[_offset + i] != other.buffer[other._offset + i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

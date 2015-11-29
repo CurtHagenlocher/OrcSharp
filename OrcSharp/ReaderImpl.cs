@@ -528,6 +528,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             // remember position for later
             buffer.mark();
 
+            // TODO:
             // file.Close();
 
             CompressionKind compressionKind = (CompressionKind)Enum.Parse(
@@ -751,13 +752,13 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     return numVals * JavaDataModel.lengthOfDecimal();
                 case OrcProto.Type.Types.Kind.DOUBLE:
                 case OrcProto.Type.Types.Kind.LONG:
-                    return numVals * 8;
+                    return numVals * JavaDataModel.Eight;
                 case OrcProto.Type.Types.Kind.FLOAT:
                 case OrcProto.Type.Types.Kind.INT:
                 case OrcProto.Type.Types.Kind.SHORT:
                 case OrcProto.Type.Types.Kind.BOOLEAN:
                 case OrcProto.Type.Types.Kind.BYTE:
-                    return numVals * 4;
+                    return numVals * JavaDataModel.Four;
                 default:
                     LOG.debug("Unknown primitive category: " + type.Kind);
                     break;

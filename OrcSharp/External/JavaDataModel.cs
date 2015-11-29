@@ -18,26 +18,51 @@
 
 namespace org.apache.hadoop.hive.ql.io.orc.external
 {
+    using System;
+
     class JavaDataModel
     {
-        internal static long lengthForStringOfLength(int avgStrLen)
+        // TODO: Replace with more-appropriate CLR values
+
+        public const int Four = 4;
+        public const int Eight = 8;
+
+        // Test suites assume 64-bit operation
+        static readonly int objectSize = 32; // 4 * IntPtr.Size;
+        static readonly int arraySize = 40; // 5 * IntPtr.Size;
+
+        internal static long lengthForStringOfLength(int strLen)
         {
-            throw new System.NotImplementedException();
+            return objectSize + Four * 3 + arraySize + strLen;
         }
 
         internal static long lengthOfTimestamp()
         {
-            throw new System.NotImplementedException();
+            // object overhead + 4 bytes for int (nanos) + 4 bytes of padding
+            return objectSize + Eight;
         }
 
         internal static long lengthOfDate()
         {
-            throw new System.NotImplementedException();
+            // object overhead + 8 bytes for long (fastTime) + 16 bytes for cdate
+            return objectSize + 3 * Eight;
         }
 
         internal static long lengthOfDecimal()
         {
-            throw new System.NotImplementedException();
+            // object overhead + 8 bytes for intCompact + 4 bytes for precision
+            // + 4 bytes for scale + size of BigInteger
+            return objectSize + 2 * Eight + lengthOfBigInteger();
+        }
+
+        private static int lengthOfBigInteger()
+        {
+            // object overhead + 4 bytes for bitCount + 4 bytes for bitLength
+            // + 4 bytes for firstNonzeroByteNum + 4 bytes for firstNonzeroIntNum +
+            // + 4 bytes for lowestSetBit + 5 bytes for size of magnitude (since max precision
+            // is only 38 for HiveDecimal) + 7 bytes of padding (since java memory allocations
+            // are 8 byte aligned)
+            return objectSize + 4 * Eight;
         }
     }
 }
