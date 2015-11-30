@@ -752,6 +752,7 @@ namespace OrcSharp
                     positions = positions.subList(isCompressed ? 4 : 3, positions.Count);
                     entry.ClearPositions();
                     entry.AddRangePositions(positions);
+                    rowIndex.SetEntry(i, entry);
                 }
             }
 

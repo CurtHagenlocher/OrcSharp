@@ -611,8 +611,7 @@ namespace OrcSharp
                 Assert.Equal(expected, included);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
             List<StripeStatistics> stats = reader.getStripeStatistics();
             int numStripes = stats.Count;
             Assert.Equal(3, numStripes);
