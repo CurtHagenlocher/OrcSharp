@@ -1122,16 +1122,16 @@ namespace OrcSharp
             public override object next(object previous)
             {
                 base.next(previous);
-                StrongBox<DateTime> result = null;
+                StrongBox<Timestamp> result = null;
                 if (valuePresent)
                 {
                     if (previous == null)
                     {
-                        result = new StrongBox<DateTime>();
+                        result = new StrongBox<Timestamp>();
                     }
                     else
                     {
-                        result = (StrongBox<DateTime>)previous;
+                        result = (StrongBox<Timestamp>)previous;
                     }
                     long millis = (data.next() + base_timestamp) * WriterImpl.MILLIS_PER_SECOND;
                     int newNanos = parseNanos(nanos.next());
@@ -1151,7 +1151,7 @@ namespace OrcSharp
                     // between reader and writer taking day light savings into account.
                     if (!hasSameTZRules)
                     {
-                        offset = (long)((writerTimeZone.GetUtcOffset(timestamp)- readerTimeZone.GetUtcOffset(timestamp)).TotalMilliseconds);
+                        offset = (long)((writerTimeZone.GetUtcOffset(timestamp) - readerTimeZone.GetUtcOffset(timestamp)).TotalMilliseconds);
                     }
                     long adjustedMillis = millis + offset;
                     DateTime ts = Epoch.getTimestamp(adjustedMillis);
@@ -1166,8 +1166,9 @@ namespace OrcSharp
                         adjustedMillis = millis + newOffset;
                         ts = Epoch.getTimestamp(adjustedMillis);
                     }
+                    // TODO: fix
                     // ts.setNanos(newNanos);
-                    result.Value = ts;
+                    result.Value = new Timestamp(ts);
                 }
                 return result;
             }
@@ -1196,8 +1197,8 @@ namespace OrcSharp
                     }
                     else
                     {
-                        StrongBox<DateTime> writable = (StrongBox<DateTime>)obj;
-                        result.vector[i] = writable.Value.getTimestamp();
+                        StrongBox<Timestamp> writable = (StrongBox<Timestamp>)obj;
+                        result.vector[i] = writable.Value.Milliseconds;
                     }
                 }
 
@@ -1276,18 +1277,18 @@ namespace OrcSharp
             public override object next(object previous)
             {
                 base.next(previous);
-                StrongBox<DateTime> result = null;
+                StrongBox<Date> result = null;
                 if (valuePresent)
                 {
                     if (previous == null)
                     {
-                        result = new StrongBox<DateTime>();
+                        result = new StrongBox<Date>();
                     }
                     else
                     {
-                        result = (StrongBox<DateTime>)previous;
+                        result = (StrongBox<Date>)previous;
                     }
-                    result.Value = Epoch.getDate((int)reader.next());
+                    result.Value = new Date((int)reader.next());
                 }
                 return result;
             }

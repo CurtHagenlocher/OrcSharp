@@ -121,7 +121,8 @@ namespace OrcSharp
 
         const string testFileName = "TestOrcFile.orc";
 
-        public TestOrcFile() : base(testFileName)
+        public TestOrcFile()
+            : base(testFileName)
         {
         }
 
@@ -314,11 +315,9 @@ namespace OrcSharp
             IDictionary<object, object> map = ma.getMap(readerInspector.getStructFieldData(row,
                 fields[11]));
             Assert.Equal(0, map.Count);
-#if TIMESTAMP
-            Assert.Equal(Timestamp.valueOf("2000-03-12 15:00:00"),
+            Assert.Equal(Timestamp.Parse("2000-03-12 15:00:00"),
                 tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[12])));
-#endif
             Assert.Equal(HiveDecimal.Parse("12345678.6547456"),
                 dco.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[13])));
@@ -404,11 +403,9 @@ namespace OrcSharp
             }
             Assert.Equal(true, found[0]);
             Assert.Equal(true, found[1]);
-#if TIMESTAMP
-            Assert.Equal(Timestamp.valueOf("2000-03-12 15:00:01"),
+            Assert.Equal(Timestamp.Parse("2000-03-12 15:00:01"),
                 tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[12])));
-#endif
             Assert.Equal(HiveDecimal.Parse("12345678.6547457"),
                 dco.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                     fields[13])));
@@ -418,7 +415,7 @@ namespace OrcSharp
             rows.close();
         }
 
-#if TIMESTAMP
+
         [Fact]
         public void testTimestamp()
         {
@@ -426,24 +423,24 @@ namespace OrcSharp
 
             List<Timestamp> tslist = new List<Timestamp>();
             using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .version(OrcFile.Version.V_0_11)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .version(OrcFile.Version.V_0_11));
-                tslist.Add(Timestamp.valueOf("2037-01-01 00:00:00.000999"));
-                tslist.Add(Timestamp.valueOf("2003-01-01 00:00:00.000000222"));
-                tslist.Add(Timestamp.valueOf("1999-01-01 00:00:00.999999999"));
-                tslist.Add(Timestamp.valueOf("1995-01-01 00:00:00.688888888"));
-                tslist.Add(Timestamp.valueOf("2002-01-01 00:00:00.1"));
-                tslist.Add(Timestamp.valueOf("2010-03-02 00:00:00.000009001"));
-                tslist.Add(Timestamp.valueOf("2005-01-01 00:00:00.000002229"));
-                tslist.Add(Timestamp.valueOf("2006-01-01 00:00:00.900203003"));
-                tslist.Add(Timestamp.valueOf("2003-01-01 00:00:00.800000007"));
-                tslist.Add(Timestamp.valueOf("1996-08-02 00:00:00.723100809"));
-                tslist.Add(Timestamp.valueOf("1998-11-02 00:00:00.857340643"));
-                tslist.Add(Timestamp.valueOf("2008-10-02 00:00:00"));
+                tslist.Add(Timestamp.Parse("2037-01-01 00:00:00.000999"));
+                tslist.Add(Timestamp.Parse("2003-01-01 00:00:00.000000222"));
+                tslist.Add(Timestamp.Parse("1999-01-01 00:00:00.999999999"));
+                tslist.Add(Timestamp.Parse("1995-01-01 00:00:00.688888888"));
+                tslist.Add(Timestamp.Parse("2002-01-01 00:00:00.1"));
+                tslist.Add(Timestamp.Parse("2010-03-02 00:00:00.000009001"));
+                tslist.Add(Timestamp.Parse("2005-01-01 00:00:00.000002229"));
+                tslist.Add(Timestamp.Parse("2006-01-01 00:00:00.900203003"));
+                tslist.Add(Timestamp.Parse("2003-01-01 00:00:00.800000007"));
+                tslist.Add(Timestamp.Parse("1996-08-02 00:00:00.723100809"));
+                tslist.Add(Timestamp.Parse("1998-11-02 00:00:00.857340643"));
+                tslist.Add(Timestamp.Parse("2008-10-02 00:00:00"));
 
                 foreach (Timestamp ts in tslist)
                 {
@@ -465,10 +462,9 @@ namespace OrcSharp
             while (rows.hasNext())
             {
                 object row = rows.next(null);
-                Assert.Equal(tslist[idx++].getNanos(), ((TimestampWritable)row).getNanos());
+                Assert.Equal(tslist[idx++].getNanos(), ((StrongBox<Timestamp>)row).Value.getNanos());
             }
         }
-#endif
 
         [Fact]
         public void testStringAndBinaryStatistics()
@@ -1132,7 +1128,6 @@ namespace OrcSharp
             Assert.Equal(1, numStripes);
         }
 
-#if TIMESTAMP
         /**
          * Generate an ORC file with a range of dates and times.
          */
@@ -1151,23 +1146,18 @@ namespace OrcSharp
 
             OrcStruct row = new OrcStruct(2);
             using (Stream file = FileOpenWrite(path))
+            using (Writer writer = OrcFile.createWriter(path, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .blockPadding(false)))
             {
-                Writer writer = OrcFile.createWriter(path, file,
-                OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .blockPadding(false));
-
                 for (int year = minYear; year < maxYear; ++year)
                 {
                     for (int ms = 1000; ms < 2000; ++ms)
                     {
-                        row.setFieldValue(0,
-                            new TimestampWritable(Timestamp.valueOf(year + "-05-05 12:34:56."
-                                + ms)));
-                        row.setFieldValue(1,
-                            new DateWritable(new Date(year - 1900, 11, 25)));
+                        row.setFieldValue(0, Timestamp.Parse(year + "-05-05 12:34:56." + ms));
+                        row.setFieldValue(1, new Date(year - 1900, 11, 25));
                         writer.addRow(row);
                     }
                 }
@@ -1176,16 +1166,16 @@ namespace OrcSharp
 
             Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
             RecordReader rows = reader.rows();
+            row = new OrcStruct(2); // TODO: Shouldn't be needed?
             for (int year = minYear; year < maxYear; ++year)
             {
                 for (int ms = 1000; ms < 2000; ++ms)
                 {
                     row = (OrcStruct)rows.next(row);
-                    Assert.Equal(new TimestampWritable
-                            (Timestamp.valueOf(year + "-05-05 12:34:56." + ms)),
+                    Assert.Equal(
+                        Timestamp.Parse(year + "-05-05 12:34:56." + ms),
                         row.getFieldValue(0));
-                    Assert.Equal(new DateWritable(new Date(year - 1900, 11, 25)),
-                        row.getFieldValue(1));
+                    Assert.Equal(new Date(year - 1900, 11, 25), row.getFieldValue(1));
                 }
             }
         }
@@ -1233,23 +1223,23 @@ namespace OrcSharp
             Random rand;
 
             using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(1000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(100)
+                .blockPadding(false)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(1000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(100)
-                    .blockPadding(false));
                 row.setFieldValue(1, union);
-                row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf("2000-03-12 15:00:00")));
+                row.setFieldValue(0, Timestamp.Parse("2000-03-12 15:00:00"));
                 HiveDecimal value = HiveDecimal.Parse("12345678.6547456");
-                row.setFieldValue(2, new HiveDecimalWritable(value));
-                union.set((byte)0, new IntWritable(42));
+                row.setFieldValue(2, value);
+                union.set((byte)0, 42);
                 writer.addRow(row);
-                row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf("2000-03-20 12:00:00.123456789")));
+                row.setFieldValue(0, Timestamp.Parse("2000-03-20 12:00:00.123456789"));
                 union.set((byte)1, new Text("hello"));
                 value = HiveDecimal.Parse("-5643.234");
-                row.setFieldValue(2, new HiveDecimalWritable(value));
+                row.setFieldValue(2, value);
                 writer.addRow(row);
                 row.setFieldValue(0, null);
                 row.setFieldValue(1, null);
@@ -1260,28 +1250,25 @@ namespace OrcSharp
                 writer.addRow(row);
                 union.set((byte)1, null);
                 writer.addRow(row);
-                union.set((byte)0, new IntWritable(200000));
-                row.setFieldValue(0, new TimestampWritable
-                    (Timestamp.valueOf("1970-01-01 00:00:00")));
+                union.set((byte)0, 200000);
+                row.setFieldValue(0, Timestamp.Parse("1970-01-01 00:00:00"));
                 value = HiveDecimal.Parse("10000000000000000000");
-                row.setFieldValue(2, new HiveDecimalWritable(value));
+                row.setFieldValue(2, value);
                 writer.addRow(row);
                 rand = new Random(42);
                 for (int i = 1970; i < 2038; ++i)
                 {
-                    row.setFieldValue(0, new TimestampWritable(Timestamp.valueOf(i +
-                        "-05-05 12:34:56." + i)));
+                    row.setFieldValue(0, Timestamp.Parse(i + "-05-05 12:34:56." + i));
                     if ((i & 1) == 0)
                     {
-                        union.set((byte)0, new IntWritable(i * i));
+                        union.set((byte)0, (i * i));
                     }
                     else
                     {
-                        union.set((byte)1, new Text(Integer.ToString(i * i)));
+                        union.set((byte)1, (i * i).ToString());
                     }
-                    value = HiveDecimal.create(new BigInteger(64, rand),
-                        rand.Next(18));
-                    row.setFieldValue(2, new HiveDecimalWritable(value));
+                    value = HiveDecimal.create(RandomBigInteger(64, rand), rand.Next(18));
+                    row.setFieldValue(2, value);
                     if (maxValue.CompareTo(value) < 0)
                     {
                         maxValue = value;
@@ -1290,17 +1277,17 @@ namespace OrcSharp
                 }
                 // let's add a lot of constant rows to test the rle
                 row.setFieldValue(0, null);
-                union.set((byte)0, new IntWritable(1732050807));
+                union.set((byte)0, 1732050807);
                 row.setFieldValue(2, null);
                 for (int i = 0; i < 5000; ++i)
                 {
                     writer.addRow(row);
                 }
-                union.set((byte)0, new IntWritable(0));
+                union.set((byte)0, 0);
                 writer.addRow(row);
-                union.set((byte)0, new IntWritable(10));
+                union.set((byte)0, 10);
                 writer.addRow(row);
-                union.set((byte)0, new IntWritable(138));
+                union.set((byte)0, 138);
                 writer.addRow(row);
                 writer.close();
 
@@ -1359,21 +1346,17 @@ namespace OrcSharp
             inspector = reader.getObjectInspector();
             Assert.Equal("struct<time:timestamp,union:uniontype<int,string>,decimal:decimal(38,18)>",
                 inspector.getTypeName());
-            Assert.Equal(new TimestampWritable(Timestamp.valueOf("2000-03-12 15:00:00")),
-                row.getFieldValue(0));
+            Assert.Equal(Timestamp.Parse("2000-03-12 15:00:00"), row.getFieldValue(0));
             union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(0, union.getTag());
-            Assert.Equal(new IntWritable(42), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("12345678.6547456")),
-                row.getFieldValue(2));
+            Assert.Equal(42, union.getObject());
+            Assert.Equal(HiveDecimal.Parse("12345678.6547456"), row.getFieldValue(2));
             row = (OrcStruct)rows.next(row);
             Assert.Equal(2, rows.getRowNumber());
-            Assert.Equal(new TimestampWritable(Timestamp.valueOf("2000-03-20 12:00:00.123456789")),
-                row.getFieldValue(0));
+            Assert.Equal(Timestamp.Parse("2000-03-20 12:00:00.123456789"), row.getFieldValue(0));
             Assert.Equal(1, union.getTag());
             Assert.Equal(new Text("hello"), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("-5643.234")),
-                row.getFieldValue(2));
+            Assert.Equal(HiveDecimal.Parse("-5643.234"), row.getFieldValue(2));
             row = (OrcStruct)rows.next(row);
             Assert.Equal(null, row.getFieldValue(0));
             Assert.Equal(null, row.getFieldValue(1));
@@ -1390,54 +1373,48 @@ namespace OrcSharp
             Assert.Equal(null, union.getObject());
             Assert.Equal(null, row.getFieldValue(2));
             row = (OrcStruct)rows.next(row);
-            Assert.Equal(new TimestampWritable(Timestamp.valueOf("1970-01-01 00:00:00")),
-                row.getFieldValue(0));
-            Assert.Equal(new IntWritable(200000), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("10000000000000000000")),
-                         row.getFieldValue(2));
+            Assert.Equal(Timestamp.Parse("1970-01-01 00:00:00"), row.getFieldValue(0));
+            Assert.Equal(200000, union.getObject());
+            Assert.Equal(HiveDecimal.Parse("10000000000000000000"), row.getFieldValue(2));
             rand = new Random(42);
             for (int i = 1970; i < 2038; ++i)
             {
                 row = (OrcStruct)rows.next(row);
-                Assert.Equal(new TimestampWritable(Timestamp.valueOf(i + "-05-05 12:34:56." + i)),
-                    row.getFieldValue(0));
+                Assert.Equal(Timestamp.Parse(i + "-05-05 12:34:56." + i), row.getFieldValue(0));
                 if ((i & 1) == 0)
                 {
                     Assert.Equal(0, union.getTag());
-                    Assert.Equal(new IntWritable(i * i), union.getObject());
+                    Assert.Equal(i * i, union.getObject());
                 }
                 else
                 {
                     Assert.Equal(1, union.getTag());
-                    Assert.Equal(new Text(Integer.ToString(i * i)), union.getObject());
+                    Assert.Equal(new Text((i * i).ToString()), union.getObject());
                 }
-                Assert.Equal(new HiveDecimalWritable(HiveDecimal.create(new BigInteger(64, rand),
-                                             rand.Next(18))), row.getFieldValue(2));
+                Assert.Equal(HiveDecimal.create(RandomBigInteger(64, rand), rand.Next(18)), row.getFieldValue(2));
             }
             for (int i = 0; i < 5000; ++i)
             {
                 row = (OrcStruct)rows.next(row);
-                Assert.Equal(new IntWritable(1732050807), union.getObject());
+                Assert.Equal(1732050807, union.getObject());
             }
             row = (OrcStruct)rows.next(row);
-            Assert.Equal(new IntWritable(0), union.getObject());
+            Assert.Equal(0, union.getObject());
             row = (OrcStruct)rows.next(row);
-            Assert.Equal(new IntWritable(10), union.getObject());
+            Assert.Equal(10, union.getObject());
             row = (OrcStruct)rows.next(row);
-            Assert.Equal(new IntWritable(138), union.getObject());
+            Assert.Equal(138, union.getObject());
             Assert.Equal(false, rows.hasNext());
             Assert.Equal(1.0, rows.getProgress(), 5);
             Assert.Equal(reader.getNumberOfRows(), rows.getRowNumber());
             rows.seekToRow(1);
             row = (OrcStruct)rows.next(row);
-            Assert.Equal(new TimestampWritable(Timestamp.valueOf("2000-03-20 12:00:00.123456789")),
-                row.getFieldValue(0));
+            Assert.Equal(Timestamp.Parse("2000-03-20 12:00:00.123456789"), row.getFieldValue(0));
             Assert.Equal(1, union.getTag());
             Assert.Equal(new Text("hello"), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("-5643.234")), row.getFieldValue(2));
+            Assert.Equal(HiveDecimal.Parse("-5643.234"), row.getFieldValue(2));
             rows.close();
         }
-#endif
 
 #if COMPRESSION
         /**
@@ -1451,12 +1428,12 @@ namespace OrcSharp
 
             Random rand;
             using (Stream file = FileOpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(1000)
+                .compress(CompressionKind.SNAPPY)
+                .bufferSize(100)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(1000)
-                    .compress(CompressionKind.SNAPPY)
-                    .bufferSize(100));
                 rand = new Random(12);
                 for (int i = 0; i < 10000; ++i)
                 {
@@ -1772,7 +1749,7 @@ namespace OrcSharp
             bool[] columns = new bool[reader.getStatistics().Length];
             columns[5] = true; // long colulmn
             columns[9] = true; // text column
-                               /* use zero copy record reader */
+            /* use zero copy record reader */
             rows = reader.rowsOptions(new RecordReaderOptions()
                 .range(offsetOfStripe2, offsetOfStripe4 - offsetOfStripe2)
                 .include(columns));
@@ -1837,7 +1814,8 @@ namespace OrcSharp
             int rows = 0;
             MemoryManager.Callback callback;
 
-            public MyMemoryManager(Configuration conf, long totalSpace, double rate) : base(totalSpace)
+            public MyMemoryManager(Configuration conf, long totalSpace, double rate)
+                : base(totalSpace)
             {
                 this.totalSpace = totalSpace;
                 this.rate = rate;
@@ -2044,6 +2022,13 @@ namespace OrcSharp
             }
             Assert.True(!rows.hasNext());
             Assert.Equal(3500, rows.getRowNumber());
+        }
+
+        static BigInteger RandomBigInteger(int bits, Random rand)
+        {
+            byte[] tmp = new byte[(int)Math.Ceiling(bits / 8.0)];
+            rand.NextBytes(tmp);
+            return new BigInteger(tmp);
         }
     }
 }

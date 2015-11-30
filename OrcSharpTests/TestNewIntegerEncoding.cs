@@ -23,17 +23,18 @@ namespace OrcSharp
     using System.IO;
     using System.Runtime.CompilerServices;
     using OrcSharp.Serialization;
+    using OrcSharp.Types;
     using Xunit;
 
     public class TestNewIntegerEncoding : WithLocalDirectory
     {
         const string testFileName = "TestNewIntegerEncoding.orc";
 
-        public TestNewIntegerEncoding() : base(testFileName)
+        public TestNewIntegerEncoding()
+            : base(testFileName)
         {
         }
 
-#if TIMESTAMP
         public class TSRow
         {
             Timestamp ts;
@@ -43,7 +44,6 @@ namespace OrcSharp
                 this.ts = ts;
             }
         }
-#endif
 
         public class Row
         {
@@ -65,14 +65,13 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(Row));
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 writer.addRow(new Row(111, 1111L));
                 writer.addRow(new Row(111, 1111L));
                 writer.addRow(new Row(111, 1111L));
@@ -106,14 +105,13 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .compress(CompressionKind.NONE)
+                .version(OrcFile.Version.V_0_11)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .compress(CompressionKind.NONE)
-                    .version(OrcFile.Version.V_0_11)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -148,14 +146,13 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -183,14 +180,13 @@ namespace OrcSharp
             long[] input = new long[] { -500, -400, -350, -325, -310 };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -218,14 +214,13 @@ namespace OrcSharp
             long[] input = new long[] { -500, -600, -650, -675, -710 };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -253,14 +248,13 @@ namespace OrcSharp
             long[] input = new long[] { 500, 400, 350, 325, 310 };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -288,14 +282,13 @@ namespace OrcSharp
             long[] input = new long[] { 500, 600, 650, 675, 710 };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -326,13 +319,12 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -363,13 +355,12 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -400,13 +391,12 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -434,13 +424,12 @@ namespace OrcSharp
             long[] input = new long[] { Int32.MinValue };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -468,14 +457,13 @@ namespace OrcSharp
             long[] input = new long[] { Int32.MaxValue };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -503,14 +491,13 @@ namespace OrcSharp
             long[] input = new long[] { Int64.MinValue };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -538,14 +525,13 @@ namespace OrcSharp
             long[] input = new long[] { Int64.MaxValue };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -578,14 +564,13 @@ namespace OrcSharp
             }
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -618,13 +603,13 @@ namespace OrcSharp
             }
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -666,14 +651,13 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -715,14 +699,13 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -764,14 +747,13 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -804,14 +786,13 @@ namespace OrcSharp
             };
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -845,14 +826,13 @@ namespace OrcSharp
             input[0] = 20000L;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -886,14 +866,13 @@ namespace OrcSharp
             input[1] = 20000L;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -927,13 +906,12 @@ namespace OrcSharp
             input[255] = 20000L;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -967,13 +945,12 @@ namespace OrcSharp
             input[256] = 20000L;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -1007,13 +984,12 @@ namespace OrcSharp
             input[510] = 20000L;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -1047,13 +1023,12 @@ namespace OrcSharp
             input[511] = 20000L;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -1087,13 +1062,12 @@ namespace OrcSharp
             input[511] = Int64.MaxValue;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -1129,13 +1103,12 @@ namespace OrcSharp
             input[511] = Int64.MaxValue;
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -1183,13 +1156,12 @@ namespace OrcSharp
             input.Add(33333L);
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -1241,13 +1213,12 @@ namespace OrcSharp
             input.Add(Int64.MaxValue);
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);
@@ -1265,7 +1236,6 @@ namespace OrcSharp
             }
         }
 
-#if TIMESTAMP
         [Theory]
         [InlineData(OrcFile.EncodingStrategy.COMPRESSION)]
         [InlineData(OrcFile.EncodingStrategy.SPEED)]
@@ -1274,48 +1244,47 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(TSRow));
 
             List<Timestamp> tslist = new List<Timestamp>();
-            tslist.add(Timestamp.valueOf("9999-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2003-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("1999-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("1995-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2002-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2010-03-02 00:00:00"));
-            tslist.add(Timestamp.valueOf("2005-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2006-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2003-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("1996-08-02 00:00:00"));
-            tslist.add(Timestamp.valueOf("1998-11-02 00:00:00"));
-            tslist.add(Timestamp.valueOf("2008-10-02 00:00:00"));
-            tslist.add(Timestamp.valueOf("1993-08-02 00:00:00"));
-            tslist.add(Timestamp.valueOf("2008-01-02 00:00:00"));
-            tslist.add(Timestamp.valueOf("2007-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2004-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2008-10-02 00:00:00"));
-            tslist.add(Timestamp.valueOf("2003-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2004-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2008-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2005-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("1994-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2006-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2004-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2001-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2000-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2000-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2002-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2006-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2011-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2002-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("2005-01-01 00:00:00"));
-            tslist.add(Timestamp.valueOf("1974-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("9999-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2003-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("1999-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("1995-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2002-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2010-03-02 00:00:00"));
+            tslist.Add(Timestamp.Parse("2005-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2006-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2003-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("1996-08-02 00:00:00"));
+            tslist.Add(Timestamp.Parse("1998-11-02 00:00:00"));
+            tslist.Add(Timestamp.Parse("2008-10-02 00:00:00"));
+            tslist.Add(Timestamp.Parse("1993-08-02 00:00:00"));
+            tslist.Add(Timestamp.Parse("2008-01-02 00:00:00"));
+            tslist.Add(Timestamp.Parse("2007-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2004-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2008-10-02 00:00:00"));
+            tslist.Add(Timestamp.Parse("2003-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2004-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2008-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2005-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("1994-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2006-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2004-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2001-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2000-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2000-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2002-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2006-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2011-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2002-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("2005-01-01 00:00:00"));
+            tslist.Add(Timestamp.Parse("1974-01-01 00:00:00"));
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (Timestamp ts in tslist)
                 {
                     writer.addRow(new TSRow(ts));
@@ -1331,10 +1300,9 @@ namespace OrcSharp
             {
                 object row = rows.next(null);
                 Assert.Equal(tslist[idx++].getNanos(),
-                      ((TimestampWritable)((OrcStruct)row).getFieldValue(0)).getNanos());
+                      ((StrongBox<Timestamp>)((OrcStruct)row).getFieldValue(0)).Value.getNanos());
             }
         }
-#endif
 
         [Theory]
         [InlineData(OrcFile.EncodingStrategy.COMPRESSION)]
@@ -1344,13 +1312,12 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(long));
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .encodingStrategy(encodingStrategy));
-
                 writer.addRow(-7486502418706614742L);
                 writer.addRow(0L);
                 writer.addRow(1L);
@@ -1388,15 +1355,14 @@ namespace OrcSharp
             }
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .compress(CompressionKind.NONE)
+                .stripeSize(100000)
+                .bufferSize(10000)
+                .version(OrcFile.Version.V_0_11)
+                .encodingStrategy(encodingStrategy)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .compress(CompressionKind.NONE)
-                    .stripeSize(100000)
-                    .bufferSize(10000)
-                    .version(OrcFile.Version.V_0_11)
-                    .encodingStrategy(encodingStrategy));
-
                 foreach (long l in input)
                 {
                     writer.addRow(l);

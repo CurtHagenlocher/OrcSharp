@@ -55,6 +55,7 @@
     <Compile Include="External\BytesColumnVector.cs" />
     <Compile Include="External\CommandLine.cs" />
     <Compile Include="External\JsonWriter.cs" />
+    <Compile Include="Types\Date.cs" />
     <Compile Include="Types\Text.cs" />
     <Compile Include="Types\BytesWritable.cs" />
     <Compile Include="External\ColumnVector.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="StripeStatistics.cs" />
     <Compile Include="TimestampColumnStatistics.cs" />
     <Compile Include="TreeReaderFactory.cs" />
+    <Compile Include="Types\Timestamp.cs" />
     <Compile Include="Writer.cs" />
     <Compile Include="WriterImpl.cs" />
   </ItemGroup>

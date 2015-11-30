@@ -12,6 +12,7 @@ $RECYCLE.BIN/
 .vs/
 obj/
 Debug/
+*.suo
 
 # Windows Installer files
 *.cab

@@ -1719,7 +1719,7 @@ namespace OrcSharp
                 base.write(obj);
                 if (obj != null)
                 {
-                    DateTime val = ((DateObjectInspector)inspector).get(obj);
+                    DateTime val = ((DateObjectInspector)inspector).get(obj).AsDateTime;
                     indexStatistics.updateDate(val);
                     writer.write(val.getDays());
                     if (createBloomFilter)

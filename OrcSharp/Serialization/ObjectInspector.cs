@@ -375,7 +375,7 @@ namespace OrcSharp.Serialization
 
         internal virtual string get(object obj)
         {
-            return (string)obj;
+            return getPrimitiveJavaObject(obj);
         }
 
         internal virtual string getPrimitiveJavaObject(object obj)
@@ -517,13 +517,13 @@ namespace OrcSharp.Serialization
         {
         }
 
-        internal DateTime get(object obj)
+        internal Date get(object obj)
         {
             if (obj is IStrongBox)
             {
                 obj = ((IStrongBox)obj).Value;
             }
-            return (DateTime)obj;
+            return (Date)obj;
         }
     }
 
@@ -536,12 +536,24 @@ namespace OrcSharp.Serialization
 
         internal DateTime get(object obj)
         {
-            return (DateTime)obj;
+            if (obj is DateTime)
+            {
+                return (DateTime)obj;
+            }
+            return ((Timestamp)obj).AsDateTime;
         }
 
-        internal DateTime getPrimitiveJavaObject(object obj)
+        internal Timestamp getPrimitiveJavaObject(object obj)
         {
-            return (DateTime)obj;
+            if (obj is IStrongBox)
+            {
+                obj = ((IStrongBox)obj).Value;
+            }
+            if (obj is Timestamp)
+            {
+                return (Timestamp)obj;
+            }
+            return new Timestamp((DateTime)obj);
         }
     }
 
@@ -918,6 +930,14 @@ namespace OrcSharp.Serialization
                     throw new NotSupportedException();
             }
 
+            if (type == typeof(Date))
+            {
+                return new DateObjectInspector();
+            }
+            if (type == typeof(Timestamp))
+            {
+                return new TimestampObjectInspector();
+            }
             if (type == typeof(Text))
             {
                 return new TextObjectInspector();
