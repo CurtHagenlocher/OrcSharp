@@ -38,11 +38,11 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(string));
 
             using (Stream file = File.OpenWrite(testFilePath))
-            {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
+                    .bufferSize(10000)))
+            {
                 for (int i = 0; i < 20000; i++)
                 {
                     writer.addRow(i.ToString());
@@ -80,11 +80,11 @@ namespace OrcSharp
             int[] input = new int[20000];
 
             using (Stream file = File.OpenWrite(testFilePath))
-            {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
+                    .bufferSize(10000)))
+            {
                 Random rand = new Random(123);
                 for (int i = 0; i < 20000; i++)
                 {
@@ -128,11 +128,11 @@ namespace OrcSharp
 
             // conf.setBoolean(ConfVars.HIVE_ORC_ROW_INDEX_STRIDE_DICTIONARY_CHECK.varname, false);
             using (Stream file = File.OpenWrite(testFilePath))
-            {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
+                    .bufferSize(10000)))
+            {
                 for (int i = 0; i < 20000; i++)
                 {
                     writer.addRow(i.ToString());
@@ -171,11 +171,11 @@ namespace OrcSharp
 
             // conf.setBoolean(ConfVars.HIVE_ORC_ROW_INDEX_STRIDE_DICTIONARY_CHECK.varname, false);
             using (Stream file = File.OpenWrite(testFilePath))
-            {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
+                    .bufferSize(10000)))
+            {
                 Random rand = new Random(123);
                 for (int i = 0; i < 20000; i++)
                 {
@@ -218,12 +218,12 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(string));
 
             using (Stream file = File.OpenWrite(testFilePath))
-            {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .compress(CompressionKind.NONE)
                     .version(OrcFile.Version.V_0_11)
-                    .bufferSize(10000));
+                    .bufferSize(10000)))
+            {
                 for (int i = 0; i < 20000; i++)
                 {
                     writer.addRow(i.ToString());

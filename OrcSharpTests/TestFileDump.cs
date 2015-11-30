@@ -128,14 +128,16 @@ namespace OrcSharp
                 options.compress(CompressionKind.ZLIB);
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
-                Writer writer = OrcFile.createWriter(testFilePath, file, options);
-                Random r1 = new Random(1);
-                for (int i = 0; i < 21000; ++i)
+                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
                 {
-                    writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
-                        TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
+                    Random r1 = new Random(1);
+                    for (int i = 0; i < 21000; ++i)
+                    {
+                        writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
+                            TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
+                    }
+                    writer.close();
                 }
-                writer.close();
             }
 
             string outputFilename = "orc-file-dump.out";
@@ -158,55 +160,57 @@ namespace OrcSharp
                 options.compress(CompressionKind.NONE);
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
-                Writer writer = OrcFile.createWriter(testFilePath, file, options);
-                Dictionary<string, string> m = new Dictionary<string, string>(2);
-                m.Add("k1", "v1");
-                writer.addRow(new AllTypesRecord(
-                    true,
-                    (byte)10,
-                    (short)100,
-                    1000,
-                    10000L,
-                    4.0f,
-                    20.0,
-                    HiveDecimal.Parse("4.2222"),
+                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
+                {
+                    Dictionary<string, string> m = new Dictionary<string, string>(2);
+                    m.Add("k1", "v1");
+                    writer.addRow(new AllTypesRecord(
+                        true,
+                        (byte)10,
+                        (short)100,
+                        1000,
+                        10000L,
+                        4.0f,
+                        20.0,
+                        HiveDecimal.Parse("4.2222"),
 #if false
-                new Timestamp(1416967764000L),
-                new Date(1416967764000L),
+                        new Timestamp(1416967764000L),
+                        new Date(1416967764000L),
 #endif
-                "string",
+                        "string",
 #if false
-                new HiveChar("hello", 5),
-                new HiveVarchar("hello", 10),
+                        new HiveChar("hello", 5),
+                        new HiveVarchar("hello", 10),
 #endif
-                m,
-                    new List<int> { 100, 200 },
-                    new AllTypesRecord.Struct(10, "foo")));
-                m.Clear();
-                m.Add("k3", "v3");
-                writer.addRow(new AllTypesRecord(
-                    false,
-                    (byte)20,
-                    (short)200,
-                    2000,
-                    20000L,
-                    8.0f,
-                    40.0,
-                    HiveDecimal.Parse("2.2222"),
+                        m,
+                        new List<int> { 100, 200 },
+                        new AllTypesRecord.Struct(10, "foo")));
+                    m.Clear();
+                    m.Add("k3", "v3");
+                    writer.addRow(new AllTypesRecord(
+                        false,
+                        (byte)20,
+                        (short)200,
+                        2000,
+                        20000L,
+                        8.0f,
+                        40.0,
+                        HiveDecimal.Parse("2.2222"),
 #if false
-                new Timestamp(1416967364000L),
-                new Date(1411967764000L),
+                        new Timestamp(1416967364000L),
+                        new Date(1411967764000L),
 #endif
-                "abcd",
+                        "abcd",
 #if false
-                new HiveChar("world", 5),
-                new HiveVarchar("world", 10),
+                        new HiveChar("world", 5),
+                        new HiveVarchar("world", 10),
 #endif
-                m,
-                    new List<int> { 200, 300 },
-                    new AllTypesRecord.Struct(20, "bar")));
+                        m,
+                        new List<int> { 200, 300 },
+                        new AllTypesRecord.Struct(20, "bar")));
 
-                writer.close();
+                    writer.close();
+                }
             }
 
             string[] lines;
@@ -241,23 +245,25 @@ namespace OrcSharp
                 options.compress(CompressionKind.ZLIB);
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
-                Writer writer = OrcFile.createWriter(testFilePath, file, options);
-                Random r1 = new Random(1);
-                int nextInt = 0;
-                for (int i = 0; i < 21000; ++i)
+                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
                 {
-                    // Write out the same string twice, this guarantees the fraction of rows with
-                    // distinct strings is 0.5
-                    if (i % 2 == 0)
+                    Random r1 = new Random(1);
+                    int nextInt = 0;
+                    for (int i = 0; i < 21000; ++i)
                     {
-                        nextInt = r1.Next(TestHelpers.words.Length);
-                        // Append the value of i to the word, this guarantees when an index or word is repeated
-                        // the actual string is unique.
-                        TestHelpers.words[nextInt] += "-" + i;
+                        // Write out the same string twice, this guarantees the fraction of rows with
+                        // distinct strings is 0.5
+                        if (i % 2 == 0)
+                        {
+                            nextInt = r1.Next(TestHelpers.words.Length);
+                            // Append the value of i to the word, this guarantees when an index or word is repeated
+                            // the actual string is unique.
+                            TestHelpers.words[nextInt] += "-" + i;
+                        }
+                        writer.addRow(new MyRecord(r1.Next(), r1.NextLong(), TestHelpers.words[nextInt]));
                     }
-                    writer.addRow(new MyRecord(r1.Next(), r1.NextLong(), TestHelpers.words[nextInt]));
+                    writer.close();
                 }
-                writer.close();
             }
 
             string outputFilename = "orc-file-dump-dictionary-threshold.out";
@@ -282,14 +288,16 @@ namespace OrcSharp
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
                 options.bloomFilterColumns("S");
-                Writer writer = OrcFile.createWriter(testFilePath, file, options);
-                Random r1 = new Random(1);
-                for (int i = 0; i < 21000; ++i)
+                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
                 {
-                    writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
-                        TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
+                    Random r1 = new Random(1);
+                    for (int i = 0; i < 21000; ++i)
+                    {
+                        writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
+                            TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
+                    }
+                    writer.close();
                 }
-                writer.close();
             }
 
             string outputFilename = "orc-file-dump-bloomfilter.out";
@@ -315,14 +323,16 @@ namespace OrcSharp
                 options.rowIndexStride(1000);
                 options.bloomFilterColumns("l");
                 options.bloomFilterFpp(0.01);
-                Writer writer = OrcFile.createWriter(testFilePath, file, options);
-                Random r1 = new Random(1);
-                for (int i = 0; i < 21000; ++i)
+                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
                 {
-                    writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
-                        TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
+                    Random r1 = new Random(1);
+                    for (int i = 0; i < 21000; ++i)
+                    {
+                        writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
+                            TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
+                    }
+                    writer.close();
                 }
-                writer.close();
             }
 
             string outputFilename = "orc-file-dump-bloomfilter2.out";

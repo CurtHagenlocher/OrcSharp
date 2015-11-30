@@ -1086,8 +1086,7 @@ namespace OrcSharp
                     .compress(CompressionKind.NONE)
                     .bufferSize(100)))
             {
-                writer.addUserMetadata("my.meta", byteBuf(1, 2, 3, 4, 5, 6, 7, -1, -2, 127,
-                                                          -128));
+                writer.addUserMetadata("my.meta", byteBuf(1, 2, 3, 4, 5, 6, 7, -1, -2, 127, -128));
                 writer.addUserMetadata("clobber", byteBuf(1, 2, 3));
                 writer.addUserMetadata("clobber", byteBuf(4, 3, 2, 1));
                 Random random = new Random(0);
@@ -1101,8 +1100,7 @@ namespace OrcSharp
                 writer.close();
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
             Assert.Equal(byteBuf(5, 7, 11, 13, 17, 19), reader.getMetadataValue("clobber"));
             Assert.Equal(byteBuf(1, 2, 3, 4, 5, 6, 7, -1, -2, 127, -128),
                 reader.getMetadataValue("my.meta"));
@@ -1989,7 +1987,7 @@ namespace OrcSharp
             RecordReader rows = reader.rowsOptions(new RecordReaderOptions()
                 .range(0L, Int64.MaxValue)
                 .include(new bool[] { true, true, true })
-                .searchArgument(sarg, new String[] { null, "int1", "string1" }));
+                .searchArgument(sarg, new string[] { null, "int1", "string1" }));
             Assert.Equal(1000L, rows.getRowNumber());
             OrcStruct row = null;
             for (int i = 1000; i < 2000; ++i)

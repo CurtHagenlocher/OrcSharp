@@ -38,6 +38,7 @@ namespace OrcSharp.External
         public ByteBuffer(byte[] sharedBuffer)
         {
             buffer = sharedBuffer;
+            _limit = sharedBuffer.Length;
         }
 
         public static ByteBuffer allocate(int capacity)
@@ -152,7 +153,6 @@ namespace OrcSharp.External
             ByteBuffer result = new ByteBuffer(buffer);
             result._offset = 0;
             result._position = 0;
-            result._limit = buffer.Length;
             return result;
         }
 
