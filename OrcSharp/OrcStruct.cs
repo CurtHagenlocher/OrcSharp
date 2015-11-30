@@ -476,7 +476,7 @@ namespace OrcSharp
                 return ((IList<object>)list).Count;
             }
 
-            public IList<object> getList(object list)
+            public override IList<object> getList(object list)
             {
                 return (IList<object>)list;
             }

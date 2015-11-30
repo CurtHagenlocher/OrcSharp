@@ -91,7 +91,7 @@ namespace OrcSharp.Serialization
             throw new NotImplementedException();
         }
 
-        internal IList<object> getList(object list)
+        public virtual IList<object> getList(object list)
         {
             return (IList<object>)list;
         }

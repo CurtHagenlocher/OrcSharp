@@ -129,9 +129,7 @@ namespace OrcSharp
 
             public string getText()
             {
-                string text;
-                tree.byteArray.setText(out text, start, end - start);
-                return text;
+                return tree.byteArray.getText(start, end - start);
             }
 
             public void writeBytes(Stream @out)
@@ -191,7 +189,7 @@ namespace OrcSharp
             keyOffsets.clear();
         }
 
-        public string getText(int originalPosition)
+        public byte[] getText(int originalPosition)
         {
             int offset = keyOffsets.get(originalPosition);
             int length;
@@ -203,9 +201,7 @@ namespace OrcSharp
             {
                 length = keyOffsets.get(originalPosition + 1) - offset;
             }
-            string result;
-            byteArray.setText(out result, offset, length);
-            return result;
+            return byteArray.getTextBytes(offset, length);
         }
 
         /**

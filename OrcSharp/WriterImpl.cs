@@ -1388,7 +1388,7 @@ namespace OrcSharp
                         }
                         else
                         {
-                            byte[] text = Encoding.UTF8.GetBytes(dictionary.getText(rows.get(i)));
+                            byte[] text = dictionary.getText(rows.get(i));
                             directStreamOutput.Write(text, 0, text.Length);
                             directLengthOutput.write(text.Length);
                         }

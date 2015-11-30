@@ -223,33 +223,41 @@ namespace OrcSharp
         }
 
         /**
-         * Set a text value from the bytes in this dynamic array.
-         * @param result the value to set
+         * Gets a text value from the bytes in this dynamic array.
          * @param offset the start of the bytes to copy
          * @param length the number of bytes to copy
          */
-        public void setText(out string result, int offset, int length)
+        public string getText(int offset, int length)
         {
-            int position = 0;
             int currentChunk = offset / chunkSize;
             int currentOffset = offset % chunkSize;
             int currentLength = Math.Min(length, chunkSize - currentOffset);
             if (currentLength == length)
             {
-                result = Encoding.UTF8.GetString(data[currentChunk], currentOffset, currentLength);
-                return;
+                return Encoding.UTF8.GetString(data[currentChunk], currentOffset, currentLength);
             }
-
-            byte[] buffer = new byte[length];
-            while (length < position)
+            else
             {
+                return Encoding.UTF8.GetString(getTextBytes(offset, length));
+            }
+        }
+
+        public byte[] getTextBytes(int offset, int length)
+        {
+            int position = 0;
+            int currentChunk = offset / chunkSize;
+            int currentOffset = offset % chunkSize;
+            byte[] buffer = new byte[length];
+            while (length > 0)
+            {
+                int currentLength = Math.Min(length, chunkSize - currentOffset);
                 Buffer.BlockCopy(data[currentChunk], currentOffset, buffer, position, currentLength);
                 position += currentLength;
+                length -= currentLength;
                 currentChunk++;
                 currentOffset = 0;
-                currentLength = Math.Min(length, chunkSize - currentOffset);
             }
-            result = Encoding.UTF8.GetString(buffer);
+            return buffer;
         }
 
         /**
@@ -296,14 +304,13 @@ namespace OrcSharp
             result.clear();
             int currentChunk = offset / chunkSize;
             int currentOffset = offset % chunkSize;
-            int currentLength = Math.Min(length, chunkSize - currentOffset);
             while (length > 0)
             {
+                int currentLength = Math.Min(length, chunkSize - currentOffset);
                 result.put(data[currentChunk], currentOffset, currentLength);
                 length -= currentLength;
-                currentChunk += 1;
+                currentChunk++;
                 currentOffset = 0;
-                currentLength = Math.Min(length, chunkSize - currentOffset);
             }
         }
 
@@ -318,19 +325,16 @@ namespace OrcSharp
             if (length > 0)
             {
                 int currentChunk = 0;
-                int currentOffset = 0;
-                int currentLength = Math.Min(length, chunkSize);
                 int destOffset = 0;
                 result = new byte[length];
                 int totalLength = length;
                 while (totalLength > 0)
                 {
-                    Array.Copy(data[currentChunk], currentOffset, result, destOffset, currentLength);
+                    int currentLength = Math.Min(totalLength, chunkSize);
+                    Array.Copy(data[currentChunk], 0, result, destOffset, currentLength);
                     destOffset += currentLength;
                     totalLength -= currentLength;
-                    currentChunk += 1;
-                    currentOffset = 0;
-                    currentLength = Math.Min(totalLength, chunkSize - currentOffset);
+                    currentChunk++;
                 }
             }
             return result;

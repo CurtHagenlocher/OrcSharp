@@ -1904,9 +1904,7 @@ namespace OrcSharp
                     // as it will default to empty
                     if (dictionaryBuffer != null)
                     {
-                        string tmp;
-                        dictionaryBuffer.setText(out tmp, offset, length);
-                        result.set(tmp);
+                        result.set(dictionaryBuffer.getText(offset, length));
                     }
                     else
                     {
