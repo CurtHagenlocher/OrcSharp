@@ -84,6 +84,8 @@
     <Compile Include="TestOrcSerDeStats.cs" />
     <Compile Include="TestOrcSplitElimination.cs" />
     <Compile Include="TestOrcStruct.cs" />
+    <Compile Include="TestOrcTimezone1.cs" />
+    <Compile Include="TestOrcTimezone2.cs" />
     <Compile Include="TestOrcWideTable.cs" />
     <Compile Include="TestRecordReaderImpl.cs" />
     <Compile Include="TestRunLengthByteReader.cs" />

@@ -15,128 +15,89 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace org.apache.hadoop.hive.ql.io.orc {
+namespace OrcSharp
+{
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using OrcSharp.Serialization;
+    using OrcSharp.Types;
+    using Xunit;
 
-import static junit.framework.Assert.assertEquals;
+    /**
+     *
+     */
+    public class TestOrcTimezone2 : WithLocalDirectory
+    {
+        const string testFileName = "TestOrcTimezone1.orc";
 
-import java.io.File;
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
-import java.util.TimeZone;
+        public TestOrcTimezone2()
+            : base(testFileName)
+        {
+        }
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.serde2.io.TimestampWritable;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+        [Fact]
+        public void testTimestampWriter()
+        {
+            string[] allTimeZones = TimeZoneInfo.GetSystemTimeZones().Select(tz => tz.Id).ToArray();
+            Random rand = new Random(123);
+            int len = allTimeZones.Length;
+            int n = 500;
+            for (int i = 0; i < n; i++)
+            {
+                int wIdx = rand.Next(len);
+                int rIdx = rand.Next(len);
+                testTimestampWriter(allTimeZones[wIdx], allTimeZones[rIdx]);
+            }
+        }
 
-import com.google.common.collect.Lists;
+        private void testTimestampWriter(string writerTimeZone, string readerTimeZone)
+        {
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(Timestamp));
+            List<string> ts = new List<string>();
 
-/**
- *
- */
-@RunWith(Parameterized.class)
-public class TestOrcTimezone2 {
-  Path workDir = new Path(System.getProperty("test.tmp.dir",
-      "target" + File.separator + "test" + File.separator + "tmp"));
-  Configuration conf;
-  FileSystem fs;
-  Path testFilePath;
-  String writerTimeZone;
-  String readerTimeZone;
-  static TimeZone defaultTimeZone = TimeZone.getDefault();
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)))
+            using (TestHelpers.SetTimeZoneInfo(writerTimeZone))
+            {
 
-  public TestOrcTimezone2(String writerTZ, String readerTZ) {
-    this.writerTimeZone = writerTZ;
-    this.readerTimeZone = readerTZ;
-  }
+                ts.Add("2003-01-01 01:00:00.000000222");
+                ts.Add("1999-01-01 02:00:00.999999999");
+                ts.Add("1995-01-02 03:00:00.688888888");
+                ts.Add("2002-01-01 04:00:00.1");
+                ts.Add("2010-03-02 05:00:00.000009001");
+                ts.Add("2005-01-01 06:00:00.000002229");
+                ts.Add("2006-01-01 07:00:00.900203003");
+                ts.Add("2003-01-01 08:00:00.800000007");
+                ts.Add("1996-08-02 09:00:00.723100809");
+                ts.Add("1998-11-02 10:00:00.857340643");
+                ts.Add("2008-10-02 11:00:00.0");
+                ts.Add("2037-01-01 00:00:00.000999");
+                foreach (string t in ts)
+                {
+                    writer.addRow(Timestamp.Parse(t));
+                }
+                writer.close();
+            }
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    String[] allTimeZones = TimeZone.getAvailableIDs();
-    Random rand = new Random(123);
-    int len = allTimeZones.length;
-    int n = 500;
-    Object[][] data = new Object[n][];
-    for (int i = 0; i < n; i++) {
-      int wIdx = rand.nextInt(len);
-      int rIdx = rand.nextInt(len);
-      data[i] = new Object[2];
-      data[i][0] = allTimeZones[wIdx];
-      data[i][1] = allTimeZones[rIdx];
+            using (TestHelpers.SetTimeZoneInfo(readerTimeZone))
+            {
+                Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+                RecordReader rows = reader.rows(null);
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next(null);
+                    Timestamp got = ((StrongBox<Timestamp>)row).Value;
+                    Assert.Equal(ts[idx++], got.ToString());
+                }
+                rows.close();
+            }
+        }
     }
-    return Arrays.asList(data);
-  }
-
-  @Rule
-  public TestName testCaseName = new TestName();
-
-  @Before
-  public void openFileSystem()  {
-    conf = new Configuration();
-    fs = FileSystem.getLocal(conf);
-    testFilePath = new Path(workDir, "TestOrcFile." +
-        testCaseName.getMethodName() + ".orc");
-    fs.delete(testFilePath, false);
-  }
-
-  @After
-  public void restoreTimeZone() {
-    TimeZone.setDefault(defaultTimeZone);
-  }
-
-  [Fact]
-  public void testTimestampWriter()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Timestamp.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-    }
-
-    TimeZone.setDefault(TimeZone.getTimeZone(writerTimeZone));
-    Writer writer = OrcFile.createWriter(testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).stripeSize(100000).bufferSize(10000));
-    Assert.Equal(writerTimeZone, TimeZone.getDefault().getID());
-    List<String> ts = Lists.newArrayList();
-    ts.add("2003-01-01 01:00:00.000000222");
-    ts.add("1999-01-01 02:00:00.999999999");
-    ts.add("1995-01-02 03:00:00.688888888");
-    ts.add("2002-01-01 04:00:00.1");
-    ts.add("2010-03-02 05:00:00.000009001");
-    ts.add("2005-01-01 06:00:00.000002229");
-    ts.add("2006-01-01 07:00:00.900203003");
-    ts.add("2003-01-01 08:00:00.800000007");
-    ts.add("1996-08-02 09:00:00.723100809");
-    ts.add("1998-11-02 10:00:00.857340643");
-    ts.add("2008-10-02 11:00:00.0");
-    ts.add("2037-01-01 00:00:00.000999");
-    for (String t : ts) {
-      writer.addRow(Timestamp.valueOf(t));
-    }
-    writer.close();
-
-    TimeZone.setDefault(TimeZone.getTimeZone(readerTimeZone));
-    Reader reader = OrcFile.createReader(testFilePath,
-        OrcFile.readerOptions(conf).filesystem(fs));
-    Assert.Equal(readerTimeZone, TimeZone.getDefault().getID());
-    RecordReader rows = reader.rows(null);
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Timestamp got = ((TimestampWritable) row).getTimestamp();
-      Assert.Equal(ts.get(idx++), got.toString());
-    }
-    rows.close();
-  }
 }

@@ -19,7 +19,9 @@
 namespace OrcSharp
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
     using Xunit;
 
     static class TestHelpers
@@ -82,6 +84,60 @@ namespace OrcSharp
             byte[] buffer = new byte[4];
             random.NextBytes(buffer);
             return BitConverter.ToSingle(buffer, 0);
+        }
+
+        public static IDisposable SetTimeZoneInfo(string timeZone)
+        {
+            return OverrideTimeZone.SetTimeZoneInfo(TimeZoneInfo.FindSystemTimeZoneById(timeZone));
+        }
+
+        class OverrideTimeZone : IDisposable
+        {
+            static Dictionary<int, TimeZoneInfo> timeZones = new Dictionary<int, TimeZoneInfo>();
+
+            private readonly int threadId;
+
+            OverrideTimeZone(int threadId)
+            {
+                this.threadId = threadId;
+            }
+
+            public static IDisposable SetTimeZoneInfo(TimeZoneInfo timeZone)
+            {
+                lock (timeZones)
+                {
+                    TreeReaderFactory.CreateTimeZone = GetTimeZoneInfo;
+                    timeZones[Thread.CurrentThread.ManagedThreadId] = timeZone;
+                    Thread.MemoryBarrier();
+                }
+                return new OverrideTimeZone(Thread.CurrentThread.ManagedThreadId);
+            }
+
+            static TimeZoneInfo GetTimeZoneInfo()
+            {
+                lock (timeZones)
+                {
+                    TimeZoneInfo result;
+                    if (!timeZones.TryGetValue(Thread.CurrentThread.ManagedThreadId, out result))
+                    {
+                        result = TimeZoneInfo.Local;
+                    }
+                    return result;
+                }
+            }
+
+            void IDisposable.Dispose()
+            {
+                lock (timeZones)
+                {
+                    timeZones.Remove(threadId);
+                    if (timeZones.Count == 0)
+                    {
+                        TreeReaderFactory.CreateTimeZone = null;
+                        Thread.MemoryBarrier();
+                    }
+                }
+            }
         }
     }
 }

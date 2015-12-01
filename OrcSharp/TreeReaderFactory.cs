@@ -32,6 +32,8 @@ namespace OrcSharp
      */
     public class TreeReaderFactory
     {
+        internal static Func<TimeZoneInfo> CreateTimeZone;
+
         public abstract class TreeReader
         {
             protected int columnId;
@@ -1033,10 +1035,10 @@ namespace OrcSharp
             {
                 this._skipCorrupt = skipCorrupt;
                 this.baseTimestampMap = new Dictionary<string, long>();
-                this.readerTimeZone = TimeZoneInfo.Local;
+                this.readerTimeZone = (CreateTimeZone != null) ? CreateTimeZone() : TimeZoneInfo.Local;
                 this.writerTimeZone = readerTimeZone;
                 this.hasSameTZRules = writerTimeZone.HasSameRules(readerTimeZone);
-                this.base_timestamp = getBaseTimestamp(readerTimeZone.StandardName);
+                this.base_timestamp = getBaseTimestamp(readerTimeZone.Id);
                 if (encoding != null)
                 {
                     checkEncoding(encoding);
@@ -1082,7 +1084,7 @@ namespace OrcSharp
                 // to make sure new readers read old files in the same way
                 if (string.IsNullOrEmpty(timeZoneId))
                 {
-                    timeZoneId = readerTimeZone.StandardName;
+                    timeZoneId = readerTimeZone.Id;
                 }
 
                 long epoch;

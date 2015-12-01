@@ -47,7 +47,7 @@ namespace OrcSharp
             return Path.Combine(Path.GetDirectoryName(location), "resources");
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             try
             {

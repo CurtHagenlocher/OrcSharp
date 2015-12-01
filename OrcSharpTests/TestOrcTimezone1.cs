@@ -15,153 +15,135 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace org.apache.hadoop.hive.ql.io.orc {
 
+namespace OrcSharp
+{
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using OrcSharp.Serialization;
+    using OrcSharp.Types;
+    using Xunit;
 
+    public class TestOrcTimezone1 : WithLocalDirectory
+    {
+        const string testFileName = "TestOrcTimezone1.orc";
 
+        public TestOrcTimezone1()
+            : base(testFileName)
+        {
+        }
 
-/**
- *
- */
-@RunWith(Parameterized.class)
-public class TestOrcTimezone1 {
-  Path workDir = new Path(System.getProperty("test.tmp.dir",
-      "target" + File.separator + "test" + File.separator + "tmp"));
-  Configuration conf;
-  FileSystem fs;
-  Path testFilePath;
-  String writerTimeZone;
-  String readerTimeZone;
-  static TimeZone defaultTimeZone = TimeZone.getDefault();
+        public static IEnumerable<object[]> TimeZoneData = new[]
+        {
+            /* Extreme timezones */
+            new object[] {"GMT-12:00", "GMT+14:00"},
+            /* No difference in DST */
+            new object[] {"America/Los_Angeles", "America/Los_Angeles"}, /* same timezone both with DST */
+            new object[] {"Europe/Berlin", "Europe/Berlin"}, /* same as above but europe */
+            new object[] {"America/Phoenix", "Asia/Kolkata"} /* Writer no DST, Reader no DST */,
+            new object[] {"Europe/Berlin", "America/Los_Angeles"} /* Writer DST, Reader DST */,
+            new object[] {"Europe/Berlin", "America/Chicago"} /* Writer DST, Reader DST */,
+            /* With DST difference */
+            new object[] {"Europe/Berlin", "UTC"},
+            new object[] {"UTC", "Europe/Berlin"} /* Writer no DST, Reader DST */,
+            new object[] {"America/Los_Angeles", "Asia/Kolkata"} /* Writer DST, Reader no DST */,
+            new object[] {"Europe/Berlin", "Asia/Kolkata"} /* Writer DST, Reader no DST */,
+            /* Timezone offsets for the reader has changed historically */
+            new object[] {"Asia/Saigon", "Pacific/Enderbury"},
+            new object[] {"UTC", "Asia/Jerusalem"},
 
-  public TestOrcTimezone1(String writerTZ, String readerTZ) {
-    this.writerTimeZone = writerTZ;
-    this.readerTimeZone = readerTZ;
-  }
+            // NOTE:
+            // "1995-01-01 03:00:00.688888888" this is not a valid time in Pacific/Enderbury timezone.
+            // On 1995-01-01 00:00:00 GMT offset moved from -11:00 hr to +13:00 which makes all values
+            // on 1995-01-01 invalid. Try this with joda time
+            // new MutableDateTime("1995-01-01", DateTimeZone.forTimeZone(readerTimeZone));
+        };
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    List<Object[]> result = Arrays.asList(new Object[][]{
-        /* Extreme timezones */
-        {"GMT-12:00", "GMT+14:00"},
-        /* No difference in DST */
-        {"America/Los_Angeles", "America/Los_Angeles"}, /* same timezone both with DST */
-        {"Europe/Berlin", "Europe/Berlin"}, /* same as above but europe */
-        {"America/Phoenix", "Asia/Kolkata"} /* Writer no DST, Reader no DST */,
-        {"Europe/Berlin", "America/Los_Angeles"} /* Writer DST, Reader DST */,
-        {"Europe/Berlin", "America/Chicago"} /* Writer DST, Reader DST */,
-        /* With DST difference */
-        {"Europe/Berlin", "UTC"},
-        {"UTC", "Europe/Berlin"} /* Writer no DST, Reader DST */,
-        {"America/Los_Angeles", "Asia/Kolkata"} /* Writer DST, Reader no DST */,
-        {"Europe/Berlin", "Asia/Kolkata"} /* Writer DST, Reader no DST */,
-        /* Timezone offsets for the reader has changed historically */
-        {"Asia/Saigon", "Pacific/Enderbury"},
-        {"UTC", "Asia/Jerusalem"},
+        public static IEnumerable<object[]> ReaderTimeZoneData = TimeZoneData.Select(o => (string)o[1]).Distinct().Select(s => new object[] { s });
 
-        // NOTE:
-        // "1995-01-01 03:00:00.688888888" this is not a valid time in Pacific/Enderbury timezone.
-        // On 1995-01-01 00:00:00 GMT offset moved from -11:00 hr to +13:00 which makes all values
-        // on 1995-01-01 invalid. Try this with joda time
-        // new MutableDateTime("1995-01-01", DateTimeZone.forTimeZone(readerTimeZone));
-    });
-    return result;
-  }
+        [Theory, MemberData("TimeZoneData")]
+        public void testTimestampWriter(string writerTimeZone, string readerTimeZone)
+        {
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(Timestamp));
+            List<string> ts = new List<string>();
 
-  @Rule
-  public TestName testCaseName = new TestName();
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)))
+            using (TestHelpers.SetTimeZoneInfo(writerTimeZone))
+            {
+                ts.Add("2003-01-01 01:00:00.000000222");
+                ts.Add("1996-08-02 09:00:00.723100809");
+                ts.Add("1999-01-01 02:00:00.999999999");
+                ts.Add("1995-01-02 03:00:00.688888888");
+                ts.Add("2002-01-01 04:00:00.1");
+                ts.Add("2010-03-02 05:00:00.000009001");
+                ts.Add("2005-01-01 06:00:00.000002229");
+                ts.Add("2006-01-01 07:00:00.900203003");
+                ts.Add("2003-01-01 08:00:00.800000007");
+                ts.Add("1998-11-02 10:00:00.857340643");
+                ts.Add("2008-10-02 11:00:00.0");
+                ts.Add("2037-01-01 00:00:00.000999");
+                ts.Add("2014-03-28 00:00:00.0");
+                foreach (string t in ts)
+                {
+                    writer.addRow(Timestamp.Parse(t));
+                }
+                writer.close();
+            }
 
-  @Before
-  public void openFileSystem()  {
-    conf = new Configuration();
-    fs = FileSystem.getLocal(conf);
-    testFilePath = new Path(workDir, "TestOrcFile." +
-        testCaseName.getMethodName() + ".orc");
-    fs.delete(testFilePath, false);
-  }
+            using (TestHelpers.SetTimeZoneInfo(readerTimeZone))
+            {
+                Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+                RecordReader rows = reader.rows(null);
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next(null);
+                    Timestamp got = ((StrongBox<Timestamp>)row).Value;
+                    Assert.Equal(ts[idx++], got.ToString());
+                }
+                rows.close();
+            }
+        }
 
-  @After
-  public void restoreTimeZone() {
-    TimeZone.setDefault(defaultTimeZone);
-  }
+        [Theory, MemberData("ReaderTimeZoneData")]
+        public void testReadTimestampFormat_0_11(string readerTimeZone)
+        {
+            string oldFilePath = Path.Combine(ResourcesDirectory, "orc-file-11-format.orc");
+            using (TestHelpers.SetTimeZoneInfo(readerTimeZone))
+            {
+                Reader reader = OrcFile.createReader(oldFilePath, OrcFile.readerOptions(conf));
 
-  [Fact]
-  public void testTimestampWriter()  {
-    ObjectInspector inspector;
-    synchronized (TestOrcFile.class) {
-      inspector = ObjectInspectorFactory.getReflectionObjectInspector(Timestamp.class,
-          ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                StructObjectInspector readerInspector = (StructObjectInspector)reader.getObjectInspector();
+                IList<StructField> fields = readerInspector.getAllStructFieldRefs();
+                TimestampObjectInspector tso = (TimestampObjectInspector)readerInspector
+                    .getStructFieldRef("ts").getFieldObjectInspector();
+
+                RecordReader rows = reader.rows();
+                object row = rows.next(null);
+                Assert.NotNull(row);
+                Assert.Equal(Timestamp.Parse("2000-03-12 15:00:00"),
+                    tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
+                        fields[12])));
+
+                // check the contents of second row
+                Assert.Equal(true, rows.hasNext());
+                rows.seekToRow(7499);
+                row = rows.next(null);
+                Assert.Equal(Timestamp.Parse("2000-03-12 15:00:01"),
+                    tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
+                        fields[12])));
+
+                // handle the close up
+                Assert.Equal(false, rows.hasNext());
+                rows.close();
+            }
+        }
     }
-
-    TimeZone.setDefault(TimeZone.getTimeZone(writerTimeZone));
-    Writer writer = OrcFile.createWriter(testFilePath,
-        OrcFile.writerOptions(conf).inspector(inspector).stripeSize(100000).bufferSize(10000));
-    Assert.Equal(writerTimeZone, TimeZone.getDefault().getID());
-    List<String> ts = Lists.newArrayList();
-    ts.add("2003-01-01 01:00:00.000000222");
-    ts.add("1996-08-02 09:00:00.723100809");
-    ts.add("1999-01-01 02:00:00.999999999");
-    ts.add("1995-01-02 03:00:00.688888888");
-    ts.add("2002-01-01 04:00:00.1");
-    ts.add("2010-03-02 05:00:00.000009001");
-    ts.add("2005-01-01 06:00:00.000002229");
-    ts.add("2006-01-01 07:00:00.900203003");
-    ts.add("2003-01-01 08:00:00.800000007");
-    ts.add("1998-11-02 10:00:00.857340643");
-    ts.add("2008-10-02 11:00:00.0");
-    ts.add("2037-01-01 00:00:00.000999");
-    ts.add("2014-03-28 00:00:00.0");
-    for (String t : ts) {
-      writer.addRow(Timestamp.valueOf(t));
-    }
-    writer.close();
-
-    TimeZone.setDefault(TimeZone.getTimeZone(readerTimeZone));
-    Reader reader = OrcFile.createReader(testFilePath,
-        OrcFile.readerOptions(conf).filesystem(fs));
-    Assert.Equal(readerTimeZone, TimeZone.getDefault().getID());
-    RecordReader rows = reader.rows(null);
-    int idx = 0;
-    while (rows.hasNext()) {
-      Object row = rows.next(null);
-      Timestamp got = ((TimestampWritable) row).getTimestamp();
-      Assert.Equal(ts.get(idx++), got.toString());
-    }
-    rows.close();
-  }
-
-  [Fact]
-  public void testReadTimestampFormat_0_11()  {
-    TimeZone.setDefault(TimeZone.getTimeZone(readerTimeZone));
-    Path oldFilePath =
-        new Path(HiveTestUtils.getFileFromClasspath("orc-file-11-format.orc"));
-    Reader reader = OrcFile.createReader(oldFilePath,
-        OrcFile.readerOptions(conf).filesystem(fs));
-
-    StructObjectInspector readerInspector = (StructObjectInspector) reader
-        .getObjectInspector();
-    List<? extends StructField> fields = readerInspector
-        .getAllStructFieldRefs();
-    TimestampObjectInspector tso = (TimestampObjectInspector) readerInspector
-        .getStructFieldRef("ts").getFieldObjectInspector();
-    
-    RecordReader rows = reader.rows();
-    Object row = rows.next(null);
-    assertNotNull(row);
-    Assert.Equal(Timestamp.valueOf("2000-03-12 15:00:00"),
-        tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
-            fields.get(12))));
-    
-    // check the contents of second row
-    Assert.Equal(true, rows.hasNext());
-    rows.seekToRow(7499);
-    row = rows.next(null);
-    Assert.Equal(Timestamp.valueOf("2000-03-12 15:00:01"),
-        tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
-            fields.get(12))));
-    
-    // handle the close up
-    Assert.Equal(false, rows.hasNext());
-    rows.close();
-  }
 }
