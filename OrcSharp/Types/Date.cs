@@ -55,6 +55,11 @@ namespace OrcSharp.Types
             get { return Epoch.getDate(days); }
         }
 
+        public int Days
+        {
+            get { return days; }
+        }
+
         public override string ToString()
         {
             return Epoch.getDate(days).ToString("yyyy-MM-dd");

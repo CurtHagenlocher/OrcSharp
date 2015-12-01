@@ -367,7 +367,6 @@ namespace OrcSharp
                 RecordReaderImpl.evaluatePredicateProto(createBooleanStats(10, 0), pred, null));
         }
 
-#if false
         [Fact]
         public void testPredEvalWithIntStats()
         {
@@ -389,12 +388,12 @@ namespace OrcSharp
 
             // Integer stats will not be converted date because of days/seconds/millis ambiguity
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DATE, "x", new DateWritable(15).get(), null);
+                PredicateLeaf.Type.DATE, "x", new Date(15), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createIntStats(10, 100), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DECIMAL, "x", new HiveDecimalWritable("15"), null);
+                PredicateLeaf.Type.DECIMAL, "x", HiveDecimal.Parse("15"), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createIntStats(10, 100), pred, null));
 
@@ -425,12 +424,12 @@ namespace OrcSharp
 
             // Double is not converted to date type because of days/seconds/millis ambiguity
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DATE, "x", new DateWritable(15).get(), null);
+                PredicateLeaf.Type.DATE, "x", new Date(15), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createDoubleStats(10.0, 100.0), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DECIMAL, "x", new HiveDecimalWritable("15"), null);
+                PredicateLeaf.Type.DECIMAL, "x", HiveDecimal.Parse("15"), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createDoubleStats(10.0, 100.0), pred, null));
 
@@ -465,12 +464,12 @@ namespace OrcSharp
 
             // IllegalArgumentException is thrown when converting String to Date, hence YES_NO
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DATE, "x", new DateWritable(100).get(), null);
+                PredicateLeaf.Type.DATE, "x", new Date(100), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createDateStats(10, 1000), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DECIMAL, "x", new HiveDecimalWritable("100"), null);
+                PredicateLeaf.Type.DECIMAL, "x", HiveDecimal.Parse("100"), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createStringStats("10", "1000"), pred, null));
 
@@ -526,18 +525,18 @@ namespace OrcSharp
                 RecordReaderImpl.evaluatePredicateProto(createDateStats(10, 100), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DATE, "x", new DateWritable(15).get(), null);
+                PredicateLeaf.Type.DATE, "x", new Date(15), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createDateStats(10, 100), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DATE, "x", new DateWritable(150).get(), null);
+                PredicateLeaf.Type.DATE, "x", new Date(150), null);
             Assert.Equal(TruthValue.NO,
                 RecordReaderImpl.evaluatePredicateProto(createDateStats(10, 100), pred, null));
 
             // Date to Decimal conversion is also not possible.
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DECIMAL, "x", new HiveDecimalWritable("15"), null);
+                PredicateLeaf.Type.DECIMAL, "x", HiveDecimal.Parse("15"), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createDateStats(10, 100), pred, null));
 
@@ -573,12 +572,12 @@ namespace OrcSharp
 
             // Decimal to Date not possible.
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DATE, "x", new DateWritable(15).get(), null);
+                PredicateLeaf.Type.DATE, "x", new Date(15), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createDecimalStats("10.0", "100.0"), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DECIMAL, "x", new HiveDecimalWritable("15"), null);
+                PredicateLeaf.Type.DECIMAL, "x", HiveDecimal.Parse("15"), null);
             Assert.Equal(TruthValue.YES_NO,
                 RecordReaderImpl.evaluatePredicateProto(createDecimalStats("10.0", "100.0"), pred, null));
 
@@ -619,7 +618,7 @@ namespace OrcSharp
                 RecordReaderImpl.evaluatePredicateProto(createTimestampStats(10, 100), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DATE, "x", new DateWritable(15).get(), null);
+                PredicateLeaf.Type.DATE, "x", new Date(15), null);
             Assert.Equal(TruthValue.NO,
                 RecordReaderImpl.evaluatePredicateProto(createTimestampStats(10, 100), pred, null));
             Assert.Equal(TruthValue.YES_NO,
@@ -627,7 +626,7 @@ namespace OrcSharp
                     100 * 24L * 60L * 60L * 1000L), pred, null));
 
             pred = TestSearchArgumentImpl.createPredicateLeaf(PredicateLeaf.Operator.NULL_SAFE_EQUALS,
-                PredicateLeaf.Type.DECIMAL, "x", new HiveDecimalWritable("15"), null);
+                PredicateLeaf.Type.DECIMAL, "x", HiveDecimal.Parse("15"), null);
             Assert.Equal(TruthValue.NO,
                 RecordReaderImpl.evaluatePredicateProto(createTimestampStats(10, 100), pred, null));
             Assert.Equal(TruthValue.YES_NO,
@@ -640,7 +639,6 @@ namespace OrcSharp
             Assert.Equal(TruthValue.NO,
                 RecordReaderImpl.evaluatePredicateProto(createTimestampStats(10000, 100000), pred, null));
         }
-#endif
 
         [Fact]
         public void testEquals()
@@ -1486,22 +1484,21 @@ namespace OrcSharp
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
 
-#if false
         [Fact]
         public void testDateWritableNullSafeEqualsBloomFilter()
         {
             PredicateLeaf pred = TestSearchArgumentImpl.createPredicateLeaf(
                 PredicateLeaf.Operator.NULL_SAFE_EQUALS, PredicateLeaf.Type.DATE, "x",
-                new DateWritable(15).get(), null);
+                new Date(15), null);
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
             {
-                bf.addLong((new DateWritable(i)).getDays());
+                bf.addLong((new Date(i)).Days);
             }
             ColumnStatistics cs = ColumnStatisticsImpl.deserialize(createDateStats(10, 100));
             Assert.Equal(TruthValue.NO, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new DateWritable(15)).getDays());
+            bf.addLong((new Date(15)).Days);
             Assert.Equal(TruthValue.YES_NO, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
 
@@ -1510,16 +1507,16 @@ namespace OrcSharp
         {
             PredicateLeaf pred = TestSearchArgumentImpl.createPredicateLeaf(
                 PredicateLeaf.Operator.EQUALS, PredicateLeaf.Type.DATE, "x",
-                new DateWritable(15).get(), null);
+                new Date(15), null);
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
             {
-                bf.addLong((new DateWritable(i)).getDays());
+                bf.addLong((new Date(i)).Days);
             }
             ColumnStatistics cs = ColumnStatisticsImpl.deserialize(createDateStats(10, 100));
             Assert.Equal(TruthValue.NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new DateWritable(15)).getDays());
+            bf.addLong((new Date(15)).Days);
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
 
@@ -1527,23 +1524,23 @@ namespace OrcSharp
         public void testDateWritableInBloomFilter()
         {
             List<object> args = new List<object>();
-            args.Add(new DateWritable(15).get());
-            args.Add(new DateWritable(19).get());
+            args.Add(new Date(15));
+            args.Add(new Date(19));
             PredicateLeaf pred = TestSearchArgumentImpl.createPredicateLeaf
                 (PredicateLeaf.Operator.IN, PredicateLeaf.Type.DATE,
                     "x", null, args);
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
             {
-                bf.addLong((new DateWritable(i)).getDays());
+                bf.addLong((new Date(i)).Days);
             }
             ColumnStatistics cs = ColumnStatisticsImpl.deserialize(createDateStats(10, 100));
             Assert.Equal(TruthValue.NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new DateWritable(19)).getDays());
+            bf.addLong((new Date(19)).Days);
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new DateWritable(15)).getDays());
+            bf.addLong((new Date(15)).Days);
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
 
@@ -1557,12 +1554,12 @@ namespace OrcSharp
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
             {
-                bf.addLong((new Timestamp(i)).getTime());
+                bf.addLong((new Timestamp(i)).Milliseconds);
             }
             ColumnStatistics cs = ColumnStatisticsImpl.deserialize(createTimestampStats(10, 100));
             Assert.Equal(TruthValue.NO, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new Timestamp(15)).getTime());
+            bf.addLong((new Timestamp(15)).Milliseconds);
             Assert.Equal(TruthValue.YES_NO, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
 
@@ -1574,12 +1571,12 @@ namespace OrcSharp
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
             {
-                bf.addLong((new Timestamp(i)).getTime());
+                bf.addLong((new Timestamp(i)).Milliseconds);
             }
             ColumnStatistics cs = ColumnStatisticsImpl.deserialize(createTimestampStats(10, 100));
             Assert.Equal(TruthValue.NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new Timestamp(15)).getTime());
+            bf.addLong((new Timestamp(15)).Milliseconds);
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
 
@@ -1595,15 +1592,15 @@ namespace OrcSharp
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
             {
-                bf.addLong((new Timestamp(i)).getTime());
+                bf.addLong((new Timestamp(i)).Milliseconds);
             }
             ColumnStatistics cs = ColumnStatisticsImpl.deserialize(createTimestampStats(10, 100));
             Assert.Equal(TruthValue.NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new Timestamp(19)).getTime());
+            bf.addLong((new Timestamp(19)).Milliseconds);
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
 
-            bf.addLong((new Timestamp(15)).getTime());
+            bf.addLong((new Timestamp(15)).Milliseconds);
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
 
@@ -1612,7 +1609,7 @@ namespace OrcSharp
         {
             PredicateLeaf pred = TestSearchArgumentImpl.createPredicateLeaf(
                 PredicateLeaf.Operator.NULL_SAFE_EQUALS, PredicateLeaf.Type.DECIMAL, "x",
-                new HiveDecimalWritable("15"),
+                HiveDecimal.Parse("15"),
                 null);
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
@@ -1631,7 +1628,7 @@ namespace OrcSharp
         {
             PredicateLeaf pred = TestSearchArgumentImpl.createPredicateLeaf(
                 PredicateLeaf.Operator.EQUALS, PredicateLeaf.Type.DECIMAL, "x",
-                new HiveDecimalWritable("15"),
+                HiveDecimal.Parse("15"),
                 null);
             BloomFilter bf = new BloomFilter(10000);
             for (int i = 20; i < 1000; i++)
@@ -1649,8 +1646,8 @@ namespace OrcSharp
         public void testDecimalInBloomFilter()
         {
             List<object> args = new List<object>();
-            args.Add(new HiveDecimalWritable("15"));
-            args.Add(new HiveDecimalWritable("19"));
+            args.Add(HiveDecimal.Parse("15"));
+            args.Add(HiveDecimal.Parse("19"));
             PredicateLeaf pred = TestSearchArgumentImpl.createPredicateLeaf
                 (PredicateLeaf.Operator.IN, PredicateLeaf.Type.DECIMAL,
                     "x", null, args);
@@ -1673,9 +1670,9 @@ namespace OrcSharp
         public void testNullsInBloomFilter()
         {
             List<object> args = new List<object>();
-            args.Add(new HiveDecimalWritable("15"));
+            args.Add(HiveDecimal.Parse("15"));
             args.Add(null);
-            args.Add(new HiveDecimalWritable("19"));
+            args.Add(HiveDecimal.Parse("19"));
             PredicateLeaf pred = TestSearchArgumentImpl.createPredicateLeaf
                 (PredicateLeaf.Operator.IN, PredicateLeaf.Type.DECIMAL,
                     "x", null, args);
@@ -1698,6 +1695,5 @@ namespace OrcSharp
             bf.addString(HiveDecimal.create(15).ToString());
             Assert.Equal(TruthValue.YES_NO_NULL, RecordReaderImpl.evaluatePredicate(cs, pred, bf));
         }
-#endif
     }
 }

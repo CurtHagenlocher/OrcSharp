@@ -19,7 +19,6 @@
 namespace OrcSharp.Types
 {
     using System;
-    using System.Threading;
     using OrcSharp.External;
 
     public struct Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>
