@@ -143,7 +143,7 @@ namespace OrcSharp
         {
             foreach (string path in files)
             {
-                System.Console.WriteLine("Structure for " + path);
+                System.Console.WriteLine("Structure for " + Path.GetFileName(path));
                 Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
                 System.Console.WriteLine("File Version: " + reader.getFileVersion().ToString() +
                     " with " + reader.getWriterVersion());

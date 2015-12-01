@@ -163,7 +163,7 @@ namespace OrcSharp
         [Fact]
         public void testReadFormat_0_11()
         {
-            string oldFilePath = Path.Combine(ResourcesDirectory, "orc-file-11-format.orc");
+            string oldFilePath = Path.Combine(TestHelpers.ResourcesDirectory, "orc-file-11-format.orc");
             Reader reader = OrcFile.createReader(oldFilePath, OrcFile.readerOptions(conf));
 
             int stripeCount = 0;

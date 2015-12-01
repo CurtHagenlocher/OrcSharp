@@ -115,7 +115,7 @@ namespace OrcSharp
         [Theory, MemberData("ReaderTimeZoneData")]
         public void testReadTimestampFormat_0_11(string readerTimeZone)
         {
-            string oldFilePath = Path.Combine(ResourcesDirectory, "orc-file-11-format.orc");
+            string oldFilePath = Path.Combine(TestHelpers.ResourcesDirectory, "orc-file-11-format.orc");
             using (TestHelpers.SetTimeZoneInfo(readerTimeZone))
             {
                 Reader reader = OrcFile.createReader(oldFilePath, OrcFile.readerOptions(conf));

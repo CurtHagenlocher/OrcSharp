@@ -19,15 +19,12 @@
 namespace OrcSharp
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using OrcSharp.External;
-    using System.Reflection;
-    using System.Diagnostics;
 
     public class WithLocalDirectory : IDisposable
     {
-        public static readonly string ResourcesDirectory = GetResourcesDirectory();
-
         protected readonly string workDir;
         protected readonly Configuration conf;
         protected readonly string testFilePath;
@@ -38,13 +35,6 @@ namespace OrcSharp
             workDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(workDir);
             testFilePath = Path.Combine(workDir, filename);
-        }
-
-        static string GetResourcesDirectory()
-        {
-            string codebase = Assembly.GetExecutingAssembly().EscapedCodeBase;
-            string location = (new Uri(codebase)).LocalPath;
-            return Path.Combine(Path.GetDirectoryName(location), "resources");
         }
 
         public virtual void Dispose()

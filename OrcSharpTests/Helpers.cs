@@ -21,11 +21,14 @@ namespace OrcSharp
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Reflection;
     using System.Threading;
     using Xunit;
 
     static class TestHelpers
     {
+        public static readonly string ResourcesDirectory = GetResourcesDirectory();
+
         public static readonly string[] words = new string[]
             {
                 "It", "was", "the", "best", "of", "times,",
@@ -43,7 +46,7 @@ namespace OrcSharp
 
         public static void CompareFilesByLine(string expected, string actual)
         {
-            using (StreamReader eStream = File.OpenText(expected))
+            using (StreamReader eStream = File.OpenText(Path.Combine(TestHelpers.ResourcesDirectory, expected)))
             using (StreamReader aStream = File.OpenText(actual))
             {
                 string expectedLine = eStream.ReadLine().Trim();
@@ -84,6 +87,13 @@ namespace OrcSharp
             byte[] buffer = new byte[4];
             random.NextBytes(buffer);
             return BitConverter.ToSingle(buffer, 0);
+        }
+
+        static string GetResourcesDirectory()
+        {
+            string codebase = Assembly.GetExecutingAssembly().EscapedCodeBase;
+            string location = (new Uri(codebase)).LocalPath;
+            return Path.Combine(Path.GetDirectoryName(location), "resources");
         }
 
         public static IDisposable SetTimeZoneInfo(string timeZone)

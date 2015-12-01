@@ -568,7 +568,7 @@ namespace OrcSharp
         [Fact]
         public void testSerdeStatsOldFormat()
         {
-            string testFile = Path.Combine(ResourcesDirectory, "orc-file-11-format.orc");
+            string testFile = Path.Combine(TestHelpers.ResourcesDirectory, "orc-file-11-format.orc");
             Reader reader = OrcFile.createReader(testFile, OrcFile.readerOptions(conf));
 
             int stripeCount = 0;
