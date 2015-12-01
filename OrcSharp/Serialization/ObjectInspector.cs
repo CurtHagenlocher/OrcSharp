@@ -508,13 +508,13 @@ namespace OrcSharp.Serialization
         {
         }
 
-        internal DateTime get(object obj)
+        internal Timestamp get(object obj)
         {
-            if (obj is DateTime)
+            if (obj is Timestamp)
             {
-                return (DateTime)obj;
+                return (Timestamp)obj;
             }
-            return ((Timestamp)obj).AsDateTime;
+            return new Timestamp((DateTime)obj);
         }
 
         internal Timestamp getPrimitiveJavaObject(object obj)

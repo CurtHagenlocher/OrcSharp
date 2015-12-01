@@ -942,7 +942,7 @@ namespace OrcSharp
                 maximum = null;
             }
 
-            protected internal override void updateTimestamp(DateTime value)
+            protected internal override void updateTimestamp(Timestamp value)
             {
                 if (minimum == null)
                 {
@@ -961,7 +961,7 @@ namespace OrcSharp
 
             protected internal override void updateTimestamp(long milliseconds)
             {
-                updateTimestamp(GetTimestampValue(milliseconds));
+                updateTimestamp(new Timestamp(milliseconds));
             }
 
             public override void merge(ColumnStatisticsImpl other)
@@ -1003,19 +1003,19 @@ namespace OrcSharp
                     .CreateBuilder();
                 if (getNumberOfValues() != 0 && minimum != null)
                 {
-                    timestampStats.SetMinimum((long)Math.Floor(GetMilliseconds(minimum.Value)));
-                    timestampStats.SetMaximum((long)Math.Ceiling(GetMilliseconds(maximum.Value)));
+                    timestampStats.SetMinimum(minimum.Value.Milliseconds);
+                    timestampStats.SetMaximum(maximum.Value.Milliseconds);
                 }
                 result.SetTimestampStatistics(timestampStats);
                 return result;
             }
 
-            public DateTime? getMinimum()
+            public Timestamp? getMinimum()
             {
                 return minimum;
             }
 
-            public DateTime? getMaximum()
+            public Timestamp? getMaximum()
             {
                 return maximum;
             }
@@ -1118,7 +1118,7 @@ namespace OrcSharp
             throw new NotSupportedException("Can't update date");
         }
 
-        protected internal virtual void updateTimestamp(DateTime value)
+        protected internal virtual void updateTimestamp(Timestamp value)
         {
             throw new NotSupportedException("Can't update timestamp");
         }

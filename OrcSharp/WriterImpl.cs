@@ -1596,13 +1596,13 @@ namespace OrcSharp
                 base.write(obj);
                 if (obj != null)
                 {
-                    DateTime val = ((TimestampObjectInspector)inspector).get(obj);
+                    Timestamp val = ((TimestampObjectInspector)inspector).get(obj);
                     indexStatistics.updateTimestamp(val);
-                    seconds.write((val.getTimestamp() / MILLIS_PER_SECOND) - base_timestamp);
+                    seconds.write((val.Milliseconds / MILLIS_PER_SECOND) - base_timestamp);
                     nanos.write(formatNanos(val.getNanos()));
                     if (createBloomFilter)
                     {
-                        bloomFilter.addLong(val.getTimestamp());
+                        bloomFilter.addLong(val.Milliseconds);
                     }
                 }
             }

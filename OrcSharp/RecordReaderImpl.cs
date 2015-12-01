@@ -790,6 +790,10 @@ namespace OrcSharp
                     {
                         return ((HiveDecimal)obj).longValue();
                     }
+                    else if (obj is Timestamp)
+                    {
+                        return ((Timestamp)obj).Milliseconds;
+                    }
                     break;
                 case PredicateLeaf.Type.STRING:
                     if (obj != null)

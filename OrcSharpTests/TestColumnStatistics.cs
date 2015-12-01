@@ -146,14 +146,14 @@ namespace OrcSharp
             stats2.updateTimestamp(1000);
             stats1.merge(stats2);
             TimestampColumnStatistics typed = (TimestampColumnStatistics)stats1;
-            Assert.Equal(Epoch.Start.AddMilliseconds(1), typed.getMinimum());
-            Assert.Equal(Epoch.Start.AddMilliseconds(1000), typed.getMaximum());
+            Assert.Equal(new Timestamp(1), typed.getMinimum());
+            Assert.Equal(new Timestamp(1000), typed.getMaximum());
             stats1.reset();
-            stats1.updateTimestamp(Epoch.Start.AddMilliseconds(-10));
-            stats1.updateTimestamp(Epoch.Start.AddMilliseconds(10000));
+            stats1.updateTimestamp(new Timestamp(-10));
+            stats1.updateTimestamp(new Timestamp(10000));
             stats1.merge(stats2);
-            Assert.Equal(Epoch.Start.AddMilliseconds(-10), typed.getMinimum());
-            Assert.Equal(Epoch.Start.AddMilliseconds(10000), typed.getMaximum());
+            Assert.Equal(new Timestamp(-10), typed.getMinimum());
+            Assert.Equal(new Timestamp(10000), typed.getMaximum());
         }
 
         [Fact]
