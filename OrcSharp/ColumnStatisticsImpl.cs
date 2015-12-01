@@ -669,6 +669,7 @@ namespace OrcSharp
 
             public override void reset()
             {
+                base.reset();
                 minimum = null;
                 maximum = null;
                 sum = HiveDecimal.Zero;

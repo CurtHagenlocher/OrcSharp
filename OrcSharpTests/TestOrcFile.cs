@@ -2028,7 +2028,8 @@ namespace OrcSharp
         {
             byte[] tmp = new byte[(int)Math.Ceiling(bits / 8.0)];
             rand.NextBytes(tmp);
-            return new BigInteger(tmp);
+            BigInteger result = new BigInteger(tmp);
+            return result < 0 ? -result : result;
         }
     }
 }
