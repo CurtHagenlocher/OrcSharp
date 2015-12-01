@@ -18,7 +18,7 @@
 
 namespace OrcSharp
 {
-    using System;
+    using OrcSharp.Types;
 
     /**
      * Statistics for DATE columns.
@@ -29,12 +29,12 @@ namespace OrcSharp
          * Get the minimum value for the column.
          * @return minimum value
          */
-        DateTime getMinimum();
+        Date? getMinimum();
 
         /**
          * Get the maximum value for the column.
          * @return maximum value
          */
-        DateTime getMaximum();
+        Date? getMaximum();
     }
 }

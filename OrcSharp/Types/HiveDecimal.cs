@@ -21,7 +21,7 @@ namespace OrcSharp.Types
     using System;
     using System.Numerics;
 
-    sealed public class HiveDecimal : IEquatable<HiveDecimal>
+    sealed public class HiveDecimal : IEquatable<HiveDecimal>, IComparable<HiveDecimal>, IComparable
     {
         public const int MAX_PRECISION = 38;
         public const int MAX_SCALE = 38;
@@ -162,6 +162,11 @@ namespace OrcSharp.Types
             HiveDecimal x = this;
             Normalize(ref x, ref other);
             return x._scale == other._scale && x.mantissa == other.mantissa;
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((HiveDecimal)obj);
         }
     }
 }

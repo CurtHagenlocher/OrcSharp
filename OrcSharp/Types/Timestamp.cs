@@ -21,7 +21,7 @@ namespace OrcSharp.Types
     using System;
     using OrcSharp.External;
 
-    public struct Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>
+    public struct Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>, IComparable
     {
         private readonly long milliseconds;
 
@@ -83,6 +83,21 @@ namespace OrcSharp.Types
         public int CompareTo(Timestamp other)
         {
             return milliseconds.CompareTo(other.milliseconds);
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((Timestamp)obj);
+        }
+
+        public static bool operator <(Timestamp left, Timestamp right)
+        {
+            return left.milliseconds < right.milliseconds;
+        }
+
+        public static bool operator >(Timestamp left, Timestamp right)
+        {
+            return left.milliseconds > right.milliseconds;
         }
     }
 }

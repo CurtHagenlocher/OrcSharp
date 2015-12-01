@@ -1671,12 +1671,12 @@ namespace OrcSharp
                 base.write(obj);
                 if (obj != null)
                 {
-                    DateTime val = ((DateObjectInspector)inspector).get(obj).AsDateTime;
+                    Date val = ((DateObjectInspector)inspector).get(obj);
                     indexStatistics.updateDate(val);
-                    writer.write(val.getDays());
+                    writer.write(val.Days);
                     if (createBloomFilter)
                     {
-                        bloomFilter.addLong(val.getDays());
+                        bloomFilter.addLong(val.Days);
                     }
                 }
             }

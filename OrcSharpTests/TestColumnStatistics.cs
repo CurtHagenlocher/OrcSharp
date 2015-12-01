@@ -123,14 +123,14 @@ namespace OrcSharp
             stats2.updateDate(2000);
             stats1.merge(stats2);
             DateColumnStatistics typed = (DateColumnStatistics)stats1;
-            Assert.Equal(Epoch.Start.AddDays(10), typed.getMinimum());
-            Assert.Equal(Epoch.Start.AddDays(2000), typed.getMaximum());
+            Assert.Equal(new Date(10), typed.getMinimum());
+            Assert.Equal(new Date(2000), typed.getMaximum());
             stats1.reset();
             stats1.updateDate(-10);
             stats1.updateDate(10000);
             stats1.merge(stats2);
-            Assert.Equal(Epoch.Start.AddDays(-10), typed.getMinimum());
-            Assert.Equal(Epoch.Start.AddDays(10000), typed.getMaximum());
+            Assert.Equal(new Date(-10), typed.getMinimum());
+            Assert.Equal(new Date(10000), typed.getMaximum());
         }
 
         [Fact]

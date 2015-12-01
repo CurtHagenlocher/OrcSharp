@@ -790,8 +790,8 @@ namespace OrcSharp
 
         private class DateStatisticsImpl : ColumnStatisticsImpl, DateColumnStatistics
         {
-            private DateTime? minimum = null;
-            private DateTime? maximum = null;
+            private Date? minimum = null;
+            private Date? maximum = null;
 
             public DateStatisticsImpl()
             {
@@ -804,22 +804,12 @@ namespace OrcSharp
                 // min,max values serialized/deserialized as int (days since epoch)
                 if (dateStats.HasMaximum)
                 {
-                    maximum = GetDateValue(dateStats.Maximum);
+                    maximum = new Date(dateStats.Maximum);
                 }
                 if (dateStats.HasMinimum)
                 {
-                    minimum = GetDateValue(dateStats.Minimum);
+                    minimum = new Date(dateStats.Minimum);
                 }
-            }
-
-            static double GetDays(DateTime date)
-            {
-                return (date - Epoch.Start).TotalDays;
-            }
-
-            static DateTime GetDateValue(int date)
-            {
-                return Epoch.Start.AddDays(date);
             }
 
             public override void reset()
@@ -829,7 +819,7 @@ namespace OrcSharp
                 maximum = null;
             }
 
-            protected internal override void updateDate(DateTime value)
+            protected internal override void updateDate(Date value)
             {
                 if (minimum == null)
                 {
@@ -848,7 +838,7 @@ namespace OrcSharp
 
             protected internal override void updateDate(int value)
             {
-                updateDate(GetDateValue(value));
+                updateDate(new Date(value));
             }
 
             public override void merge(ColumnStatisticsImpl other)
@@ -890,21 +880,21 @@ namespace OrcSharp
                     OrcProto.DateStatistics.CreateBuilder();
                 if (getNumberOfValues() != 0 && minimum != null)
                 {
-                    dateStats.SetMinimum((int)Math.Floor(GetDays(minimum.Value)));
-                    dateStats.SetMaximum((int)Math.Ceiling(GetDays(maximum.Value)));
+                    dateStats.SetMinimum(minimum.Value.Days);
+                    dateStats.SetMaximum(maximum.Value.Days);
                 }
                 result.SetDateStatistics(dateStats);
                 return result;
             }
 
-            public DateTime getMinimum()
+            public Date? getMinimum()
             {
-                return minimum.Value;
+                return minimum;
             }
 
-            public DateTime getMaximum()
+            public Date? getMaximum()
             {
-                return maximum.Value;
+                return maximum;
             }
 
             public override string ToString()
@@ -923,8 +913,8 @@ namespace OrcSharp
 
         private class TimestampStatisticsImpl : ColumnStatisticsImpl, TimestampColumnStatistics
         {
-            private DateTime? minimum = null;
-            private DateTime? maximum = null;
+            private Timestamp? minimum = null;
+            private Timestamp? maximum = null;
 
             public TimestampStatisticsImpl()
             {
@@ -937,22 +927,12 @@ namespace OrcSharp
                 // min,max values serialized/deserialized as int (milliseconds since epoch)
                 if (timestampStats.HasMaximum)
                 {
-                    maximum = GetTimestampValue(timestampStats.Maximum);
+                    maximum = new Timestamp(timestampStats.Maximum);
                 }
                 if (timestampStats.HasMinimum)
                 {
-                    minimum = GetTimestampValue(timestampStats.Minimum);
+                    minimum = new Timestamp(timestampStats.Minimum);
                 }
-            }
-
-            static double GetMilliseconds(DateTime date)
-            {
-                return (date - Epoch.Start).TotalMilliseconds;
-            }
-
-            static DateTime GetTimestampValue(long milliseconds)
-            {
-                return Epoch.getTimestamp(milliseconds);
             }
 
             public override void reset()
@@ -1128,7 +1108,7 @@ namespace OrcSharp
             throw new NotSupportedException("Can't update decimal");
         }
 
-        protected internal virtual void updateDate(DateTime value)
+        protected internal virtual void updateDate(Date value)
         {
             throw new NotSupportedException("Can't update date");
         }

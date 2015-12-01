@@ -647,6 +647,20 @@ namespace OrcSharp
                     result = TruthValue.YES_NO_NULL;
                 }
             }
+            else if (predObj is Date)
+            {
+                if (bf.testLong(((Date)predObj).Days))
+                {
+                    result = TruthValue.YES_NO_NULL;
+                }
+            }
+            else if (predObj is Timestamp)
+            {
+                if (bf.testLong(((Timestamp)predObj).Milliseconds))
+                {
+                    result = TruthValue.YES_NO_NULL;
+                }
+            }
             else if (predObj is DateTime)
             {
                 // Could be date or timestamp
@@ -784,36 +798,37 @@ namespace OrcSharp
                     }
                     break;
                 case PredicateLeaf.Type.TIMESTAMP:
-                    if (obj is DateTime)
+                    if (obj is Timestamp)
                     {
-                        return obj;
+                        return (Timestamp)obj;
                     }
-#if TODO
+                    else if (obj is DateTime)
+                    {
+                        return new Timestamp((DateTime)obj);
+                    }
                     else if (obj is int)
                     {
-                        return TimestampWritable.longToTimestamp((int)obj, false);
+                        return new Timestamp((int)obj);
                     }
+#if false
                     else if (obj is float)
                     {
-                        return TimestampWritable.doubleToTimestamp((float)obj);
+                        return new Timestamp((float)obj);
                     }
                     else if (obj is double)
                     {
-                        return TimestampWritable.doubleToTimestamp((double)obj);
+                        return new Timestamp((double)obj);
                     }
                     else if (obj is HiveDecimal)
                     {
-                        return TimestampWritable.decimalToTimestamp((HiveDecimal)obj);
-                    }
-                    else if (obj is HiveDecimalWritable)
-                    {
-                        return TimestampWritable.decimalToTimestamp(((HiveDecimalWritable)obj).getHiveDecimal());
-                    }
-                    else if (obj is Date)
-                    {
-                        return new Timestamp(((Date)obj).getTime());
+                        return new Timestamp(((HiveDecimal)obj).doubleValue());
                     }
 #endif
+                    else if (obj is Date)
+                    {
+                        return new Timestamp(((Date)obj).Days);
+                    }
+
                     // float/double conversion to timestamp is interpreted as seconds whereas integer conversion
                     // to timestamp is interpreted as milliseconds by default. The integer to timestamp casting
                     // is also config driven. The filter operator changes its promotion based on config:

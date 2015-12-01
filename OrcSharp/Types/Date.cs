@@ -21,7 +21,7 @@ namespace OrcSharp.Types
     using System;
     using OrcSharp.External;
 
-    public struct Date : IEquatable<Date>, IComparable<Date>
+    public struct Date : IEquatable<Date>, IComparable<Date>, IComparable
     {
         private readonly int days;
 
@@ -87,6 +87,21 @@ namespace OrcSharp.Types
         public int CompareTo(Date other)
         {
             return days.CompareTo(other.days);
+        }
+
+        public int CompareTo(object obj)
+        {
+            return CompareTo((Date)obj);
+        }
+
+        public static bool operator <(Date left, Date right)
+        {
+            return left.days < right.days;
+        }
+
+        public static bool operator >(Date left, Date right)
+        {
+            return left.days > right.days;
         }
     }
 }
