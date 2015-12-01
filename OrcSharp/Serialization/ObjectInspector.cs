@@ -466,32 +466,6 @@ namespace OrcSharp.Serialization
         }
     }
 
-    class HiveCharObjectInspector : PrimitiveObjectInspector
-    {
-        public HiveCharObjectInspector()
-            : base(null)
-        {
-        }
-
-        internal string get(object obj)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class HiveVarcharObjectInspector : PrimitiveObjectInspector
-    {
-        public HiveVarcharObjectInspector()
-            : base(null)
-        {
-        }
-
-        internal string get()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     class HiveDecimalObjectInspector : PrimitiveObjectInspector
     {
         public HiveDecimalObjectInspector(int precision, int scale)
@@ -815,8 +789,6 @@ namespace OrcSharp.Serialization
         public static readonly PrimitiveTypeInfo intTypeInfo = new PrimitiveTypeInfo(types, serdeConstants.INT_TYPE_NAME, PrimitiveCategory.INT);
         public static readonly PrimitiveTypeInfo longTypeInfo = new PrimitiveTypeInfo(types, serdeConstants.BIGINT_TYPE_NAME, PrimitiveCategory.LONG);
         public static readonly PrimitiveTypeInfo stringTypeInfo = new PrimitiveTypeInfo(types, serdeConstants.STRING_TYPE_NAME, PrimitiveCategory.STRING);
-        public static readonly PrimitiveTypeInfo charTypeInfo = new CharTypeInfo(HiveChar.MAX_CHAR_LENGTH);
-        public static readonly PrimitiveTypeInfo varcharTypeInfo = new VarcharTypeInfo(HiveVarchar.MAX_VARCHAR_LENGTH);
         public static readonly PrimitiveTypeInfo floatTypeInfo = new PrimitiveTypeInfo(types, serdeConstants.FLOAT_TYPE_NAME, PrimitiveCategory.FLOAT);
         public static readonly PrimitiveTypeInfo doubleTypeInfo = new PrimitiveTypeInfo(types, serdeConstants.DOUBLE_TYPE_NAME, PrimitiveCategory.DOUBLE);
         public static readonly PrimitiveTypeInfo byteTypeInfo = new PrimitiveTypeInfo(types, serdeConstants.TINYINT_TYPE_NAME, PrimitiveCategory.BYTE);

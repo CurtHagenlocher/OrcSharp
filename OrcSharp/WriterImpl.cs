@@ -1491,54 +1491,6 @@ namespace OrcSharp
             }
         }
 
-        /**
-         * Under the covers, char is written to ORC the same way as string.
-         */
-        private class CharTreeWriter : StringTreeWriter
-        {
-
-            public CharTreeWriter(int columnId,
-                ObjectInspector inspector,
-                TypeDescription schema,
-                StreamFactory writer,
-                bool nullable) :
-                base(columnId, inspector, schema, writer, nullable)
-            {
-            }
-
-            /**
-             * Override base class implementation to support char values.
-             */
-            string getTextValue(object obj)
-            {
-                return ((HiveCharObjectInspector)inspector).get(obj);
-            }
-        }
-
-        /**
-         * Under the covers, varchar is written to ORC the same way as string.
-         */
-        private class VarcharTreeWriter : StringTreeWriter
-        {
-
-            public VarcharTreeWriter(int columnId,
-                ObjectInspector inspector,
-                TypeDescription schema,
-                StreamFactory writer,
-                bool nullable) :
-                base(columnId, inspector, schema, writer, nullable)
-            {
-            }
-
-            /**
-             * Override base class implementation to support varchar values.
-             */
-            string getTextValue(object obj)
-            {
-                return ((HiveVarcharObjectInspector)inspector).get();
-            }
-        }
-
         private class BinaryTreeWriter : TreeWriter
         {
             private PositionedOutputStream stream;
@@ -2106,13 +2058,9 @@ namespace OrcSharp
                     return new DoubleTreeWriter(streamFactory.getNextColumnId(),
                         inspector, schema, streamFactory, nullable);
                 case Category.STRING:
-                    return new StringTreeWriter(streamFactory.getNextColumnId(),
-                        inspector, schema, streamFactory, nullable);
                 case Category.CHAR:
-                    return new CharTreeWriter(streamFactory.getNextColumnId(),
-                        inspector, schema, streamFactory, nullable);
                 case Category.VARCHAR:
-                    return new VarcharTreeWriter(streamFactory.getNextColumnId(),
+                    return new StringTreeWriter(streamFactory.getNextColumnId(),
                         inspector, schema, streamFactory, nullable);
                 case Category.BINARY:
                     return new BinaryTreeWriter(streamFactory.getNextColumnId(),

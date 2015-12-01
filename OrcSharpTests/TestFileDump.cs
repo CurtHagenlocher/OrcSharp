@@ -73,15 +73,12 @@ namespace OrcSharp
             Timestamp t;
             Date dt;
             string str;
-            HiveChar c;
-            HiveVarchar vc;
             Dictionary<string, string> m;
             List<int> a;
             Struct st;
 
             public AllTypesRecord(bool b, byte bt, short s, int i, long l, float f, double d, HiveDecimal de,
-                           Timestamp t, Date dt, string str, HiveChar c, HiveVarchar vc,
-                           Dictionary<string, string> m, List<int> a, Struct st)
+                           Timestamp t, Date dt, string str, Dictionary<string, string> m, List<int> a, Struct st)
             {
                 this.b = b;
                 this.bt = bt;
@@ -94,8 +91,6 @@ namespace OrcSharp
                 this.t = t;
                 this.dt = dt;
                 this.str = str;
-                this.c = c;
-                this.vc = vc;
                 this.m = m;
                 this.a = a;
                 this.st = st;
@@ -162,8 +157,6 @@ namespace OrcSharp
                         new Timestamp(1416967764000L),
                         new Date(1416967764000L),
                         "string",
-                        new HiveChar("hello", 5),
-                        new HiveVarchar("hello", 10),
                         m,
                         new List<int> { 100, 200 },
                         new AllTypesRecord.Struct(10, "foo")));
@@ -181,8 +174,6 @@ namespace OrcSharp
                         new Timestamp(1416967364000L),
                         new Date(1411967764000L),
                         "abcd",
-                        new HiveChar("world", 5),
-                        new HiveVarchar("world", 10),
                         m,
                         new List<int> { 200, 300 },
                         new AllTypesRecord.Struct(20, "bar")));

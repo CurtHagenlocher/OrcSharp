@@ -958,26 +958,6 @@ namespace OrcSharp.Serialization
             return true;
         }
 
-        /**
-         * Return the character length of the type
-         * @param typeInfo
-         * @return
-         */
-        public static int getCharacterLengthForType(PrimitiveTypeInfo typeInfo)
-        {
-            switch (typeInfo.getPrimitiveCategory())
-            {
-                case PrimitiveCategory.STRING:
-                    return HiveVarchar.MAX_VARCHAR_LENGTH;
-                case PrimitiveCategory.CHAR:
-                case PrimitiveCategory.VARCHAR:
-                    BaseCharTypeInfo baseCharTypeInfo = (BaseCharTypeInfo)typeInfo;
-                    return baseCharTypeInfo.getLength();
-                default:
-                    return 0;
-            }
-        }
-
         public static void registerNumericType(PrimitiveCategory primitiveCategory, int level)
         {
             numericTypeList.Add(primitiveCategory);

@@ -2017,7 +2017,7 @@ namespace OrcSharp
 
         public class CharTreeReader : StringTreeReader
         {
-            int maxLength;
+            private readonly int maxLength;
 
             public CharTreeReader(int columnId, int maxLength, InStream present = null, InStream data = null,
                 InStream length = null, InStream dictionary = null, OrcProto.ColumnEncoding encoding = null) :
@@ -2106,7 +2106,7 @@ namespace OrcSharp
 
         public class VarcharTreeReader : StringTreeReader
         {
-            int maxLength;
+            private readonly int maxLength;
 
             public VarcharTreeReader(int columnId, int maxLength, InStream present = null, InStream data = null,
                 InStream length = null, InStream dictionary = null, OrcProto.ColumnEncoding encoding = null)

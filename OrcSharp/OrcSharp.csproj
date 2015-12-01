@@ -56,8 +56,6 @@
     <Compile Include="External\CommandLine.cs" />
     <Compile Include="External\JsonWriter.cs" />
     <Compile Include="Types\Date.cs" />
-    <Compile Include="Types\HiveChar.cs" />
-    <Compile Include="Types\HiveVarchar.cs" />
     <Compile Include="Types\Text.cs" />
     <Compile Include="Types\BytesWritable.cs" />
     <Compile Include="External\ColumnVector.cs" />
