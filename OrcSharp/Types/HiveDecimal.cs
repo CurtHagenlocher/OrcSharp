@@ -43,13 +43,13 @@ namespace OrcSharp.Types
             this._scale = scale;
         }
 
-        public HiveDecimal(int value)
-            : this(new BigInteger(value))
+        public HiveDecimal(int value, int scale = 0)
+            : this(new BigInteger(value), scale)
         {
         }
 
-        public HiveDecimal(long value)
-            : this(new BigInteger(value))
+        public HiveDecimal(long value, int scale = 0)
+            : this(new BigInteger(value), scale)
         {
         }
 
@@ -95,7 +95,13 @@ namespace OrcSharp.Types
             string result = this.mantissa.ToString();
             if (_scale > 0)
             {
-                result = result.Insert(result.Length - _scale, ".");
+                int shift = result.Length - _scale;
+                if (shift < 0)
+                {
+                    result = result.PadLeft(-shift, '0');
+                    shift = 0;
+                }
+                result = result.Insert(shift, ".");
             }
             else if (_scale < 0)
             {
@@ -119,26 +125,33 @@ namespace OrcSharp.Types
         {
             if (x._scale > y._scale)
             {
-                x = x.UpdateScale(y._scale);
+                y = y.UpdateScale(x._scale);
             }
             else if (y._scale > x._scale)
             {
-                y = y.UpdateScale(x._scale);
+                x = x.UpdateScale(y._scale);
             }
         }
 
         HiveDecimal UpdateScale(int newScale)
         {
-            return new HiveDecimal(mantissa * BigInteger.Pow(Ten, _scale - newScale), newScale);
+            return new HiveDecimal(mantissa * BigInteger.Pow(Ten, newScale - _scale), newScale);
         }
 
         public long longValue()
         {
-            if (_scale != 0)
+            if (_scale < 0)
             {
-                throw new InvalidOperationException();
+                return (long)(mantissa * BigInteger.Pow(Ten, -_scale));
             }
+            else if (_scale > 0)
+            {
+                return (long)(mantissa / BigInteger.Pow(Ten, _scale));
+            }
+            else
+            {
             return (long)this.mantissa;
+            }
         }
 
         internal BigInteger unscaledValue()
@@ -146,9 +159,10 @@ namespace OrcSharp.Types
             return mantissa;
         }
 
-        internal object doubleValue()
+        internal double doubleValue()
         {
-            throw new NotImplementedException();
+            // TODO:
+            return (double)mantissa * Math.Pow(10, -_scale);
         }
 
         public override bool Equals(object obj)

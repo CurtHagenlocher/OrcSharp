@@ -716,6 +716,10 @@ namespace OrcSharp
                         return Boolean.Parse(obj.ToString());
                     }
                 case PredicateLeaf.Type.DATE:
+                    if (obj is Date)
+                    {
+                        return (Date)obj;
+                    }
                     if (obj is DateTime)
                     {
                         return new Date((DateTime)obj);
@@ -753,10 +757,15 @@ namespace OrcSharp
                     }
                     else if (obj is DateTime)
                     {
-#if TODO
-                        return new HiveDecimalWritable(
-                            new Double(new TimestampWritable((Timestamp)obj).getDouble()).ToString());
-#endif
+                        return new HiveDecimal(new Date((DateTime)obj).Days);
+                    }
+                    else if (obj is Date)
+                    {
+                        return new HiveDecimal(((Date)obj).Days);
+                    }
+                    else if (obj is Timestamp)
+                    {
+                        return new HiveDecimal(((Timestamp)obj).Milliseconds, 3);
                     }
                     break;
                 case PredicateLeaf.Type.FLOAT:
@@ -769,11 +778,13 @@ namespace OrcSharp
                     {
                         return ((HiveDecimal)obj).doubleValue();
                     }
-                    else if (obj is DateTime)
+                    else if (obj is Date)
                     {
-#if TODO
-                        return new TimestampWritable((Timestamp)obj).getDouble();
-#endif
+                        return (double)((Date)obj).Days;
+                    }
+                    else if (obj is Timestamp)
+                    {
+                        return ((Timestamp)obj).Milliseconds / 1000.0;
                     }
                     else if (obj is HiveDecimal)
                     {
@@ -793,6 +804,10 @@ namespace OrcSharp
                     else if (obj is Timestamp)
                     {
                         return ((Timestamp)obj).Milliseconds;
+                    }
+                    else if (obj is Date)
+                    {
+                        return (long)((Date)obj).Days;
                     }
                     break;
                 case PredicateLeaf.Type.STRING:
@@ -814,23 +829,21 @@ namespace OrcSharp
                     {
                         return new Timestamp((int)obj);
                     }
-#if false
                     else if (obj is float)
                     {
-                        return new Timestamp((float)obj);
+                        return new Timestamp((long)Math.Round(1000.0 * (float)obj));
                     }
                     else if (obj is double)
                     {
-                        return new Timestamp((double)obj);
+                        return new Timestamp((long)Math.Round(1000.0 * (double)obj));
                     }
                     else if (obj is HiveDecimal)
                     {
-                        return new Timestamp(((HiveDecimal)obj).doubleValue());
+                        return new Timestamp((long)Math.Round(1000.0 * ((HiveDecimal)obj).doubleValue()));
                     }
-#endif
                     else if (obj is Date)
                     {
-                        return new Timestamp(((Date)obj).Days);
+                        return new Timestamp(((Date)obj).AsDateTime);
                     }
 
                     // float/double conversion to timestamp is interpreted as seconds whereas integer conversion
