@@ -704,18 +704,16 @@ namespace OrcSharp
                 case PredicateLeaf.Type.DATE:
                     if (obj is DateTime)
                     {
-                        return obj;
+                        return new Date((DateTime)obj);
                     }
-                    else if (obj is String)
+                    else if (obj is string)
                     {
-                        return DateTime.Parse((String)obj);
+                        return Date.Parse((string)obj);
                     }
-#if false
                     else if (obj is Timestamp)
                     {
-                        return DateWritable.timeToDate(((Timestamp)obj).getTime() / 1000L);
+                        return new Date(((Timestamp)obj).AsDateTime);
                     }
-#endif
                     // always string, but prevent the comparison to numbers (are they days/seconds/milliseconds?)
                     break;
                 case PredicateLeaf.Type.DECIMAL:

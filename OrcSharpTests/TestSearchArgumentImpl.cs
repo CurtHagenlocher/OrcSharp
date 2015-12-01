@@ -22,6 +22,7 @@ namespace OrcSharp
     using System.Collections.Generic;
     using OrcSharp.Query;
     using Xunit;
+    using Types;
 
     /**
      * These test the SARG implementation.
@@ -35,7 +36,6 @@ namespace OrcSharp
      */
     public class TestSearchArgumentImpl
     {
-
         private ExpressionTree not(ExpressionTree arg)
         {
             return new ExpressionTree(ExpressionTree.Operator.NOT, arg);
@@ -326,7 +326,6 @@ namespace OrcSharp
             "expr = (and (not leaf-0) (not leaf-1) (not leaf-2) (not leaf-3))", sarg.ToString());
         }
 
-#if false
         [Fact]
         public void testBuilderComplexTypes()
         {
@@ -334,23 +333,22 @@ namespace OrcSharp
             SearchArgumentFactory.newBuilder()
                 .startAnd()
                 .lessThan("x", PredicateLeaf.Type.DATE,
-                    Date.valueOf("1970-1-11"))
+                    Date.Parse("1970-1-11"))
                 .lessThanEquals("y", PredicateLeaf.Type.STRING,
                     new HiveChar("hi", 10).ToString())
-                .equals("z", PredicateLeaf.Type.DECIMAL, new HiveDecimalWritable("1.0"))
+                .equals("z", PredicateLeaf.Type.DECIMAL, HiveDecimal.Parse("1.0"))
                 .end()
                 .build();
             Assert.Equal("leaf-0 = (LESS_THAN x 1970-01-11), " +
             "leaf-1 = (LESS_THAN_EQUALS y hi        ), " +
-            "leaf-2 = (EQUALS z 1), " +
+            "leaf-2 = (EQUALS z 1.0), " +
             "expr = (and leaf-0 leaf-1 leaf-2)", sarg.ToString());
 
             sarg = SearchArgumentFactory.newBuilder()
             .startNot()
             .startOr()
             .isNull("x", PredicateLeaf.Type.LONG)
-            .between("y", PredicateLeaf.Type.DECIMAL,
-                new HiveDecimalWritable("10"), new HiveDecimalWritable("20.0"))
+            .between("y", PredicateLeaf.Type.DECIMAL, HiveDecimal.Parse("10"), HiveDecimal.Parse("20.0"))
             .@in("z", PredicateLeaf.Type.LONG, 1L, 2L, 3L)
         .nullSafeEquals("a", PredicateLeaf.Type.STRING,
             new HiveVarchar("stinger", 100).ToString())
@@ -358,7 +356,7 @@ namespace OrcSharp
         .end()
         .build();
             Assert.Equal("leaf-0 = (IS_NULL x), " +
-            "leaf-1 = (BETWEEN y 10 20), " +
+            "leaf-1 = (BETWEEN y 10 20.0), " +
             "leaf-2 = (IN z 1 2 3), " +
             "leaf-3 = (NULL_SAFE_EQUALS a stinger), " +
             "expr = (and (not leaf-0) (not leaf-1) (not leaf-2) (not leaf-3))",
@@ -371,24 +369,22 @@ namespace OrcSharp
             SearchArgument sarg =
             SearchArgumentFactory.newBuilder()
                 .startAnd()
-                .lessThan("x", PredicateLeaf.Type.DATE, Date.valueOf("2005-3-12"))
+                .lessThan("x", PredicateLeaf.Type.DATE, Date.Parse("2005-3-12"))
                 .lessThanEquals("y", PredicateLeaf.Type.STRING,
                     new HiveChar("hi", 10).ToString())
-                .equals("z", PredicateLeaf.Type.DECIMAL,
-                    new HiveDecimalWritable("1.0"))
+                .equals("z", PredicateLeaf.Type.DECIMAL, HiveDecimal.Parse("1.0"))
                 .end()
                 .build();
             Assert.Equal("leaf-0 = (LESS_THAN x 2005-03-12), " +
             "leaf-1 = (LESS_THAN_EQUALS y hi        ), " +
-            "leaf-2 = (EQUALS z 1), " +
+            "leaf-2 = (EQUALS z 1.0), " +
             "expr = (and leaf-0 leaf-1 leaf-2)", sarg.ToString());
 
             sarg = SearchArgumentFactory.newBuilder()
             .startNot()
             .startOr()
             .isNull("x", PredicateLeaf.Type.LONG)
-            .between("y", PredicateLeaf.Type.DECIMAL, new HiveDecimalWritable("10"),
-                new HiveDecimalWritable("20.0"))
+            .between("y", PredicateLeaf.Type.DECIMAL, HiveDecimal.Parse("10"), HiveDecimal.Parse("20.0"))
             .@in("z", PredicateLeaf.Type.LONG, 1L, 2L, 3L)
         .nullSafeEquals("a", PredicateLeaf.Type.STRING,
             new HiveVarchar("stinger", 100).ToString())
@@ -396,7 +392,7 @@ namespace OrcSharp
         .end()
         .build();
             Assert.Equal("leaf-0 = (IS_NULL x), " +
-            "leaf-1 = (BETWEEN y 10 20), " +
+            "leaf-1 = (BETWEEN y 10 20.0), " +
             "leaf-2 = (IN z 1 2 3), " +
             "leaf-3 = (NULL_SAFE_EQUALS a stinger), " +
             "expr = (and (not leaf-0) (not leaf-1) (not leaf-2) (not leaf-3))",
@@ -413,8 +409,8 @@ namespace OrcSharp
                 .lessThan("x1", PredicateLeaf.Type.LONG, 22L)
                 .lessThanEquals("y", PredicateLeaf.Type.STRING,
                     new HiveChar("hi", 10).ToString())
-                .equals("z", PredicateLeaf.Type.FLOAT, new Double(0.22))
-                .equals("z1", PredicateLeaf.Type.FLOAT, new Double(0.22))
+                .equals("z", PredicateLeaf.Type.FLOAT, 0.22)
+                .equals("z1", PredicateLeaf.Type.FLOAT, 0.22)
                 .end()
                 .build();
             Assert.Equal("leaf-0 = (LESS_THAN x 22), " +
@@ -425,6 +421,7 @@ namespace OrcSharp
             "expr = (and leaf-0 leaf-1 leaf-2 leaf-3 leaf-4)", sarg.ToString());
         }
 
+#if false
         [Fact]
         public void testTimestampSerialization()
         {

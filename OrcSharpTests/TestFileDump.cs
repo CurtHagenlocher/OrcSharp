@@ -70,27 +70,17 @@ namespace OrcSharp
             float f;
             double d;
             HiveDecimal de;
-#if false
             Timestamp t;
             Date dt;
-#endif
             string str;
-#if false
             HiveChar c;
             HiveVarchar vc;
-#endif
             Dictionary<string, string> m;
             List<int> a;
             Struct st;
 
             public AllTypesRecord(bool b, byte bt, short s, int i, long l, float f, double d, HiveDecimal de,
-#if false
-                           Timestamp t, Date dt,
-#endif
-                           string str,
-#if false
-                           HiveChar c, HiveVarchar vc,
-#endif
+                           Timestamp t, Date dt, string str, HiveChar c, HiveVarchar vc,
                            Dictionary<string, string> m, List<int> a, Struct st)
             {
                 this.b = b;
@@ -101,15 +91,11 @@ namespace OrcSharp
                 this.f = f;
                 this.d = d;
                 this.de = de;
-#if false
                 this.t = t;
                 this.dt = dt;
-#endif
                 this.str = str;
-#if false
                 this.c = c;
                 this.vc = vc;
-#endif
                 this.m = m;
                 this.a = a;
                 this.st = st;
@@ -173,15 +159,11 @@ namespace OrcSharp
                         4.0f,
                         20.0,
                         HiveDecimal.Parse("4.2222"),
-#if false
                         new Timestamp(1416967764000L),
                         new Date(1416967764000L),
-#endif
                         "string",
-#if false
                         new HiveChar("hello", 5),
                         new HiveVarchar("hello", 10),
-#endif
                         m,
                         new List<int> { 100, 200 },
                         new AllTypesRecord.Struct(10, "foo")));
@@ -196,15 +178,11 @@ namespace OrcSharp
                         8.0f,
                         40.0,
                         HiveDecimal.Parse("2.2222"),
-#if false
                         new Timestamp(1416967364000L),
                         new Date(1411967764000L),
-#endif
                         "abcd",
-#if false
                         new HiveChar("world", 5),
                         new HiveVarchar("world", 10),
-#endif
                         m,
                         new List<int> { 200, 300 },
                         new AllTypesRecord.Struct(20, "bar")));

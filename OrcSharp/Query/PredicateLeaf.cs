@@ -98,7 +98,7 @@ namespace OrcSharp.Query
                 case PredicateLeaf.Type.BOOLEAN:
                     return typeof(bool);
                 case PredicateLeaf.Type.DATE:
-                    return typeof(DateTime);
+                    return typeof(Date);
                 case PredicateLeaf.Type.DECIMAL:
                     return typeof(HiveDecimal);
                 case PredicateLeaf.Type.FLOAT:
@@ -108,7 +108,7 @@ namespace OrcSharp.Query
                 case PredicateLeaf.Type.STRING:
                     return typeof(string);
                 case PredicateLeaf.Type.TIMESTAMP:
-                    return typeof(DateTime);
+                    return typeof(Timestamp);
                 default:
                     throw new InvalidOperationException();
             }

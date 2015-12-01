@@ -28,7 +28,6 @@ namespace OrcSharp
      */
     public class TestStringRedBlackTree
     {
-
         /**
          * Checks the red-black tree rules to make sure that we have correctly built
          * a valid tree.

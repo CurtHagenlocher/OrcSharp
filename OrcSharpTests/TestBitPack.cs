@@ -25,29 +25,18 @@ namespace OrcSharp
     using OrcSharp.External;
     using System.Collections.Generic;
     using System.Runtime.CompilerServices;
+    using Serialization;
 
-    public class TestBitPack
+    public class TestBitPack : WithLocalDirectory
     {
         private const int SIZE = 100;
         private static readonly Random rand = new Random(100);
+        const string testFileName = "TestNewIntegerEncoding.orc";
 
-#if false
-        Configuration conf;
-        FileSystem fs;
-        Path testFilePath;
-
-        [Rule]
-        public TestName testCaseName = new TestName();
-
-        [Before]
-        public void openFileSystem()
+        public TestBitPack()
+            : base(testFileName)
         {
-            conf = new Configuration();
-            fs = FileSystem.getLocal(conf);
-            testFilePath = new Path(workDir, "TestOrcFile." + testCaseName.getMethodName() + ".orc");
-            fs.delete(testFilePath, false);
         }
-#endif
 
         private long[] deltaEncode(long[] inp)
         {
@@ -319,35 +308,33 @@ namespace OrcSharp
             runTest(64);
         }
 
-#if false
         [Fact]
         public void testBitPack64Large()
         {
-            ObjectInspector inspector;
-            lock (typeof(TestOrcFile))
-            {
-                inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(long),
-                    ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-            }
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(long));
 
-            int size = 1080832;
+            const int size = 1080832;
             long[] inp = new long[size];
             Random rand = new Random(1234);
             for (int i = 0; i < size; i++)
             {
-                inp[i] = rand.nextLong();
+                inp[i] = rand.NextLong();
             }
             List<long> input = inp.ToList();
 
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf).inspector(inspector).compress(CompressionKind.ZLIB));
-            foreach (long l in input)
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .compress(CompressionKind.ZLIB)))
             {
-                writer.addRow(l);
+                foreach (long l in input)
+                {
+                    writer.addRow(l);
+                }
+                writer.close();
             }
-            writer.close();
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf).filesystem(fs));
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
             RecordReader rows = reader.rows();
             int idx = 0;
             while (rows.hasNext())
@@ -356,6 +343,5 @@ namespace OrcSharp
                 Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
             }
         }
-#endif
     }
 }

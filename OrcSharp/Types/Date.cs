@@ -30,6 +30,11 @@ namespace OrcSharp.Types
             this.days = days;
         }
 
+        public Date(long milliseconds)
+        {
+            this.days = Epoch.getTimestamp(milliseconds).getDays();
+        }
+
         public Date(DateTime date)
         {
             days = Epoch.getDays(date);
@@ -40,6 +45,11 @@ namespace OrcSharp.Types
             days = Epoch.getDays(new DateTime(year + 1900, month, day));
         }
 
+        public static Date Parse(string date)
+        {
+            return new Date(DateTime.Parse(date));
+        }
+
         public DateTime AsDateTime
         {
             get { return Epoch.getDate(days); }
@@ -47,7 +57,7 @@ namespace OrcSharp.Types
 
         public override string ToString()
         {
-            return Epoch.getDate(days).ToString();
+            return Epoch.getDate(days).ToString("yyyy-MM-dd");
         }
 
         public override int GetHashCode()

@@ -18,15 +18,25 @@
 
 namespace OrcSharp
 {
-    using Xunit;
+    using System.Collections.Generic;
+    using System.IO;
     using OrcSharp.External;
+    using OrcSharp.Serialization;
     using OrcSharp.Types;
+    using Xunit;
 
     /**
      * Test ColumnStatisticsImpl for ORC.
      */
-    public class TestColumnStatistics
+    public class TestColumnStatistics : WithLocalDirectory
     {
+        const string testFileName = "TestColumnStatistics.orc";
+
+        public TestColumnStatistics()
+            : base(testFileName)
+        {
+        }
+
         [Fact]
         public void testLongMerge()
         {
@@ -170,13 +180,12 @@ namespace OrcSharp
             Assert.Equal(10000, typed.getMaximum().longValue());
         }
 
-#if false
         public class SimpleStruct
         {
             BytesWritable bytes1;
             Text string1;
 
-            SimpleStruct(BytesWritable b1, string s1)
+            public SimpleStruct(BytesWritable b1, string s1)
             {
                 this.bytes1 = b1;
                 if (s1 == null)
@@ -190,28 +199,11 @@ namespace OrcSharp
             }
         }
 
-        Path workDir = new Path(System.getProperty("test.tmp.dir",
-            "target" + File.separator + "test" + File.separator + "tmp"));
-
-        Configuration conf;
-        FileSystem fs;
-        Path testFilePath;
-
-        [Before]
-        public void openFileSystem()
-        {
-            conf = new Configuration();
-            fs = FileSystem.getLocal(conf);
-            fs.setWorkingDirectory(workDir);
-            testFilePath = new Path("TestOrcFile." + testCaseName.getMethodName() + ".orc");
-            fs.delete(testFilePath, false);
-        }
-
         private static BytesWritable bytes(params int[] items)
         {
             BytesWritable result = new BytesWritable();
-            result.setSize(items.length);
-            for (int i = 0; i < items.length; ++i)
+            result.setSize(items.Length);
+            for (int i = 0; i < items.Length; ++i)
             {
                 result.getBytes()[i] = (byte)items[i];
             }
@@ -221,62 +213,60 @@ namespace OrcSharp
         [Fact]
         public void testHasNull()
         {
-            ObjectInspector inspector;
-            lock (typeof(TestOrcFile))
+            ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(SimpleStruct));
+
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .rowIndexStride(1000)
+                .stripeSize(10000)
+                .bufferSize(10000)))
             {
-                inspector = ObjectInspectorFactory.getReflectionObjectInspector
-                    (typeof(SimpleStruct), ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                // STRIPE 1
+                // RG1
+                for (int i = 0; i < 1000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), "RG1"));
+                }
+                // RG2
+                for (int i = 0; i < 1000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
+                }
+                // RG3
+                for (int i = 0; i < 1000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), "RG3"));
+                }
+                // RG4
+                for (int i = 0; i < 1000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
+                }
+                // RG5
+                for (int i = 0; i < 1000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
+                }
+                // STRIPE 2
+                for (int i = 0; i < 5000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
+                }
+                // STRIPE 3
+                for (int i = 0; i < 5000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), "STRIPE-3"));
+                }
+                // STRIPE 4
+                for (int i = 0; i < 5000; i++)
+                {
+                    writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
+                }
+                writer.close();
             }
-            Writer writer = OrcFile.createWriter(testFilePath,
-                OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .rowIndexStride(1000)
-                    .stripeSize(10000)
-                    .bufferSize(10000));
-            // STRIPE 1
-            // RG1
-            for (int i = 0; i < 1000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), "RG1"));
-            }
-            // RG2
-            for (int i = 0; i < 1000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
-            }
-            // RG3
-            for (int i = 0; i < 1000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), "RG3"));
-            }
-            // RG4
-            for (int i = 0; i < 1000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
-            }
-            // RG5
-            for (int i = 0; i < 1000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
-            }
-            // STRIPE 2
-            for (int i = 0; i < 5000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
-            }
-            // STRIPE 3
-            for (int i = 0; i < 5000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), "STRIPE-3"));
-            }
-            // STRIPE 4
-            for (int i = 0; i < 5000; i++)
-            {
-                writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
-            }
-            writer.close();
-            Reader reader = OrcFile.createReader(testFilePath,
-                OrcFile.readerOptions(conf).filesystem(fs));
+
+            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
 
             // check the file level stats
             ColumnStatistics[] stats = reader.getStatistics();
@@ -325,6 +315,7 @@ namespace OrcSharp
             Assert.Equal(false, ss4_cs2.hasNull());
             Assert.Equal(true, ss4_cs3.hasNull());
 
+#if false
             // Test file dump
             TextWriter origOut = System.Console.Out;
             string outputFilename = "orc-file-has-null.out";
@@ -337,7 +328,7 @@ namespace OrcSharp
             System.SetOut(origOut);
 
             TestFileDump.checkOutput(outputFilename, workDir + File.separator + outputFilename);
-        }
 #endif
+        }
     }
 }

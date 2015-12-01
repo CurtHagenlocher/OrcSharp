@@ -1173,14 +1173,4 @@ namespace OrcSharp.Serialization
             throw new NotImplementedException();
         }
     }
-
-    public class HiveChar
-    {
-        public const int MAX_CHAR_LENGTH = 1000;
-    }
-
-    public class HiveVarchar
-    {
-        public const int MAX_VARCHAR_LENGTH = 1000;
-    }
 }
