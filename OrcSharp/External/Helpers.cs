@@ -167,8 +167,7 @@ namespace OrcSharp.External
 
         public static DateTime getTimestamp(long millis)
         {
-            // TODO: Rounding
-            return Start.AddMilliseconds(millis);
+            return Start.AddTicks(TimeSpan.TicksPerMillisecond * millis);
         }
     }
 

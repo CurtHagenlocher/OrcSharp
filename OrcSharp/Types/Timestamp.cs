@@ -58,7 +58,7 @@ namespace OrcSharp.Types
 
         public override string ToString()
         {
-            return Epoch.getTimestamp(milliseconds).ToString();
+            return Epoch.getTimestamp(milliseconds).ToString("yyyy-MM-dd HH:mm:ss");
         }
 
         public override int GetHashCode()

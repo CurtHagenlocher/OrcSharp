@@ -483,6 +483,10 @@ namespace OrcSharp
             }
             else
             {
+                if (obj is IStrongBox)
+                {
+                    obj = ((IStrongBox)obj).Value;
+                }
                 switch (type.Kind)
                 {
                     case OrcProto.Type.Types.Kind.STRUCT:
@@ -498,25 +502,25 @@ namespace OrcSharp
                         printMap(writer, (Dictionary<object, object>)obj, types, type);
                         break;
                     case OrcProto.Type.Types.Kind.BYTE:
-                        writer.value(((StrongBox<byte>)obj).Value);
+                        writer.value((byte)obj);
                         break;
                     case OrcProto.Type.Types.Kind.SHORT:
-                        writer.value(((StrongBox<short>)obj).Value);
+                        writer.value((short)obj);
                         break;
                     case OrcProto.Type.Types.Kind.INT:
-                        writer.value(((StrongBox<int>)obj).Value);
+                        writer.value((int)obj);
                         break;
                     case OrcProto.Type.Types.Kind.LONG:
-                        writer.value(((StrongBox<long>)obj).Value);
+                        writer.value((long)obj);
                         break;
                     case OrcProto.Type.Types.Kind.FLOAT:
-                        writer.value(((StrongBox<float>)obj).Value);
+                        writer.value((float)obj);
                         break;
                     case OrcProto.Type.Types.Kind.DOUBLE:
-                        writer.value(((StrongBox<double>)obj).Value);
+                        writer.value((double)obj);
                         break;
                     case OrcProto.Type.Types.Kind.BOOLEAN:
-                        writer.value(((StrongBox<bool>)obj).Value);
+                        writer.value((bool)obj);
                         break;
                     default:
                         writer.value(obj.ToString());
