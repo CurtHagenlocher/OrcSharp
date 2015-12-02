@@ -461,7 +461,7 @@ namespace OrcSharp
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-20.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 2 hasNull: False min: -15.0 max: -5.0 sum: -20.0",
+            Assert.Equal("count: 2 hasNull: False min: -15 max: -5 sum: -20",
                 stats[7].ToString());
 
             Assert.Equal("count: 2 hasNull: False min: bye max: hi sum: 5", stats[9].ToString());
@@ -553,7 +553,7 @@ namespace OrcSharp
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-20.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 2 hasNull: False min: -15.0 max: -5.0 sum: -20.0",
+            Assert.Equal("count: 2 hasNull: False min: -15 max: -5 sum: -20",
                 stats[7].ToString());
 
             Assert.Equal(5, ((BinaryColumnStatistics)stats[8]).getSum());
