@@ -20,7 +20,6 @@ namespace OrcSharp
     using System;
     using System.IO;
     using OrcSharp.Serialization;
-    using OrcSharp.Types;
     using Xunit;
     using OrcProto = global::orc.proto;
 
@@ -55,8 +54,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(new Text((idx++).ToString()), row);
+                object row = rows.next();
+                Assert.Equal((idx++).ToString(), row);
             }
 
             // make sure the encoding type is correct
@@ -103,8 +102,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(new Text(input[idx++].ToString()), row);
+                object row = rows.next();
+                Assert.Equal(input[idx++].ToString(), row);
             }
 
             // make sure the encoding type is correct
@@ -145,8 +144,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(new Text((idx++).ToString()), row);
+                object row = rows.next();
+                Assert.Equal((idx++).ToString(), row);
             }
 
             // make sure the encoding type is correct
@@ -194,8 +193,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(new Text(input[idx++].ToString()), row);
+                object row = rows.next();
+                Assert.Equal(input[idx++].ToString(), row);
             }
 
             // make sure the encoding type is correct
@@ -236,8 +235,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(new Text((idx++).ToString()), row);
+                object row = rows.next();
+                Assert.Equal((idx++).ToString(), row);
             }
 
             // make sure the encoding type is correct

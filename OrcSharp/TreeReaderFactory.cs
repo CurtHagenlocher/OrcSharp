@@ -22,10 +22,10 @@ namespace OrcSharp
     using System.Collections.Generic;
     using System.IO;
     using System.Numerics;
-    using System.Runtime.CompilerServices;
     using OrcSharp.External;
     using OrcSharp.Types;
     using OrcProto = global::orc.proto;
+    using System.Text;
 
     /**
      * Factory for creating ORC tree readers.
@@ -34,11 +34,20 @@ namespace OrcSharp
     {
         internal static Func<TimeZoneInfo> CreateTimeZone;
 
-        public abstract class TreeReader
+        public interface TreeReader
+        {
+            void startStripe(Dictionary<StreamName, InStream> streams, OrcProto.StripeFooter stripeFooter);
+            void seek(PositionProvider[] index);
+            object next();
+            object nextVector(object previousVector, long batchSize);
+            void skipRows(long rows);
+        }
+
+        public abstract class TreeReader<T> : TreeReader
         {
             protected int columnId;
             protected BitFieldReader present = null;
-            protected bool valuePresent = false;
+            private bool valuePresent = false;
 
             protected TreeReader(int columnId, InStream @in = null)
             {
@@ -83,8 +92,7 @@ namespace OrcSharp
             }
 
             public virtual void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 checkEncoding(stripeFooter.ColumnsList[columnId]);
                 InStream @in = streams.get(new StreamName(columnId,
@@ -141,13 +149,16 @@ namespace OrcSharp
 
             public abstract void skipRows(long rows);
 
-            public virtual object next(object previous)
+            public abstract T getNext();
+
+            protected bool hasValue()
             {
-                if (present != null)
-                {
-                    valuePresent = present.next() == 1;
-                }
-                return previous;
+                return present == null ? valuePresent : present.next() == 1;
+            }
+
+            public object next()
+            {
+                return getNext();
             }
 
             /**
@@ -196,9 +207,9 @@ namespace OrcSharp
             }
         }
 
-        public class BooleanTreeReader : TreeReader
+        sealed public class BooleanTreeReader : TreeReader<bool?>
         {
-            protected BitFieldReader reader = null;
+            private BitFieldReader reader = null;
 
             public BooleanTreeReader(int columnId, InStream present = null, InStream data = null)
                 : base(columnId, present)
@@ -210,8 +221,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 reader = new BitFieldReader(streams.get(new StreamName(columnId,
@@ -234,23 +244,13 @@ namespace OrcSharp
                 reader.skip(countNonNulls(items));
             }
 
-            public override object next(object previous)
+            public override bool? getNext()
             {
-                base.next(previous);
-                StrongBox<bool> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<bool>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<bool>)previous;
-                    }
-                    result.Value = (reader.next() == 1);
+                    return null;
                 }
-                return result;
+                return (reader.next() == 1);
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -274,9 +274,9 @@ namespace OrcSharp
             }
         }
 
-        public class ByteTreeReader : TreeReader
+        sealed public class ByteTreeReader : TreeReader<byte?>
         {
-            protected RunLengthByteReader reader = null;
+            private RunLengthByteReader reader = null;
 
             public ByteTreeReader(int columnId, InStream present = null, InStream data = null)
                 : base(columnId, present)
@@ -285,8 +285,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 reader = new RunLengthByteReader(streams.get(new StreamName(columnId,
@@ -304,23 +303,14 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override object next(object previous)
+            public override byte? getNext()
             {
-                base.next(previous);
-                StrongBox<byte> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<byte>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<byte>)previous;
-                    }
-                    result.Value = reader.next();
+                    return null;
                 }
-                return result;
+
+                return reader.next();
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -349,9 +339,9 @@ namespace OrcSharp
             }
         }
 
-        public class ShortTreeReader : TreeReader
+        sealed public class ShortTreeReader : TreeReader<short?>
         {
-            protected IntegerReader reader = null;
+            private IntegerReader reader = null;
 
             public ShortTreeReader(int columnId, InStream present = null, InStream data = null,
                 OrcProto.ColumnEncoding encoding = null)
@@ -375,8 +365,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 StreamName name = new StreamName(columnId,
@@ -396,23 +385,14 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override object next(object previous)
+            public override short? getNext()
             {
-                base.next(previous);
-                StrongBox<short> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<short>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<short>)previous;
-                    }
-                    result.Value = (short)reader.next();
+                    return null;
                 }
-                return result;
+
+                return (short)reader.next();
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -441,9 +421,9 @@ namespace OrcSharp
             }
         }
 
-        public class IntTreeReader : TreeReader
+        sealed public class IntTreeReader : TreeReader<int?>
         {
-            protected IntegerReader reader = null;
+            private IntegerReader reader = null;
 
             public IntTreeReader(int columnId, InStream present = null, InStream data = null,
                 OrcProto.ColumnEncoding encoding = null)
@@ -467,8 +447,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 StreamName name = new StreamName(columnId,
@@ -488,23 +467,13 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override object next(object previous)
+            public override int? getNext()
             {
-                base.next(previous);
-                StrongBox<int> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<int>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<int>)previous;
-                    }
-                    result.Value = (int)reader.next();
+                    return null;
                 }
-                return result;
+                return (int)reader.next();
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -533,9 +502,9 @@ namespace OrcSharp
             }
         }
 
-        public class LongTreeReader : TreeReader
+        sealed public class LongTreeReader : TreeReader<long?>
         {
-            protected IntegerReader reader = null;
+            private IntegerReader reader = null;
 
             public LongTreeReader(int columnId, bool skipCorrupt)
                 : this(columnId, null, null, null, skipCorrupt)
@@ -565,8 +534,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 StreamName name = new StreamName(columnId,
@@ -586,23 +554,13 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override object next(object previous)
+            public override long? getNext()
             {
-                base.next(previous);
-                StrongBox<long> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<long>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<long>)previous;
-                    }
-                    result.Value = reader.next();
+                    return null;
                 }
-                return result;
+                return reader.next();
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -631,9 +589,9 @@ namespace OrcSharp
             }
         }
 
-        public class FloatTreeReader : TreeReader
+        sealed public class FloatTreeReader : TreeReader<float?>
         {
-            protected InStream stream;
+            private InStream stream;
             private SerializationUtils utils;
 
             public FloatTreeReader(int columnId, InStream present = null, InStream data = null)
@@ -644,8 +602,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 StreamName name = new StreamName(columnId,
@@ -664,23 +621,13 @@ namespace OrcSharp
                 stream.seek(index);
             }
 
-            public override object next(object previous)
+            public override float? getNext()
             {
-                base.next(previous);
-                StrongBox<float> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<float>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<float>)previous;
-                    }
-                    result.Value = utils.readFloat(stream);
+                    return null;
                 }
-                return result;
+                return utils.readFloat(stream);
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -761,9 +708,9 @@ namespace OrcSharp
             }
         }
 
-        public class DoubleTreeReader : TreeReader
+        sealed public class DoubleTreeReader : TreeReader<double?>
         {
-            protected InStream stream;
+            private InStream stream;
             private SerializationUtils utils;
 
             public DoubleTreeReader(int columnId, InStream present = null, InStream data = null)
@@ -795,23 +742,13 @@ namespace OrcSharp
                 stream.seek(index);
             }
 
-            public override object next(object previous)
+            public override double? getNext()
             {
-                base.next(previous);
-                StrongBox<double> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<double>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<double>)previous;
-                    }
-                    result.Value = utils.readDouble(stream);
+                    return null;
                 }
-                return result;
+                return utils.readDouble(stream);
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -894,11 +831,11 @@ namespace OrcSharp
             }
         }
 
-        public class BinaryTreeReader : TreeReader
+        sealed public class BinaryTreeReader : TreeReader<byte[]>
         {
-            protected InStream stream;
-            protected IntegerReader lengths = null;
-            protected LongColumnVector scratchlcv;
+            private InStream stream;
+            private IntegerReader lengths = null;
+            private LongColumnVector scratchlcv;
 
             public BinaryTreeReader(int columnId, InStream present = null, InStream data = null, InStream length = null,
                 OrcProto.ColumnEncoding encoding = null)
@@ -924,8 +861,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 StreamName name = new StreamName(columnId,
@@ -947,34 +883,15 @@ namespace OrcSharp
                 lengths.seek(index);
             }
 
-            public override object next(object previous)
+            public override byte[] getNext()
             {
-                base.next(previous);
-                BytesWritable result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new BytesWritable();
-                    }
-                    else
-                    {
-                        result = (BytesWritable)previous;
-                    }
-                    int len = (int)lengths.next();
-                    result.setSize(len);
-                    int offset = 0;
-                    while (len > 0)
-                    {
-                        int written = stream.Read(result.getBytes(), offset, len);
-                        if (written < 0)
-                        {
-                            throw new EndOfStreamException("Can't finish byte read from " + stream);
-                        }
-                        len -= written;
-                        offset += written;
-                    }
+                    return null;
                 }
+                int len = (int)lengths.next();
+                byte[] result = new byte[len];
+                stream.readFully(result, 0, len);
                 return result;
             }
 
@@ -1012,10 +929,10 @@ namespace OrcSharp
             }
         }
 
-        public class TimestampTreeReader : TreeReader
+        sealed public class TimestampTreeReader : TreeReader<Timestamp?>
         {
-            protected IntegerReader data = null;
-            protected IntegerReader nanos = null;
+            private IntegerReader data = null;
+            private IntegerReader nanos = null;
             private bool _skipCorrupt;
             private Dictionary<string, long> baseTimestampMap;
             private long base_timestamp;
@@ -1026,7 +943,6 @@ namespace OrcSharp
             public TimestampTreeReader(int columnId, bool skipCorrupt)
                 : this(columnId, null, null, null, null, skipCorrupt)
             {
-
             }
 
             public TimestampTreeReader(int columnId, InStream presentStream, InStream dataStream,
@@ -1066,8 +982,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 data = createIntegerReader(stripeFooter.ColumnsList[columnId].Kind,
@@ -1121,58 +1036,49 @@ namespace OrcSharp
                 nanos.seek(index);
             }
 
-            public override object next(object previous)
+            public override Timestamp? getNext()
             {
-                base.next(previous);
-                StrongBox<Timestamp> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<Timestamp>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<Timestamp>)previous;
-                    }
-                    long millis = (data.next() + base_timestamp) * WriterImpl.MILLIS_PER_SECOND;
-                    int newNanos = parseNanos(nanos.next());
-                    // fix the rounding when we divided by 1000.
-                    if (millis >= 0)
-                    {
-                        millis += newNanos / 1000000;
-                    }
-                    else
-                    {
-                        millis -= newNanos / 1000000;
-                    }
-                    DateTime timestamp = Epoch.getTimestamp(millis);
-
-                    long offset = 0;
-                    // If reader and writer time zones have different rules, adjust the timezone difference
-                    // between reader and writer taking day light savings into account.
-                    if (!hasSameTZRules)
-                    {
-                        offset = (long)((writerTimeZone.GetUtcOffset(timestamp) - readerTimeZone.GetUtcOffset(timestamp)).TotalMilliseconds);
-                    }
-                    long adjustedMillis = millis + offset;
-                    DateTime ts = Epoch.getTimestamp(adjustedMillis);
-                    // Sometimes the reader timezone might have changed after adding the adjustedMillis.
-                    // To account for that change, check for any difference in reader timezone after
-                    // adding adjustedMillis. If so use the new offset (offset at adjustedMillis point of time).
-                    if (!hasSameTZRules &&
-                        (readerTimeZone.GetUtcOffset(timestamp) != readerTimeZone.GetUtcOffset(ts)))
-                    {
-                        long newOffset =
-                            (long)((writerTimeZone.GetUtcOffset(timestamp) - readerTimeZone.GetUtcOffset(ts)).TotalMilliseconds);
-                        adjustedMillis = millis + newOffset;
-                        ts = Epoch.getTimestamp(adjustedMillis);
-                    }
-                    // TODO: fix
-                    // ts.setNanos(newNanos);
-                    result.Value = new Timestamp(ts);
+                    return null;
                 }
-                return result;
+
+                long millis = (data.next() + base_timestamp) * WriterImpl.MILLIS_PER_SECOND;
+                int newNanos = parseNanos(nanos.next());
+                // fix the rounding when we divided by 1000.
+                if (millis >= 0)
+                {
+                    millis += newNanos / 1000000;
+                }
+                else
+                {
+                    millis -= newNanos / 1000000;
+                }
+                DateTime timestamp = Epoch.getTimestamp(millis);
+
+                long offset = 0;
+                // If reader and writer time zones have different rules, adjust the timezone difference
+                // between reader and writer taking day light savings into account.
+                if (!hasSameTZRules)
+                {
+                    offset = (long)((writerTimeZone.GetUtcOffset(timestamp) - readerTimeZone.GetUtcOffset(timestamp)).TotalMilliseconds);
+                }
+                long adjustedMillis = millis + offset;
+                DateTime ts = Epoch.getTimestamp(adjustedMillis);
+                // Sometimes the reader timezone might have changed after adding the adjustedMillis.
+                // To account for that change, check for any difference in reader timezone after
+                // adding adjustedMillis. If so use the new offset (offset at adjustedMillis point of time).
+                if (!hasSameTZRules &&
+                    (readerTimeZone.GetUtcOffset(timestamp) != readerTimeZone.GetUtcOffset(ts)))
+                {
+                    long newOffset =
+                        (long)((writerTimeZone.GetUtcOffset(timestamp) - readerTimeZone.GetUtcOffset(ts)).TotalMilliseconds);
+                    adjustedMillis = millis + newOffset;
+                    ts = Epoch.getTimestamp(adjustedMillis);
+                }
+                // TODO: fix
+                // ts.setNanos(newNanos);
+                return new Timestamp(ts);
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -1188,10 +1094,9 @@ namespace OrcSharp
                 }
 
                 result.reset();
-                object obj = null;
                 for (int i = 0; i < batchSize; i++)
                 {
-                    obj = next(obj);
+                    Timestamp? obj = getNext();
                     if (obj == null)
                     {
                         result.noNulls = false;
@@ -1199,8 +1104,7 @@ namespace OrcSharp
                     }
                     else
                     {
-                        StrongBox<Timestamp> writable = (StrongBox<Timestamp>)obj;
-                        result.vector[i] = writable.Value.Milliseconds;
+                        result.vector[i] = obj.Value.Milliseconds;
                     }
                 }
 
@@ -1229,9 +1133,9 @@ namespace OrcSharp
             }
         }
 
-        public class DateTreeReader : TreeReader
+        sealed public class DateTreeReader : TreeReader<Date?>
         {
-            protected IntegerReader reader = null;
+            private IntegerReader reader = null;
 
             public DateTreeReader(int columnId, InStream present = null, InStream data = null,
                 OrcProto.ColumnEncoding encoding = null)
@@ -1255,8 +1159,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 StreamName name = new StreamName(columnId,
@@ -1276,23 +1179,13 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override object next(object previous)
+            public override Date? getNext()
             {
-                base.next(previous);
-                StrongBox<Date> result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new StrongBox<Date>();
-                    }
-                    else
-                    {
-                        result = (StrongBox<Date>)previous;
-                    }
-                    result.Value = new Date((int)reader.next());
+                    return null;
                 }
-                return result;
+                return new Date((int)reader.next());
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -1321,10 +1214,10 @@ namespace OrcSharp
             }
         }
 
-        public class DecimalTreeReader : TreeReader
+        sealed public class DecimalTreeReader : TreeReader<HiveDecimal>
         {
-            protected InStream valueStream;
-            protected IntegerReader scaleReader = null;
+            private InStream valueStream;
+            private IntegerReader scaleReader = null;
             private LongColumnVector scratchScaleVector;
 
             private int precision;
@@ -1356,8 +1249,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
                 valueStream = streams.get(new StreamName(columnId,
@@ -1378,18 +1270,17 @@ namespace OrcSharp
                 scaleReader.seek(index);
             }
 
-            public override object next(object previous)
+            public override HiveDecimal getNext()
             {
-                base.next(previous);
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    // result = new HiveDecimalWritable();
-                    HiveDecimal result = HiveDecimal.create(
-                        SerializationUtils.readBigInteger(valueStream),
-                        (int)scaleReader.next());
-                    return HiveDecimal.enforcePrecisionScale(result, precision, scale);
+                    return null;
                 }
-                return null;
+
+                HiveDecimal result = HiveDecimal.create(
+                    SerializationUtils.readBigInteger(valueStream),
+                    (int)scaleReader.next());
+                return HiveDecimal.enforcePrecisionScale(result, precision, scale);
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -1460,9 +1351,9 @@ namespace OrcSharp
          * stripe, it creates an internal reader based on whether a direct or
          * dictionary encoding was used.
          */
-        public class StringTreeReader : TreeReader
+        public class StringTreeReader : TreeReader<string>
         {
-            protected TreeReader reader;
+            private TreeReader<string> reader;
 
             public StringTreeReader(int columnId)
                 : base(columnId)
@@ -1500,8 +1391,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 // For each stripe, checks the encoding and initializes the appropriate
                 // reader
@@ -1532,9 +1422,9 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override object next(object previous)
+            public override string getNext()
             {
-                return reader.next(previous);
+                return reader.getNext();
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -1553,7 +1443,6 @@ namespace OrcSharp
         //
         public class BytesColumnVectorUtil
         {
-
             private static byte[] commonReadByteArrays(InStream stream, IntegerReader lengths,
                 LongColumnVector scratchlcv,
                 BytesColumnVector result, long batchSize)
@@ -1646,10 +1535,10 @@ namespace OrcSharp
          * A reader for string columns that are direct encoded in the current
          * stripe.
          */
-        public class StringDirectTreeReader : TreeReader
+        sealed public class StringDirectTreeReader : TreeReader<string>
         {
-            protected InStream stream;
-            protected IntegerReader lengths;
+            private InStream stream;
+            private IntegerReader lengths;
             private LongColumnVector scratchlcv;
 
             public StringDirectTreeReader(int columnId, InStream present = null, InStream data = null,
@@ -1700,24 +1589,16 @@ namespace OrcSharp
                 lengths.seek(index);
             }
 
-            public override object next(object previous)
+            public override string getNext()
             {
-                base.next(previous);
-                Text result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new Text();
-                    }
-                    else
-                    {
-                        result = (Text)previous;
-                    }
-                    int len = (int)lengths.next();
-                    result.readWithKnownLength(stream, len);
+                    return null;
                 }
-                return result;
+                int len = (int)lengths.next();
+                byte[] tmp = new byte[len];
+                stream.readFully(tmp, 0, len);
+                return Encoding.UTF8.GetString(tmp);
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -1769,11 +1650,11 @@ namespace OrcSharp
          * A reader for string columns that are dictionary encoded in the current
          * stripe.
          */
-        public class StringDictionaryTreeReader : TreeReader
+        sealed public class StringDictionaryTreeReader : TreeReader<string>
         {
             private DynamicByteArray dictionaryBuffer;
             private int[] dictionaryOffsets;
-            protected IntegerReader reader;
+            private IntegerReader reader;
 
             private byte[] dictionaryBufferInBytesCache = null;
             private LongColumnVector scratchlcv;
@@ -1810,8 +1691,7 @@ namespace OrcSharp
             }
 
             public override void startStripe(Dictionary<StreamName, InStream> streams,
-                OrcProto.StripeFooter stripeFooter
-            )
+                OrcProto.StripeFooter stripeFooter)
             {
                 base.startStripe(streams, stripeFooter);
 
@@ -1852,7 +1732,6 @@ namespace OrcSharp
                     dictionaryOffsets[dictionarySize] = offset;
                     @in.Close();
                 }
-
             }
 
             private void readDictionaryStream(InStream @in)
@@ -1885,36 +1764,27 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override object next(object previous)
+            public override string getNext()
             {
-                base.next(previous);
-                Text result = null;
-                if (valuePresent)
+                if (!hasValue())
                 {
-                    int entry = (int)reader.next();
-                    if (previous == null)
-                    {
-                        result = new Text();
-                    }
-                    else
-                    {
-                        result = (Text)previous;
-                    }
-                    int offset = dictionaryOffsets[entry];
-                    int length = getDictionaryEntryLength(entry, offset);
-                    // If the column is just empty strings, the size will be zero,
-                    // so the buffer will be null, in that case just return result
-                    // as it will default to empty
-                    if (dictionaryBuffer != null)
-                    {
-                        result.set(dictionaryBuffer.getText(offset, length));
-                    }
-                    else
-                    {
-                        result.clear();
-                    }
+                    return null;
                 }
-                return result;
+
+                int entry = (int)reader.next();
+                int offset = dictionaryOffsets[entry];
+                int length = getDictionaryEntryLength(entry, offset);
+                // If the column is just empty strings, the size will be zero,
+                // so the buffer will be null, in that case just return result
+                // as it will default to empty
+                if (dictionaryBuffer != null)
+                {
+                    return dictionaryBuffer.getText(offset, length);
+                }
+                else
+                {
+                    return string.Empty;
+                }
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -2015,7 +1885,7 @@ namespace OrcSharp
             }
         }
 
-        public class CharTreeReader : StringTreeReader
+        sealed public class CharTreeReader : StringTreeReader
         {
             private readonly int maxLength;
 
@@ -2026,27 +1896,17 @@ namespace OrcSharp
                 this.maxLength = maxLength;
             }
 
-            public override object next(object previous)
+            public override string getNext()
             {
-                Text result;
-                if (previous == null)
+                // Use the string reader implementation
+                string textVal = base.getNext();
+                if (textVal != null)
                 {
-                    result = new Text();
-                }
-                else
-                {
-                    result = (Text)previous;
-                }
-                // Use the string reader implementation to populate the internal Text value
-                object textVal = base.next(result);
-                if (textVal == null)
-                {
+                    // TODO: enforce char length
+                    // enforceMaxLength(maxLength);
                     return null;
                 }
-                // result should now hold the value that was read in.
-                // enforce char length
-                result.enforceMaxLength(maxLength);
-                return result;
+                return textVal;
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -2115,27 +1975,17 @@ namespace OrcSharp
                 this.maxLength = maxLength;
             }
 
-            public override object next(object previous)
+            public override string getNext()
             {
-                Text result;
-                if (previous == null)
+                // Use the string reader implementation
+                string textVal = base.getNext();
+                if (textVal != null)
                 {
-                    result = new Text();
-                }
-                else
-                {
-                    result = (Text)previous;
-                }
-                // Use the string reader implementation to populate the internal Text value
-                object textVal = base.next(result);
-                if (textVal == null)
-                {
+                    // TODO: enforce char length
+                    // enforceMaxLength(maxLength);
                     return null;
                 }
-                // result should now hold the value that was read in.
-                // enforce varchar length
-                result.enforceMaxLength(maxLength);
-                return result;
+                return textVal;
             }
 
             public override object nextVector(object previousVector, long batchSize)
@@ -2191,9 +2041,9 @@ namespace OrcSharp
             }
         }
 
-        public class StructTreeReader : TreeReader
+        sealed public class StructTreeReader : TreeReader<OrcStruct>
         {
-            protected TreeReader[] fields;
+            private TreeReader[] fields;
             private String[] fieldNames;
 
             public StructTreeReader(int columnId,
@@ -2229,33 +2079,18 @@ namespace OrcSharp
                 }
             }
 
-            public override object next(object previous)
+            public override OrcStruct getNext()
             {
-                base.next(previous);
                 OrcStruct result = null;
-                if (valuePresent)
+                if (hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new OrcStruct(fields.Length);
-                    }
-                    else
-                    {
-                        result = (OrcStruct)previous;
-
-                        // If the input format was initialized with a file with a
-                        // different number of fields, the number of fields needs to
-                        // be updated to the correct number
-                        if (result.getNumFields() != fields.Length)
-                        {
-                            result.setNumFields(fields.Length);
-                        }
-                    }
+                    // TODO: optimize
+                    result = new OrcStruct(fields.Length);
                     for (int i = 0; i < fields.Length; ++i)
                     {
                         if (fields[i] != null)
                         {
-                            result.setFieldValue(i, fields[i].next(result.getFieldValue(i)));
+                            result.setFieldValue(i, fields[i].next());
                         }
                     }
                 }
@@ -2319,10 +2154,10 @@ namespace OrcSharp
             }
         }
 
-        public class UnionTreeReader : TreeReader
+        sealed public class UnionTreeReader : TreeReader<OrcUnion>
         {
-            protected TreeReader[] fields;
-            protected RunLengthByteReader tags;
+            private TreeReader[] fields;
+            private RunLengthByteReader tags;
 
             public UnionTreeReader(int columnId,
                 IList<OrcProto.Type> types,
@@ -2353,23 +2188,15 @@ namespace OrcSharp
                 }
             }
 
-            public override object next(object previous)
+            public override OrcUnion getNext()
             {
-                base.next(previous);
                 OrcUnion result = null;
-                if (valuePresent)
+                if (hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new OrcUnion();
-                    }
-                    else
-                    {
-                        result = (OrcUnion)previous;
-                    }
+                    result = new OrcUnion();
                     byte tag = tags.next();
                     object previousVal = result.getObject();
-                    result.set(tag, fields[tag].next(tag == result.getTag() ? previousVal : null));
+                    result.set(tag, fields[tag].next());
                 }
                 return result;
             }
@@ -2411,10 +2238,10 @@ namespace OrcSharp
             }
         }
 
-        public class ListTreeReader : TreeReader
+        sealed public class ListTreeReader : TreeReader<List<object>>
         {
-            protected TreeReader elementReader;
-            protected IntegerReader lengths = null;
+            private TreeReader elementReader;
+            private IntegerReader lengths = null;
 
             public ListTreeReader(int columnId,
                 IList<OrcProto.Type> types,
@@ -2433,36 +2260,18 @@ namespace OrcSharp
                 elementReader.seek(index);
             }
 
-            public override object next(object previous)
+            public override List<object> getNext()
             {
-                base.next(previous);
                 List<object> result = null;
-                if (valuePresent)
+                if (hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new List<object>();
-                    }
-                    else
-                    {
-                        result = (List<object>)previous;
-                    }
-                    int prevLength = result.Count;
                     int length = (int)lengths.next();
-                    // extend the list to the new length
-                    for (int i = prevLength; i < length; ++i)
-                    {
-                        result.Add(null);
-                    }
+                    result = new List<object>(length);
+
                     // read the new elements into the array
                     for (int i = 0; i < length; i++)
                     {
-                        result[i] = elementReader.next(i < prevLength ? result[i] : null);
-                    }
-                    // remove any extra elements
-                    for (int i = prevLength - 1; i >= length; --i)
-                    {
-                        result.RemoveAt(i);
+                        result.Add(elementReader.next());
                     }
                 }
                 return result;
@@ -2510,11 +2319,11 @@ namespace OrcSharp
             }
         }
 
-        public class MapTreeReader : TreeReader
+        sealed public class MapTreeReader : TreeReader<Dictionary<object, object>>
         {
-            protected TreeReader keyReader;
-            protected TreeReader valueReader;
-            protected IntegerReader lengths = null;
+            private TreeReader keyReader;
+            private TreeReader valueReader;
+            private IntegerReader lengths = null;
 
             public MapTreeReader(int columnId,
                 IList<OrcProto.Type> types,
@@ -2551,27 +2360,18 @@ namespace OrcSharp
                 valueReader.seek(index);
             }
 
-            public override object next(object previous)
+            public override Dictionary<object, object> getNext()
             {
-                base.next(previous);
                 Dictionary<object, object> result = null;
-                if (valuePresent)
+                if (hasValue())
                 {
-                    if (previous == null)
-                    {
-                        result = new Dictionary<object, object>();
-                    }
-                    else
-                    {
-                        result = (Dictionary<object, object>)previous;
-                    }
-                    // for now just clear and create new objects
-                    result.Clear();
                     int length = (int)lengths.next();
+                    result = new Dictionary<object, object>(length);
+
                     // read the new elements into the array
                     for (int i = 0; i < length; i++)
                     {
-                        result[keyReader.next(null)] = valueReader.next(null);
+                        result[keyReader.next()] = valueReader.next();
                     }
                 }
                 return result;

@@ -24,7 +24,6 @@ namespace OrcSharp
     using System.Text;
     using OrcSharp.External;
     using OrcProto = global::orc.proto;
-    using System.Runtime.CompilerServices;
 
     /**
      * A tool for printing out the file structure of ORC files.
@@ -483,10 +482,6 @@ namespace OrcSharp
             }
             else
             {
-                if (obj is IStrongBox)
-                {
-                    obj = ((IStrongBox)obj).Value;
-                }
                 switch (type.Kind)
                 {
                     case OrcProto.Type.Types.Kind.STRUCT:
@@ -536,11 +531,10 @@ namespace OrcSharp
                 Reader reader = OrcFile.createReader(file, path);
                 TextWriter @out = System.Console.Out;
                 RecordReader rows = reader.rows(null);
-                object row = null;
                 IList<OrcProto.Type> types = reader.getTypes();
                 while (rows.hasNext())
                 {
-                    row = rows.next(row);
+                    object row = rows.next();
                     JsonWriter writer = new JsonWriter(@out);
                     printObject(writer, row, types, 0);
                     @out.WriteLine();

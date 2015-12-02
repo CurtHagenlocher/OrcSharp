@@ -21,7 +21,6 @@ namespace OrcSharp
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Runtime.CompilerServices;
     using OrcSharp.Serialization;
     using OrcSharp.Types;
     using Xunit;
@@ -82,9 +81,9 @@ namespace OrcSharp
             RecordReader rows = reader.rows();
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(111, ((IStrongBox)((OrcStruct)row).getFieldValue(0)).Value);
-                Assert.Equal(1111L, ((IStrongBox)((OrcStruct)row).getFieldValue(1)).Value);
+                object row = rows.next();
+                Assert.Equal(111, ((OrcStruct)row).getFieldValue(0));
+                Assert.Equal(1111L, ((OrcStruct)row).getFieldValue(1));
             }
         }
 
@@ -124,8 +123,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -165,8 +164,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -199,8 +198,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -233,8 +232,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -267,8 +266,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -301,8 +300,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -337,8 +336,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -373,8 +372,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -409,8 +408,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -442,8 +441,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -476,8 +475,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -510,8 +509,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -544,8 +543,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -583,8 +582,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -622,8 +621,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -670,8 +669,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -718,8 +717,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -766,8 +765,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -805,8 +804,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -845,8 +844,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -885,8 +884,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -924,8 +923,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -963,8 +962,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -1002,8 +1001,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -1041,8 +1040,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -1080,8 +1079,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -1121,8 +1120,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -1174,8 +1173,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -1231,8 +1230,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
 
@@ -1298,9 +1297,9 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
+                object row = rows.next();
                 Assert.Equal(tslist[idx++].getNanos(),
-                      ((StrongBox<Timestamp>)((OrcStruct)row).getFieldValue(0)).Value.getNanos());
+                      ((Timestamp)((OrcStruct)row).getFieldValue(0)).getNanos());
             }
         }
 
@@ -1328,16 +1327,16 @@ namespace OrcSharp
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
             RecordReader rows = reader.rows();
-            object row = rows.next(null);
-            Assert.Equal(-7486502418706614742L, ((StrongBox<long>)row).Value);
-            row = rows.next(row);
-            Assert.Equal(0L, ((StrongBox<long>)row).Value);
-            row = rows.next(row);
-            Assert.Equal(1L, ((StrongBox<long>)row).Value);
-            row = rows.next(row);
-            Assert.Equal(1L, ((StrongBox<long>)row).Value);
-            row = rows.next(row);
-            Assert.Equal(-5535739865598783616L, ((StrongBox<long>)row).Value);
+            object row = rows.next();
+            Assert.Equal(-7486502418706614742L, ((long)row));
+            row = rows.next();
+            Assert.Equal(0L, ((long)row));
+            row = rows.next();
+            Assert.Equal(1L, ((long)row));
+            row = rows.next();
+            Assert.Equal(1L, ((long)row));
+            row = rows.next();
+            Assert.Equal(-5535739865598783616L, ((long)row));
         }
 
         [Theory]
@@ -1376,8 +1375,8 @@ namespace OrcSharp
             rows.seekToRow(idx);
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
     }

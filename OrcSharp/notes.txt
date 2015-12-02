@@ -6,8 +6,3 @@
 5. Replace ETs in Query with LINQ ETs
 6. Further C#-ification
 7. Improve test coverage
-
-Some experiments
-BooleanWritable -> StrongBox<bool>
-ByteWritable -> StrongBox<byte>
-etc.

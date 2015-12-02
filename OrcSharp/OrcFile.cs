@@ -22,6 +22,7 @@ namespace OrcSharp
     using System.IO;
     using OrcSharp.External;
     using OrcSharp.Serialization;
+    using System.Text;
     using System.Threading;
 
     /// <summary>
@@ -29,7 +30,8 @@ namespace OrcSharp
     /// </summary>
     public static class OrcFile
     {
-        public const string MAGIC = "ORC";
+        public const string MagicText = "ORC";
+        public static readonly byte[] MAGIC = Encoding.UTF8.GetBytes(MagicText);
 
         /**
          * Create a version number for the ORC file format, so that we can add

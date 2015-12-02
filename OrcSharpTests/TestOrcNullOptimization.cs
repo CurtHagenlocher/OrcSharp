@@ -21,7 +21,6 @@ namespace OrcSharp
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Runtime.CompilerServices;
     using OrcSharp.External;
     using OrcSharp.Serialization;
     using Xunit;
@@ -133,35 +132,32 @@ namespace OrcSharp
             Assert.Equal(expected, got);
 
             // row 1
-            OrcStruct row = (OrcStruct)rows.next(null);
+            OrcStruct row = (OrcStruct)rows.next();
             Assert.NotNull(row);
             Assert.Null(row.getFieldValue(0));
             Assert.Null(row.getFieldValue(1));
-            Assert.Equal(true, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0)).Value);
+            Assert.Equal(true, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                 getFieldValue(0));
 
             rows.seekToRow(19998);
             // last-1 row
-            row = (OrcStruct)rows.next(null);
+            row = (OrcStruct)rows.next();
             Assert.NotNull(row);
             Assert.NotNull(row.getFieldValue(1));
-            Assert.Equal(0, ((StrongBox<int>)row.getFieldValue(0)).Value);
-            Assert.Equal(true, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0)).Value);
+            Assert.Equal(0, row.getFieldValue(0));
+            Assert.Equal(true, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                 getFieldValue(0));
 
             // last row
-            row = (OrcStruct)rows.next(row);
+            row = (OrcStruct)rows.next();
             Assert.NotNull(row);
             Assert.Null(row.getFieldValue(0));
             Assert.Null(row.getFieldValue(1));
-            Assert.Equal(true, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0)).Value);
+            Assert.Equal(true, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                 getFieldValue(0));
 
             rows.close();
         }
@@ -238,26 +234,24 @@ namespace OrcSharp
 
             rows.seekToRow(19998);
             // last-1 row
-            OrcStruct row = (OrcStruct)rows.next(null);
+            OrcStruct row = (OrcStruct)rows.next();
             Assert.NotNull(row);
             Assert.NotNull(row.getFieldValue(1));
-            Assert.Equal(0, ((StrongBox<int>)row.getFieldValue(0)).Value);
+            Assert.Equal(0, row.getFieldValue(0));
             Assert.Equal("a", row.getFieldValue(1).ToString());
-            Assert.Equal(true, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                         ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                   getFieldValue(0)).Value);
+            Assert.Equal(true, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                   getFieldValue(0));
 
             // last row
-            row = (OrcStruct)rows.next(row);
+            row = (OrcStruct)rows.next();
             Assert.NotNull(row);
             Assert.NotNull(row.getFieldValue(0));
             Assert.NotNull(row.getFieldValue(1));
             Assert.Equal("b", row.getFieldValue(1).ToString());
-            Assert.Equal(true, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                         ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                   getFieldValue(0)).Value);
+            Assert.Equal(true, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                   getFieldValue(0));
             rows.close();
         }
 
@@ -337,34 +331,31 @@ namespace OrcSharp
             Assert.Equal(expected, got);
 
             // row 1
-            OrcStruct row = (OrcStruct)rows.next(null);
+            OrcStruct row = (OrcStruct)rows.next();
             Assert.NotNull(row);
-            Assert.Equal(3, ((StrongBox<int>)row.getFieldValue(0)).Value);
+            Assert.Equal(3, row.getFieldValue(0));
             Assert.Equal("a", row.getFieldValue(1).ToString());
-            Assert.Equal(true, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0)).Value);
+            Assert.Equal(true, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                 getFieldValue(0));
 
             // row 2
-            row = (OrcStruct)rows.next(row);
+            row = (OrcStruct)rows.next();
             Assert.NotNull(row);
             Assert.Null(row.getFieldValue(0));
             Assert.Equal("b", row.getFieldValue(1).ToString());
-            Assert.Equal(true, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0)).Value);
+            Assert.Equal(true, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                 getFieldValue(0));
 
             // row 3
-            row = (OrcStruct)rows.next(row);
+            row = (OrcStruct)rows.next();
             Assert.NotNull(row);
             Assert.Null(row.getFieldValue(1));
-            Assert.Equal(3, ((StrongBox<int>)row.getFieldValue(0)).Value);
-            Assert.Equal(false, ((StrongBox<bool>)row.getFieldValue(2)).Value);
-            Assert.Equal(100, ((StrongBox<int>)
-                         ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0)).Value);
+            Assert.Equal(3, row.getFieldValue(0));
+            Assert.Equal(false, row.getFieldValue(2));
+            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                 getFieldValue(0));
             rows.close();
         }
     }

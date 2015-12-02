@@ -26,7 +26,7 @@ namespace OrcSharp
     /// <summary>
     /// An in-memory representation of a union type.
     /// </summary>
-    sealed class OrcUnion
+    sealed public class OrcUnion
     {
         private byte tag;
         private object @object;

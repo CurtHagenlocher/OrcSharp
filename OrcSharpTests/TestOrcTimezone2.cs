@@ -21,7 +21,6 @@ namespace OrcSharp
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using OrcSharp.Serialization;
     using OrcSharp.Types;
     using Xunit;
@@ -92,8 +91,8 @@ namespace OrcSharp
                 int idx = 0;
                 while (rows.hasNext())
                 {
-                    object row = rows.next(null);
-                    Timestamp got = ((StrongBox<Timestamp>)row).Value;
+                    object row = rows.next();
+                    Timestamp got = ((Timestamp)row);
                     Assert.Equal(ts[idx++], got.ToString());
                 }
                 rows.close();

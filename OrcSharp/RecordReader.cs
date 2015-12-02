@@ -38,7 +38,7 @@ namespace OrcSharp
          * @return the row that was read
          * @throws java.io.IOException
          */
-        object next(object previous);
+        object next();
 
         /**
          * Read the next row batch. The size of the batch to read cannot be controlled

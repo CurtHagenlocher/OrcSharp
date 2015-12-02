@@ -22,7 +22,6 @@ namespace OrcSharp
     using System.IO;
     using OrcSharp.External;
     using OrcSharp.Serialization;
-    using OrcSharp.Types;
     using Xunit;
 
     public class TestWriter : IDisposable
@@ -56,10 +55,9 @@ namespace OrcSharp
             {
                 Reader reader = OrcFile.createReader(file, filename);
                 RecordReader recordReader = reader.rows();
-                object value = null;
-                value = recordReader.next(value);
-                Assert.True(value is Text);
-                Assert.Equal("hello", ((Text)value).Value);
+                object value = recordReader.next();
+                Assert.True(value is string);
+                Assert.Equal("hello", value);
                 recordReader.close();
             }
         }

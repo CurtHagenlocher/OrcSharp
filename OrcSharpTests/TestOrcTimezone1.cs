@@ -18,11 +18,9 @@
 
 namespace OrcSharp
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using OrcSharp.Serialization;
     using OrcSharp.Types;
     using Xunit;
@@ -104,8 +102,8 @@ namespace OrcSharp
                 int idx = 0;
                 while (rows.hasNext())
                 {
-                    object row = rows.next(null);
-                    Timestamp got = ((StrongBox<Timestamp>)row).Value;
+                    object row = rows.next();
+                    Timestamp got = ((Timestamp)row);
                     Assert.Equal(ts[idx++], got.ToString());
                 }
                 rows.close();
@@ -126,7 +124,7 @@ namespace OrcSharp
                     .getStructFieldRef("ts").getFieldObjectInspector();
 
                 RecordReader rows = reader.rows();
-                object row = rows.next(null);
+                object row = rows.next();
                 Assert.NotNull(row);
                 Assert.Equal(Timestamp.Parse("2000-03-12 15:00:00"),
                     tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
@@ -135,7 +133,7 @@ namespace OrcSharp
                 // check the contents of second row
                 Assert.Equal(true, rows.hasNext());
                 rows.seekToRow(7499);
-                row = rows.next(null);
+                row = rows.next();
                 Assert.Equal(Timestamp.Parse("2000-03-12 15:00:01"),
                     tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
                         fields[12])));
