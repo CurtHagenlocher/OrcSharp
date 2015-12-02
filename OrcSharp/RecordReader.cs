@@ -18,7 +18,7 @@
 
 namespace OrcSharp
 {
-    using OrcSharp.External;
+    using OrcSharp.Types;
 
     /// <summary>
     /// A row-by-row iterator for ORC files.

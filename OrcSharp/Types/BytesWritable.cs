@@ -43,6 +43,11 @@ namespace OrcSharp.Types
             return bytes;
         }
 
+        internal int getLength()
+        {
+            return bytes.Length;
+        }
+
         public override bool Equals(object obj)
         {
             return Equals(obj as BytesWritable);

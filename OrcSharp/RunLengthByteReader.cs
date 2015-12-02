@@ -20,7 +20,7 @@ namespace OrcSharp
 {
     using System;
     using System.IO;
-    using OrcSharp.External;
+    using OrcSharp.Types;
 
     /// <summary>
     /// A reader that reads a sequence of bytes. A control byte is read before

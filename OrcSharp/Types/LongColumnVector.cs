@@ -16,48 +16,49 @@
  * limitations under the License.
  */
 
-namespace OrcSharp.External
+namespace OrcSharp.Types
 {
     using System;
     using System.Text;
+    using OrcSharp.External;
 
     /**
-     * This class represents a nullable double precision floating point column vector.
-     * This class will be used for operations on all floating point types (float, double)
-     * and as such will use a 64-bit double value to hold the biggest possible value.
-     * During copy-in/copy-out, smaller types (i.e. float) will be converted as needed. This will
+     * This class represents a nullable int column vector.
+     * This class will be used for operations on all integer types (tinyint, smallint, int, bigint)
+     * and as such will use a 64-bit long value to hold the biggest possible value.
+     * During copy-in/copy-out, smaller int types will be converted as needed. This will
      * reduce the amount of code that needs to be generated and also will run fast since the
      * machine operates with 64-bit words.
      *
      * The vector[] field is public by design for high-performance access in the inner
      * loop of query execution.
      */
-    public class DoubleColumnVector : ColumnVector
+    public class LongColumnVector : ColumnVector
     {
-        public double[] vector;
-        public const double NULL_VALUE = Double.NaN;
+        public long[] vector;
+        public const long NULL_VALUE = 1;
 
         /**
          * Use this constructor by default. All column vectors
          * should normally be the default size.
          */
-        public DoubleColumnVector() : this(DEFAULT_SIZE)
+        public LongColumnVector() : this(DEFAULT_SIZE)
         {
         }
 
         /**
          * Don't use this except for testing purposes.
          *
-         * @param len
+         * @param len the number of rows
          */
-        internal DoubleColumnVector(int len) : base(len)
+        internal LongColumnVector(int len) : base(len)
         {
-            vector = new double[len];
+            vector = new long[len];
         }
 
         // Copy the current object contents into the output. Only copy selected entries,
         // as indicated by selectedInUse and the sel array.
-        public void copySelected(bool selectedInUse, int[] sel, int size, DoubleColumnVector output)
+        public void copySelected(bool selectedInUse, int[] sel, int size, LongColumnVector output)
         {
 
             // Output has nulls if and only if input has nulls.
@@ -107,8 +108,63 @@ namespace OrcSharp.External
             }
         }
 
+        // Copy the current object contents into the output. Only copy selected entries,
+        // as indicated by selectedInUse and the sel array.
+        public void copySelected(bool selectedInUse, int[] sel, int size, DoubleColumnVector output)
+        {
+
+            // Output has nulls if and only if input has nulls.
+            output.noNulls = noNulls;
+            output.isRepeating = false;
+
+            // Handle repeating case
+            if (isRepeating)
+            {
+                output.vector[0] = vector[0];  // automatic conversion to double is done here
+                output.isNull[0] = isNull[0];
+                output.isRepeating = true;
+                return;
+            }
+
+            // Handle normal case
+
+            // Copy data values over
+            if (selectedInUse)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    int i = sel[j];
+                    output.vector[i] = vector[i];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < size; ++i)
+                {
+                    output.vector[i] = vector[i];
+                }
+            }
+
+            // Copy nulls over if needed
+            if (!noNulls)
+            {
+                if (selectedInUse)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        int i = sel[j];
+                        output.isNull[i] = isNull[i];
+                    }
+                }
+                else
+                {
+                    Array.Copy(isNull, 0, output.isNull, 0, size);
+                }
+            }
+        }
+
         // Fill the column vector with the provided value
-        public void fill(double value)
+        public void fill(long value)
         {
             noNulls = true;
             isRepeating = true;
@@ -133,7 +189,7 @@ namespace OrcSharp.External
             if (isRepeating)
             {
                 isRepeating = false;
-                double repeatVal = vector[0];
+                long repeatVal = vector[0];
                 if (selectedInUse)
                 {
                     for (int j = 0; j < size; j++)
@@ -161,7 +217,7 @@ namespace OrcSharp.External
             {
                 isNull[outElementNum] = false;
                 vector[outElementNum] =
-                    ((DoubleColumnVector)inputVector).vector[inputElementNum];
+                    ((LongColumnVector)inputVector).vector[inputElementNum];
             }
             else
             {
@@ -191,8 +247,8 @@ namespace OrcSharp.External
             if (size > vector.Length)
             {
                 base.ensureSize(size, preserveData);
-                double[] oldArray = vector;
-                vector = new double[size];
+                long[] oldArray = vector;
+                vector = new long[size];
                 if (preserveData)
                 {
                     if (isRepeating)

@@ -22,6 +22,7 @@ namespace OrcSharp
     using System.Diagnostics;
     using System.IO;
     using OrcSharp.External;
+    using OrcSharp.Types;
 
     public class BitFieldReader
     {

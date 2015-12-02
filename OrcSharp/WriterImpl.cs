@@ -2531,6 +2531,11 @@ namespace OrcSharp
             memoryManager.addedRow(1);
         }
 
+        public void addRowBatch(VectorizedRowBatch batch)
+        {
+            throw new NotImplementedException();
+        }
+
         void IDisposable.Dispose()
         {
             close();

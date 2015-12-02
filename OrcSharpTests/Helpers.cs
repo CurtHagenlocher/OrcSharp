@@ -21,7 +21,9 @@ namespace OrcSharp
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Numerics;
     using System.Reflection;
+    using System.Text;
     using System.Threading;
     using Xunit;
 
@@ -64,7 +66,7 @@ namespace OrcSharp
             }
         }
 
-        public static long nextLong(this Random rng, long n)
+        public static long NextLong(this Random rng, long n)
         {
             byte[] tmp = new byte[8];
             long bits, val;
@@ -87,6 +89,19 @@ namespace OrcSharp
             byte[] buffer = new byte[4];
             random.NextBytes(buffer);
             return BitConverter.ToSingle(buffer, 0);
+        }
+
+        public static BigInteger NextBigInteger(this Random rand, int bits)
+        {
+            byte[] tmp = new byte[(int)Math.Ceiling(bits / 8.0)];
+            rand.NextBytes(tmp);
+            BigInteger result = new BigInteger(tmp);
+            return result < 0 ? -result : result;
+        }
+
+        public static byte[] getBytes(this string s)
+        {
+            return Encoding.UTF8.GetBytes(s);
         }
 
         static string GetResourcesDirectory()

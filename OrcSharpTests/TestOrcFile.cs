@@ -1267,7 +1267,7 @@ namespace OrcSharp
                     {
                         union.set((byte)1, (i * i).ToString());
                     }
-                    value = HiveDecimal.create(RandomBigInteger(64, rand), rand.Next(18));
+                    value = HiveDecimal.create(rand.NextBigInteger(64), rand.Next(18));
                     row.setFieldValue(2, value);
                     if (maxValue.CompareTo(value) < 0)
                     {
@@ -1391,7 +1391,7 @@ namespace OrcSharp
                     Assert.Equal(1, union.getTag());
                     Assert.Equal(new Text((i * i).ToString()), union.getObject());
                 }
-                Assert.Equal(HiveDecimal.create(RandomBigInteger(64, rand), rand.Next(18)), row.getFieldValue(2));
+                Assert.Equal(HiveDecimal.create(rand.NextBigInteger(64), rand.Next(18)), row.getFieldValue(2));
             }
             for (int i = 0; i < 5000; ++i)
             {
@@ -2022,14 +2022,6 @@ namespace OrcSharp
             }
             Assert.True(!rows.hasNext());
             Assert.Equal(3500, rows.getRowNumber());
-        }
-
-        static BigInteger RandomBigInteger(int bits, Random rand)
-        {
-            byte[] tmp = new byte[(int)Math.Ceiling(bits / 8.0)];
-            rand.NextBytes(tmp);
-            BigInteger result = new BigInteger(tmp);
-            return result < 0 ? -result : result;
         }
     }
 }

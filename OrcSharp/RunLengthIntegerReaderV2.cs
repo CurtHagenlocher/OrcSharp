@@ -22,6 +22,7 @@ namespace OrcSharp
     using System.Diagnostics;
     using System.IO;
     using OrcSharp.External;
+    using OrcSharp.Types;
 
     /**
      * A reader that reads a sequence of light weight compressed integers. Refer

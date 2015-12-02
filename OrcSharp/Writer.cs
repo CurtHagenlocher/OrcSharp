@@ -21,6 +21,7 @@ namespace OrcSharp
     using System;
     using System.Collections.Generic;
     using OrcSharp.External;
+    using OrcSharp.Types;
     using OrcProto = global::orc.proto;
 
     /// <summary>
@@ -49,6 +50,12 @@ namespace OrcSharp
          * @
          */
         void addRow(object row);
+
+        /**
+        * Add a row batch to the ORC file.
+        * @param batch the rows to add
+        */
+        void addRowBatch(VectorizedRowBatch batch);
 
         /**
          * Flush all of the buffers and close the file. No methods on this writer

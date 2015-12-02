@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-namespace OrcSharp.External
+namespace OrcSharp.Types
 {
     using System;
     using System.Numerics;
     using System.Text;
-    using OrcSharp.Types;
 
     public class DecimalColumnVector : ColumnVector
     {

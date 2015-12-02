@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace OrcSharp.External
+namespace OrcSharp.Types
 {
     using System;
     using System.Text;

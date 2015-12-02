@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-namespace OrcSharp.External
+namespace OrcSharp.Types
 {
     using System;
     using System.Text;
+    using OrcSharp.External;
 
     /**
      * ColumnVector contains the shared structure for the sub-types,
@@ -107,6 +108,16 @@ namespace OrcSharp.External
             preFlattenIsRepeating = false;
         }
 
+        /**
+         * Sets the isRepeating flag. Recurses over structs and unions so that the
+         * flags are set correctly.
+         * @param isRepeating
+         */
+        public virtual void setRepeating(bool isRepeating)
+        {
+            this.isRepeating = isRepeating;
+        }
+
         abstract public void flatten(bool selectedInUse, int[] sel, int size);
 
         // Simplify vector by brute-force flattening noNulls if isRepeating
@@ -170,7 +181,7 @@ namespace OrcSharp.External
          * column to continue to benefit from the isRepeating and noNulls
          * indicators.
          */
-        public void unFlatten()
+        public virtual void unFlatten()
         {
             isRepeating = preFlattenIsRepeating;
             noNulls = preFlattenNoNulls;

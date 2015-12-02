@@ -22,6 +22,7 @@ namespace OrcSharp
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Text;
+    using OrcSharp.Types;
 
     /// <summary>
     /// This is the description of the types in an ORC file.
@@ -493,6 +494,80 @@ namespace OrcSharp
             StringBuilder buffer = new StringBuilder();
             printJsonToBuffer("", buffer, 0);
             return buffer.ToString();
+        }
+
+        private ColumnVector createColumn()
+        {
+            switch (category)
+            {
+                case Category.BOOLEAN:
+                case Category.BYTE:
+                case Category.SHORT:
+                case Category.INT:
+                case Category.LONG:
+                case Category.TIMESTAMP:
+                case Category.DATE:
+                    return new LongColumnVector();
+                case Category.FLOAT:
+                case Category.DOUBLE:
+                    return new DoubleColumnVector();
+                case Category.DECIMAL:
+                    return new DecimalColumnVector(precision, scale);
+                case Category.STRING:
+                case Category.BINARY:
+                case Category.CHAR:
+                case Category.VARCHAR:
+                    return new BytesColumnVector();
+                case Category.STRUCT:
+                    {
+                        ColumnVector[] fieldVector = new ColumnVector[children.Count];
+                        for (int i = 0; i < fieldVector.Length; ++i)
+                        {
+                            fieldVector[i] = children[i].createColumn();
+                        }
+                        return new StructColumnVector(VectorizedRowBatch.DEFAULT_SIZE,
+                                fieldVector);
+                    }
+                case Category.UNION:
+                    {
+                        ColumnVector[] fieldVector = new ColumnVector[children.Count];
+                        for (int i = 0; i < fieldVector.Length; ++i)
+                        {
+                            fieldVector[i] = children[i].createColumn();
+                        }
+                        return new UnionColumnVector(VectorizedRowBatch.DEFAULT_SIZE,
+                            fieldVector);
+                    }
+                case Category.LIST:
+                    return new ListColumnVector(VectorizedRowBatch.DEFAULT_SIZE,
+                        children[0].createColumn());
+                case Category.MAP:
+                    return new MapColumnVector(VectorizedRowBatch.DEFAULT_SIZE,
+                        children[0].createColumn(), children[1].createColumn());
+                default:
+                    throw new ArgumentException("Unknown type " + category);
+            }
+        }
+
+        public VectorizedRowBatch createRowBatch()
+        {
+            VectorizedRowBatch result;
+            if (category == Category.STRUCT)
+            {
+                result = new VectorizedRowBatch(children.Count,
+                    VectorizedRowBatch.DEFAULT_SIZE);
+                for (int i = 0; i < result.cols.Length; ++i)
+                {
+                    result.cols[i] = children[i].createColumn();
+                }
+            }
+            else
+            {
+                result = new VectorizedRowBatch(1, VectorizedRowBatch.DEFAULT_SIZE);
+                result.cols[0] = createColumn();
+            }
+            result.reset();
+            return result;
         }
     }
 

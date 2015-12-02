@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+using OrcSharp.Types;
 namespace OrcSharp.External
 {
     /**

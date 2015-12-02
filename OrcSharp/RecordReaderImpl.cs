@@ -1433,6 +1433,11 @@ namespace OrcSharp
             return ((float)rowBaseInStripe + rowInStripe) / totalRowCount;
         }
 
+        public MetadataReader getMetadataReader()
+        {
+            return metadata;
+        }
+
         private int findStripe(long rowNumber)
         {
             for (int i = 0; i < stripes.Count; i++)

@@ -35,6 +35,13 @@ namespace OrcSharp.Types
             milliseconds = Epoch.getTimestamp(date);
         }
 
+        public Timestamp(int year1900, int month, int day, int hour, int minute, int second, int nanos)
+        {
+            // TODO:
+            DateTime datetime = new DateTime(1900 + year1900, month, day, hour, minute, second);
+            milliseconds = Epoch.getTimestamp(datetime);
+        }
+
         public DateTime AsDateTime
         {
             get { return Epoch.getTimestamp(milliseconds); }

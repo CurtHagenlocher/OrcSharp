@@ -97,6 +97,7 @@
     <Compile Include="TestStringRedBlackTree.cs" />
     <Compile Include="TestTypeDescription.cs" />
     <Compile Include="TestUnrolledBitPack.cs" />
+    <Compile Include="TestVectorOrcFile.cs" />
     <Compile Include="TestWriter.cs" />
     <Compile Include="WithLocalDirectory.cs" />
   </ItemGroup>
