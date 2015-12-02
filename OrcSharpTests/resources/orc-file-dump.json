@@ -1,5 +1,5 @@
 {
-  "fileName": "TestFileDump.testDump.orc",
+  "fileName": "TestJsonFileDump.orc",
   "fileVersion": "0.12",
   "writerVersion": "HIVE_4243",
   "numberOfRows": 21000,

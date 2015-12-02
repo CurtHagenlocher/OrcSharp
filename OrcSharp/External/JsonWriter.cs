@@ -43,7 +43,11 @@ namespace OrcSharp.External
 
         public void array()
         {
-            @out.Write('[');
+            if (stack.Length > 0)
+            {
+                First();
+            }
+            @out.WriteLine('[');
             stack.Append('[');
             first = true;
         }
@@ -52,19 +56,25 @@ namespace OrcSharp.External
         {
             First(true);
             WriteQuotedString(value);
-            @out.Write(':');
+            @out.Write(": ");
             return this;
         }
 
         public void endArray()
         {
             stack.Remove(stack.Length - 1, 1);
+            @out.Write(Environment.NewLine);
             @out.Write(']');
+            first = false;
         }
 
         public void newObject()
         {
-            @out.Write('{');
+            if (stack.Length > 0)
+            {
+                First();
+            }
+            @out.WriteLine('{');
             stack.Append('{');
             first = true;
         }
@@ -72,7 +82,9 @@ namespace OrcSharp.External
         public void endObject()
         {
             stack.Remove(stack.Length - 1, 1);
+            @out.Write(Environment.NewLine);
             @out.Write('}');
+            first = false;
         }
 
         public void value(int value)
@@ -129,7 +141,7 @@ namespace OrcSharp.External
             }
             else
             {
-                @out.Write(',');
+                @out.WriteLine(',');
             }
         }
 

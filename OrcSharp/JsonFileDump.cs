@@ -48,9 +48,9 @@ namespace OrcSharp
                 {
                     writer.newObject();
                 }
-                writer.key("fileName").value(filename);
+                writer.key("fileName").value(Path.GetFileName(filename));
                 Reader reader = OrcFile.createReader(filename, OrcFile.readerOptions(conf));
-                writer.key("fileVersion").value(reader.getFileVersion().ToString());
+                writer.key("fileVersion").value(OrcFile.VersionHelper.getName(reader.getFileVersion()));
                 writer.key("writerVersion").value(reader.getWriterVersion().ToString());
                 RecordReaderImpl rows = (RecordReaderImpl)reader.rows();
                 writer.key("numberOfRows").value(reader.getNumberOfRows());
