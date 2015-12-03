@@ -959,13 +959,13 @@ namespace OrcSharp
             Assert.Equal(2, stats[1].getNumberOfValues());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getFalseCount());
             Assert.Equal(1, ((BooleanColumnStatistics)stats[1]).getTrueCount());
-            Assert.Equal("count: 2 hasNull: false true: 1", stats[1].ToString());
+            Assert.Equal("count: 2 hasNull: False true: 1", stats[1].ToString());
 
             Assert.Equal(2048, ((IntegerColumnStatistics)stats[3]).getMaximum());
             Assert.Equal(1024, ((IntegerColumnStatistics)stats[3]).getMinimum());
             Assert.Equal(true, ((IntegerColumnStatistics)stats[3]).isSumDefined());
             Assert.Equal(3072, ((IntegerColumnStatistics)stats[3]).getSum());
-            Assert.Equal("count: 2 hasNull: false min: 1024 max: 2048 sum: 3072",
+            Assert.Equal("count: 2 hasNull: False min: 1024 max: 2048 sum: 3072",
                 stats[3].ToString());
 
             StripeStatistics ss = reader.getStripeStatistics()[0];
@@ -977,10 +977,10 @@ namespace OrcSharp
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-20.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 2 hasNull: false min: -15.0 max: -5.0 sum: -20.0",
+            Assert.Equal("count: 2 hasNull: False min: -15 max: -5 sum: -20",
                 stats[7].ToString());
 
-            Assert.Equal("count: 2 hasNull: false min: bye max: hi sum: 5", stats[9].ToString());
+            Assert.Equal("count: 2 hasNull: False min: bye max: hi sum: 5", stats[9].ToString());
 
             // check the inspectors
             StructObjectInspector readerInspector =

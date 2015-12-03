@@ -18,6 +18,7 @@
 
 namespace OrcSharp
 {
+    using System;
     using System.IO;
     using System.Text;
 
@@ -39,6 +40,20 @@ namespace OrcSharp
         public int add(string value)
         {
             return add(Encoding.UTF8.GetBytes(value));
+        }
+
+        public int add(byte[] bytes, int offset, int length)
+        {
+            if (offset == 0 && length == bytes.Length)
+            {
+                return add(bytes);
+            }
+            else
+            {
+                byte[] buffer = new byte[length];
+                Array.Copy(bytes, offset, buffer, 0, length);
+                return add(buffer);
+            }
         }
 
         public int add(byte[] bytes)
