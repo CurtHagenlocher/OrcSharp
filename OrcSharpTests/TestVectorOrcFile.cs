@@ -21,6 +21,7 @@ namespace OrcSharp
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Numerics;
     using System.Runtime.CompilerServices;
     using System.Text;
@@ -458,7 +459,7 @@ namespace OrcSharp
                 for (int i = 0; i < tslist.Count; ++i)
                 {
                     Timestamp ts = tslist[i];
-                    vec.vector[i] = TimestampUtils.getTimeNanoSec(ts);
+                    vec.vector[i] = ts.Nanoseconds;
                 }
                 writer.addRowBatch(batch);
                 writer.close();
@@ -1371,8 +1372,7 @@ namespace OrcSharp
                     for (int ms = 1000; ms < 2000; ++ms)
                     {
                         ((LongColumnVector)batch.cols[0]).vector[ms - 1000] =
-                            TimestampUtils.getTimeNanoSec(Timestamp.Parse(year +
-                                "-05-05 12:34:56." + ms));
+                            Timestamp.Parse(year + "-05-05 12:34:56." + ms).Nanoseconds;
                         ((LongColumnVector)batch.cols[1]).vector[ms - 1000] =
                             new Date(year - 1900, 11, 25).Days;
                     }
@@ -1415,8 +1415,7 @@ namespace OrcSharp
             UnionColumnVector union = (UnionColumnVector)batch.cols[1];
             if (ts != null)
             {
-                ((LongColumnVector)batch.cols[0]).vector[rowId] =
-                    TimestampUtils.getTimeNanoSec(ts.Value);
+                ((LongColumnVector)batch.cols[0]).vector[rowId] = ts.Value.Nanoseconds;
             }
             else
             {
@@ -1878,10 +1877,10 @@ namespace OrcSharp
                 Assert.Equal(expected.bytes1, row.getFieldValue(7));
                 Assert.Equal(expected.string1, row.getFieldValue(8));
                 List<InnerStruct> expectedList = expected.middle.list;
-                List<OrcStruct> actualList =
-                    (List<OrcStruct>)((OrcStruct)row.getFieldValue(9)).getFieldValue(0);
+                IList<object> actualList =
+                    (IList<object>)((OrcStruct)row.getFieldValue(9)).getFieldValue(0);
                 compareList(expectedList, actualList);
-                compareList(expected.list, (List<OrcStruct>)row.getFieldValue(10));
+                compareList(expected.list, (IList<object>)row.getFieldValue(10));
             }
             rows.close();
 
@@ -1939,12 +1938,12 @@ namespace OrcSharp
             }
         }
 
-        private void compareList(List<InnerStruct> expect, List<OrcStruct> actual)
+        private void compareList(IList<InnerStruct> expect, IList<object> actual)
         {
             Assert.Equal(expect.Count, actual.Count);
             for (int j = 0; j < expect.Count; ++j)
             {
-                compareInner(expect[j], actual[j]);
+                compareInner(expect[j], (OrcStruct)actual[j]);
             }
         }
 
@@ -2299,8 +2298,7 @@ namespace OrcSharp
                 ((DoubleColumnVector)batch.cols[5]).vector[0] = 0.0009765625;
                 ((LongColumnVector)batch.cols[6]).vector[0] = new Date(111, 6, 1).Days;
                 ((LongColumnVector)batch.cols[7]).vector[0] =
-                    TimestampUtils.getTimeNanoSec(new Timestamp(115, 9, 23, 10, 11, 59,
-                        999999999));
+                    new Timestamp(115, 9, 23, 10, 11, 59, 999999999).Nanoseconds;
                 ((DecimalColumnVector)batch.cols[8]).vector[0] =
                     HiveDecimal.Parse("1.234567");
                 ((BytesColumnVector)batch.cols[9]).setVal(0, "Echelon".getBytes());
@@ -2355,8 +2353,7 @@ namespace OrcSharp
                     ((DoubleColumnVector)batch.cols[5]).vector[r] = 0.0009765625 * r;
                     ((LongColumnVector)batch.cols[6]).vector[r] = new Date(111, 6, 1).Days + r;
                     ((LongColumnVector)batch.cols[7]).vector[r] =
-                        TimestampUtils.getTimeNanoSec(new Timestamp(115, 9, 23, 10, 11, 59,
-                            999999999)) + r * 1000000000L;
+                        new Timestamp(115, 9, 23, 10, 11, 59, 999999999).Nanoseconds + r * 1000000000L;
                     ((DecimalColumnVector)batch.cols[8]).vector[r] =
                         HiveDecimal.Parse("1.234567");
                     ((BytesColumnVector)batch.cols[9]).setVal(r,
@@ -2443,9 +2440,9 @@ namespace OrcSharp
             {
                 Assert.Equal(true, rows.hasNext());
                 row = (OrcStruct)rows.next();
-                Assert.Equal("48 6f 72 74 6f 6e",
-                    row.getFieldValue(0).ToString());
-                Assert.Equal("true", row.getFieldValue(1).ToString());
+                Assert.Equal(bytes(0x48, 0x6f, 0x72, 0x74, 0x6f, 0x6e),
+                    (byte[])row.getFieldValue(0));
+                Assert.Equal("True", row.getFieldValue(1).ToString());
                 Assert.Equal("-126", row.getFieldValue(2).ToString());
                 Assert.Equal("1311768467463790320",
                     row.getFieldValue(3).ToString());
@@ -2879,8 +2876,8 @@ namespace OrcSharp
                 }
                 else if (r < 300)
                 {
-                    Assert.Equal("[" + ((r - 200) * 10) + "]",
-                        inner.ToString());
+                    Assert.Equal(1, inner.Count);
+                    Assert.Equal((r - 200) * 10L, inner[0]);
                 }
                 else if (r < 400)
                 {
@@ -2888,8 +2885,8 @@ namespace OrcSharp
                 }
                 else if (r < 500)
                 {
-                    Assert.Equal("[" + ((r - 300) * 10) + "]",
-                        inner.ToString());
+                    Assert.Equal(1, inner.Count);
+                    Assert.Equal((r - 300) * 10L, inner[0]);
                 }
                 else if (r < 600)
                 {
@@ -2897,8 +2894,9 @@ namespace OrcSharp
                 }
                 else if (r < 700)
                 {
-                    Assert.Equal("[" + (10 * r) + ", " + (10 * (r + 1)) + "]",
-                        inner.ToString());
+                    Assert.Equal(2, inner.Count);
+                    Assert.Equal(10L * r, inner[0]);
+                    Assert.Equal(10L * (r + 1), inner[1]);
                 }
                 else
                 {
@@ -2984,8 +2982,9 @@ namespace OrcSharp
                 }
                 else if (r < 300)
                 {
-                    Assert.Equal("{" + (r - 200) + "=" + ((r - 200) * 10) + "}",
-                        inner.ToString());
+                    Assert.Equal(1, inner.Count);
+                    Assert.Equal(r - 200L, inner.First().Key);
+                    Assert.Equal((r - 200) * 10L, inner.First().Value);
                 }
                 else if (r < 400)
                 {
@@ -2993,8 +2992,9 @@ namespace OrcSharp
                 }
                 else if (r < 500)
                 {
-                    Assert.Equal("{" + (r - 300) + "=" + ((r - 300) * 10) + "}",
-                        inner.ToString());
+                    Assert.Equal(1, inner.Count);
+                    Assert.Equal(r - 300L, inner.First().Key);
+                    Assert.Equal((r - 300) * 10L, inner.First().Value);
                 }
                 else if (r < 600)
                 {
@@ -3002,9 +3002,11 @@ namespace OrcSharp
                 }
                 else if (r < 700)
                 {
-                    Assert.Equal("{" + r + "=" + (r * 10) + ", " +
-                            (r + 1) + "=" + (10 * (r + 1)) + "}",
-                        inner.ToString());
+                    Assert.Equal(2, inner.Count);
+                    Assert.True(inner.ContainsKey((long)r));
+                    Assert.Equal(r * 10L, inner[(long)r]);
+                    Assert.True(inner.ContainsKey(r + 1L));
+                    Assert.Equal(10L * (r + 1), inner[r + 1L]);
                 }
                 else
                 {
@@ -3012,17 +3014,6 @@ namespace OrcSharp
                 }
             }
             Assert.Equal(false, rows.hasNext());
-        }
-    }
-
-    // Hacks to make this file build
-    class TimestampUtils
-    {
-        internal static long getTimeNanoSec(Timestamp t)
-        {
-            long time = t.getSeconds();
-            int nanos = t.getNanos();
-            return (time * 1000000) + (nanos % 1000000);
         }
     }
 }
