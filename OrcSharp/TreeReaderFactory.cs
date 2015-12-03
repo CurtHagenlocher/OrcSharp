@@ -274,7 +274,7 @@ namespace OrcSharp
             }
         }
 
-        sealed public class ByteTreeReader : TreeReader<byte?>
+        sealed public class ByteTreeReader : TreeReader<sbyte?>
         {
             private RunLengthByteReader reader = null;
 
@@ -303,14 +303,14 @@ namespace OrcSharp
                 reader.seek(index);
             }
 
-            public override byte? getNext()
+            public override sbyte? getNext()
             {
                 if (!hasValue())
                 {
                     return null;
                 }
 
-                return reader.next();
+                return (sbyte)reader.next();
             }
 
             public override object nextVector(object previousVector, long batchSize)

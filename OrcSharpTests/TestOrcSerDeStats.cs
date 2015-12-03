@@ -86,7 +86,7 @@ namespace OrcSharp
         public class BigRow
         {
             bool boolean1;
-            byte byte1;
+            sbyte byte1;
             short short1;
             int int1;
             long long1;
@@ -100,7 +100,7 @@ namespace OrcSharp
             HiveDecimal decimal1;
             MiddleStruct middle;
 
-            public BigRow(bool b1, byte b2, short s1, int i1, long l1, float f1,
+            public BigRow(bool b1, sbyte b2, short s1, int i1, long l1, float f1,
                 double d1,
                 byte[] b3, string s2, MiddleStruct m1,
                 List<InnerStruct> l2, Dictionary<string, InnerStruct> m2, DateTime ts1, // Timestamp ts1,
@@ -371,7 +371,7 @@ namespace OrcSharp
                     .bufferSize(10000)))
             {
                 // 1 + 2 + 4 + 8 + 4 + 8 + 5 + 2 + 4 + 3 + 4 + 4 + 4 + 4 + 4 + 3 = 64
-                writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
+                writer.addRow(new BigRow(false, (sbyte)1, (short)1024, 65536,
                         Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
                         new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                         list(inner(3, "good"), inner(4, "bad")),
@@ -379,7 +379,7 @@ namespace OrcSharp
                             "12345678.6547456")));
                 // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
                 // 97
-                writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
+                writer.addRow(new BigRow(true, (sbyte)100, (short)2048, 65536,
                     Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
                     new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                     list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
@@ -466,7 +466,7 @@ namespace OrcSharp
                     .bufferSize(10000)))
             {
                 // 1 + 2 + 4 + 8 + 4 + 8 + 5 + 2 + 4 + 3 + 4 + 4 + 4 + 4 + 4 + 3 = 64
-                writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
+                writer.addRow(new BigRow(false, (sbyte)1, (short)1024, 65536,
                         Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
                         new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                         list(inner(3, "good"), inner(4, "bad")),
@@ -474,7 +474,7 @@ namespace OrcSharp
                             "12345678.6547456")));
                 // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
                 // 97
-                writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
+                writer.addRow(new BigRow(true, (sbyte)100, (short)2048, 65536,
                     Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
                     new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                     list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),

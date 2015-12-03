@@ -67,7 +67,7 @@ namespace OrcSharp
         public class BigRow
         {
             internal bool boolean1;
-            internal byte byte1;
+            internal sbyte byte1;
             internal short short1;
             internal int int1;
             internal long long1;
@@ -79,7 +79,7 @@ namespace OrcSharp
             internal List<InnerStruct> list = new List<InnerStruct>();
             internal Dictionary<string, InnerStruct> map = new Dictionary<string, InnerStruct>();
 
-            public BigRow(bool b1, byte b2, short s1, int i1, long l1, float f1,
+            public BigRow(bool b1, sbyte b2, short s1, int i1, long l1, float f1,
                    double d1, byte[] b3, string s2, MiddleStruct m1,
                    List<InnerStruct> l2, Dictionary<string, InnerStruct> m2)
             {
@@ -1970,7 +1970,7 @@ namespace OrcSharp
             InnerStruct inner = new InnerStruct((int)intValues[i], stringValues[i]);
             InnerStruct inner2 = new InnerStruct((int)(intValues[i] >> 32),
                 words[i % words.Length] + "-x");
-            return new BigRow((intValues[i] & 1) == 0, (byte)intValues[i],
+            return new BigRow((intValues[i] & 1) == 0, (sbyte)intValues[i],
                 (short)intValues[i], (int)intValues[i], intValues[i],
                 (float)doubleValues[i], doubleValues[i], byteValues[i], stringValues[i],
                 new MiddleStruct(inner, inner2), MakeList(), MakeMap(inner, inner2));
@@ -2447,7 +2447,7 @@ namespace OrcSharp
                 Assert.Equal("1311768467463790320",
                     row.getFieldValue(3).ToString());
                 Assert.Equal("1.125", row.getFieldValue(4).ToString());
-                Assert.Equal("9.765625E-4", row.getFieldValue(5).ToString());
+                Assert.Equal(9.765625E-4, (double)row.getFieldValue(5), 12);
                 Assert.Equal("2011-07-01", row.getFieldValue(6).ToString());
                 Assert.Equal("2015-10-23 10:11:59.999999999",
                     row.getFieldValue(7).ToString());

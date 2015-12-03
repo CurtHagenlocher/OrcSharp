@@ -72,7 +72,7 @@ namespace OrcSharp
         public class BigRow
         {
             internal bool boolean1;
-            internal byte byte1;
+            internal sbyte byte1;
             internal short short1;
             internal int int1;
             internal long long1;
@@ -84,7 +84,7 @@ namespace OrcSharp
             internal List<InnerStruct> list = new List<InnerStruct>();
             internal Dictionary<string, InnerStruct> map = new Dictionary<string, InnerStruct>();
 
-            public BigRow(bool b1, byte b2, short s1, int i1, long l1, float f1,
+            public BigRow(bool b1, sbyte b2, short s1, int i1, long l1, float f1,
                    double d1,
                    byte[] b3, string s2, MiddleStruct m1,
                    List<InnerStruct> l2, Dictionary<string, InnerStruct> m2)
@@ -656,12 +656,12 @@ namespace OrcSharp
                     .stripeSize(100000)
                     .bufferSize(10000)))
             {
-                writer.addRow(new BigRow(false, (byte)1, (short)1024, 65536,
+                writer.addRow(new BigRow(false, (sbyte)1, (short)1024, 65536,
                     Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
                     new MiddleStruct(new InnerStruct(1, "bye"), new InnerStruct(2, "sigh")),
                     new List<InnerStruct> { new InnerStruct(3, "good"), new InnerStruct(4, "bad") },
                     makeMap()));
-                writer.addRow(new BigRow(true, (byte)100, (short)2048, 65536,
+                writer.addRow(new BigRow(true, (sbyte)100, (short)2048, 65536,
                     Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
                     new MiddleStruct(new InnerStruct(1, "bye"), new InnerStruct(2, "sigh")),
                     new List<InnerStruct> { new InnerStruct(100000000, "cat"), new InnerStruct(-100000, "in"), new InnerStruct(1234, "hat") },
@@ -1070,7 +1070,7 @@ namespace OrcSharp
                 random.NextBytes(bigBuf.array());
                 writer.addUserMetadata("big", bigBuf);
                 bigBuf.position(0);
-                writer.addRow(new BigRow(true, (byte)127, (short)1024, 42,
+                writer.addRow(new BigRow(true, (sbyte)127, (short)1024, 42,
                     42L * 1024 * 1024 * 1024, (float)3.1415, -2.713, null,
                     null, null, null, null));
                 writer.addUserMetadata("clobber", byteBuf(5, 7, 11, 13, 17, 19));
@@ -1764,7 +1764,7 @@ namespace OrcSharp
             InnerStruct inner = new InnerStruct((int)intValues[i], stringValues[i]);
             InnerStruct inner2 = new InnerStruct((int)(intValues[i] >> 32),
                 words[i % words.Length] + "-x");
-            return new BigRow((intValues[i] & 1) == 0, (byte)intValues[i],
+            return new BigRow((intValues[i] & 1) == 0, (sbyte)intValues[i],
                 (short)intValues[i], (int)intValues[i], intValues[i],
                 (float)doubleValues[i], doubleValues[i], byteValues[i], stringValues[i],
                 new MiddleStruct(inner, inner2), new List<InnerStruct>(), makeMap(inner, inner2));

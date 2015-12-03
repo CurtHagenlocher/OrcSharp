@@ -36,7 +36,7 @@ namespace OrcSharp
         class MyRecord
         {
             private bool? bo;
-            private byte? by;
+            private sbyte? by;
             private int? i;
             private long? l;
             private short? s;
@@ -46,7 +46,7 @@ namespace OrcSharp
             private Date? dt;
             private HiveDecimal hd;
 
-            public MyRecord(bool? bo, byte? by, int? i, long? l, short? s, double? d, string k,
+            public MyRecord(bool? bo, sbyte? by, int? i, long? l, short? s, double? d, string k,
                 Timestamp? t, Date? dt, HiveDecimal hd)
             {
                 this.bo = bo;
@@ -94,7 +94,7 @@ namespace OrcSharp
                 {
                     if ((i % 7) != 0)
                     {
-                        writer.addRow(new MyRecord(((i % 3) == 0), (byte)(i % 5), i, (long)200, (short)(300 + i), (double)(400 + i),
+                        writer.addRow(new MyRecord(((i % 3) == 0), (sbyte)(i % 5), i, (long)200, (short)(300 + i), (double)(400 + i),
                             words[r1.Next(words.Length)], new Timestamp(DateTime.Now),
                             Date.Parse(dates[i % 3]), HiveDecimal.Parse(decimalStrings[i % decimalStrings.Length])));
                     }
@@ -185,7 +185,7 @@ namespace OrcSharp
                             string b = Encoding.UTF8.GetString(bcv.vector[rowId], bcv.start[rowId], bcv.length[rowId]);
                             Assert.Equal((string)a, b);
                         }
-                        else if (a is int || a is long || a is byte || a is short)
+                        else if (a is int || a is long || a is sbyte || a is short)
                         {
                             Assert.Equal(a.ToString(),
                                 ((LongColumnVector)cv).vector[rowId].ToString());

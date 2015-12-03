@@ -340,9 +340,13 @@ namespace OrcSharp.Serialization
         {
         }
 
-        internal byte get(object obj)
+        internal sbyte get(object obj)
         {
-            return (byte)obj;
+            if (obj is byte)
+            {
+                return (sbyte)(byte)obj;
+            }
+            return (sbyte)obj;
         }
     }
 
@@ -865,7 +869,7 @@ namespace OrcSharp.Serialization
             {
                 case TypeCode.Boolean:
                     return PrimitiveObjectInspectorFactory.writableBooleanObjectInspector;
-                case TypeCode.Byte:
+                case TypeCode.SByte:
                     return PrimitiveObjectInspectorFactory.writableByteObjectInspector;
                 case TypeCode.DateTime:
                     return PrimitiveObjectInspectorFactory.writableTimestampObjectInspector;
@@ -885,7 +889,7 @@ namespace OrcSharp.Serialization
                 case TypeCode.DBNull:
                 case TypeCode.Decimal:
                 case TypeCode.Empty:
-                case TypeCode.SByte:
+                case TypeCode.Byte:
                 case TypeCode.UInt16:
                 case TypeCode.UInt32:
                 case TypeCode.UInt64:

@@ -1089,13 +1089,13 @@ namespace OrcSharp
                 base.write(obj);
                 if (obj != null)
                 {
-                    byte val = ((ByteObjectInspector)inspector).get(obj);
+                    sbyte val = ((ByteObjectInspector)inspector).get(obj);
                     indexStatistics.updateInteger(val);
                     if (createBloomFilter)
                     {
                         bloomFilter.addLong(val);
                     }
-                    writer.write(val);
+                    writer.write((byte)val);
                 }
             }
 
