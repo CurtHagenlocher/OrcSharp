@@ -100,6 +100,24 @@ namespace OrcSharp.External
             return true;
         }
 
+        public static bool AreEqual<T>(IList<T> list1, int offset1, IList<T> list2, int length) where T : IEquatable<T>
+        {
+            if (list1.Count < offset1 + length || list2.Count < length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                if (!list1[i + offset1].Equals(list2[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public static IList<int> flip(this IList<uint> array)
         {
             int[] result = new int[array.Count];

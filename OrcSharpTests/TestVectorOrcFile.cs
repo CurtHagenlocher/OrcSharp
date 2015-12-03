@@ -39,12 +39,12 @@ namespace OrcSharp
         public class InnerStruct
         {
             internal int int1;
-            internal Text string1 = new Text();
+            internal string string1;
 
             public InnerStruct(int int1, string string1)
             {
                 this.int1 = int1;
-                this.string1.set(string1);
+                this.string1 = string1;
             }
 
             public override string ToString()
@@ -72,15 +72,14 @@ namespace OrcSharp
             internal long long1;
             internal float float1;
             internal double double1;
-            internal BytesWritable bytes1;
-            internal Text string1;
+            internal byte[] bytes1;
+            internal string string1;
             internal MiddleStruct middle;
             internal List<InnerStruct> list = new List<InnerStruct>();
-            internal Dictionary<Text, InnerStruct> map = new Dictionary<Text, InnerStruct>();
+            internal Dictionary<string, InnerStruct> map = new Dictionary<string, InnerStruct>();
 
             public BigRow(bool b1, byte b2, short s1, int i1, long l1, float f1,
-                   double d1,
-                   BytesWritable b3, string s2, MiddleStruct m1,
+                   double d1, byte[] b3, string s2, MiddleStruct m1,
                    List<InnerStruct> l2, Dictionary<string, InnerStruct> m2)
             {
                 this.boolean1 = b1;
@@ -91,22 +90,15 @@ namespace OrcSharp
                 this.float1 = f1;
                 this.double1 = d1;
                 this.bytes1 = b3;
-                if (s2 == null)
-                {
-                    this.string1 = null;
-                }
-                else
-                {
-                    this.string1 = new Text(s2);
-                }
+                this.string1 = s2;
                 this.middle = m1;
                 this.list = l2;
                 if (m2 != null)
                 {
-                    this.map = new Dictionary<Text, InnerStruct>(m2.Count);
+                    this.map = new Dictionary<string, InnerStruct>(m2.Count);
                     foreach (KeyValuePair<string, InnerStruct> item in m2)
                     {
-                        this.map.Add(new Text(item.Key), item.Value);
+                        this.map.Add(item.Key, item.Value);
                     }
                 }
                 else
@@ -133,7 +125,7 @@ namespace OrcSharp
             Dictionary<string, InnerStruct> result = new Dictionary<string, InnerStruct>(items.Length);
             foreach (InnerStruct i in items)
             {
-                result.Add(i.string1.Value, i);
+                result.Add(i.string1, i);
             }
             return result;
         }
@@ -143,13 +135,12 @@ namespace OrcSharp
             return new List<InnerStruct>(items);
         }
 
-        private static BytesWritable bytes(params int[] items)
+        private static byte[] bytes(params int[] items)
         {
-            BytesWritable result = new BytesWritable();
-            result.setSize(items.Length);
+            byte[] result = new byte[items.Length];
             for (int i = 0; i < items.Length; ++i)
             {
-                result.getBytes()[i] = (byte)items[i];
+                result[i] = (byte)items[i];
             }
             return result;
         }
@@ -283,7 +274,7 @@ namespace OrcSharp
             StringObjectInspector mk = (StringObjectInspector)ma
                 .getMapKeyObjectInspector();
             RecordReader rows = reader.rows();
-            object row = rows.next(null);
+            object row = rows.next();
             Assert.NotNull(row);
             // check the contents of the first row
             Assert.Equal(false,
@@ -302,8 +293,7 @@ namespace OrcSharp
                 dbl.get(readerInspector.getStructFieldData(row, fields[6])),
                 5);
             Assert.Equal(bytes(0, 1, 2, 3, 4),
-                bi.getPrimitiveWritableObject(readerInspector.getStructFieldData(row,
-                    fields[7])));
+                bi.get(readerInspector.getStructFieldData(row, fields[7])));
             Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector
                 .getStructFieldData(row, fields[8])));
             IList<object> midRow = midli.getList(mid.getStructFieldData(
@@ -343,7 +333,7 @@ namespace OrcSharp
             // check the contents of second row
             Assert.Equal(true, rows.hasNext());
             rows.seekToRow(7499);
-            row = rows.next(null);
+            row = rows.next();
             Assert.Equal(true,
                 bo.get(readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal(100,
@@ -359,7 +349,7 @@ namespace OrcSharp
             Assert.Equal(-5.0,
                 dbl.get(readerInspector.getStructFieldData(row, fields[6])),
                 5);
-            Assert.Equal(bytes(), bi.getPrimitiveWritableObject(readerInspector
+            Assert.Equal(bytes(), bi.get(readerInspector
                 .getStructFieldData(row, fields[7])));
             Assert.Equal("bye", st.getPrimitiveJavaObject(readerInspector
                 .getStructFieldData(row, fields[8])));
@@ -481,7 +471,7 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
+                object row = rows.next();
                 Assert.Equal(tslist[idx++].getNanos(), ((Timestamp)row).getNanos());
             }
             Assert.Equal(tslist.Count, rows.getRowNumber());
@@ -569,34 +559,34 @@ namespace OrcSharp
             StringObjectInspector st = (StringObjectInspector)readerInspector.
                 getStructFieldRef("string1").getFieldObjectInspector();
             RecordReader rows = reader.rows();
-            Object row = rows.next(null);
+            Object row = rows.next();
             Assert.NotNull(row);
             // check the contents of the first row
-            Assert.Equal(bytes(0, 1, 2, 3, 4), bi.getPrimitiveWritableObject(
+            Assert.Equal(bytes(0, 1, 2, 3, 4), bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal("foo", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
 
             // check the contents of second row
             Assert.Equal(true, rows.hasNext());
-            row = rows.next(row);
-            Assert.Equal(bytes(0, 1, 2, 3), bi.getPrimitiveWritableObject(
+            row = rows.next();
+            Assert.Equal(bytes(0, 1, 2, 3), bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal("bar", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
 
             // check the contents of third row
             Assert.Equal(true, rows.hasNext());
-            row = rows.next(row);
-            Assert.Equal(bytes(0, 1, 2, 3, 4, 5), bi.getPrimitiveWritableObject(
+            row = rows.next();
+            Assert.Equal(bytes(0, 1, 2, 3, 4, 5), bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Null(st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
 
             // check the contents of fourth row
             Assert.Equal(true, rows.hasNext());
-            row = rows.next(row);
-            Assert.Null(bi.getPrimitiveWritableObject(
+            row = rows.next();
+            Assert.Null(bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
@@ -798,7 +788,7 @@ namespace OrcSharp
         private static void setBigRow(VectorizedRowBatch batch, int rowId,
                                       bool b1, byte b2, short s1,
                                       int i1, long l1, float f1,
-                                      double d1, BytesWritable b3, string s2,
+                                      double d1, byte[] b3, string s2,
                                       MiddleStruct m1, List<InnerStruct> l2,
                                       Dictionary<string, InnerStruct> m2)
         {
@@ -811,8 +801,7 @@ namespace OrcSharp
             ((DoubleColumnVector)batch.cols[6]).vector[rowId] = d1;
             if (b3 != null)
             {
-                ((BytesColumnVector)batch.cols[7]).setVal(rowId, b3.getBytes(), 0,
-                    b3.getLength());
+                ((BytesColumnVector)batch.cols[7]).setVal(rowId, b3, 0, b3.Length);
             }
             else
             {
@@ -1029,7 +1018,7 @@ namespace OrcSharp
             StringObjectInspector mk = (StringObjectInspector)
                 ma.getMapKeyObjectInspector();
             RecordReader rows = reader.rows();
-            Object row = rows.next(null);
+            Object row = rows.next();
             Assert.NotNull(row);
             // check the contents of the first row
             Assert.Equal(false,
@@ -1046,7 +1035,7 @@ namespace OrcSharp
                 fields[5])), 5);
             Assert.Equal(-15.0, dbl.get(readerInspector.getStructFieldData(row,
                 fields[6])), 5);
-            Assert.Equal(bytes(0, 1, 2, 3, 4), bi.getPrimitiveWritableObject(
+            Assert.Equal(bytes(0, 1, 2, 3, 4), bi.get(
                 readerInspector.getStructFieldData(row, fields[7])));
             Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[8])));
@@ -1079,7 +1068,7 @@ namespace OrcSharp
 
             // check the contents of second row
             Assert.Equal(true, rows.hasNext());
-            row = rows.next(row);
+            row = rows.next();
             Assert.Equal(true,
                 bo.get(readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal(100, by.get(readerInspector.getStructFieldData(row,
@@ -1094,7 +1083,7 @@ namespace OrcSharp
                 fields[5])), 5);
             Assert.Equal(-5.0, dbl.get(readerInspector.getStructFieldData(row,
                 fields[6])), 5);
-            Assert.Equal(bytes(), bi.getPrimitiveWritableObject(
+            Assert.Equal(bytes(), bi.get(
                 readerInspector.getStructFieldData(row, fields[7])));
             Assert.Equal("bye", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[8])));
@@ -1253,15 +1242,13 @@ namespace OrcSharp
             RecordReader rows2 = reader.rows(new bool[] { true, false, true });
             r1 = new Random(1);
             r2 = new Random(2);
-            OrcStruct row1 = null;
-            OrcStruct row2 = null;
             for (int i = 0; i < 21000; ++i)
             {
                 Assert.Equal(true, rows1.hasNext());
                 Assert.Equal(true, rows2.hasNext());
-                row1 = (OrcStruct)rows1.next(row1);
-                row2 = (OrcStruct)rows2.next(row2);
-                Assert.Equal(r1.Next(), ((StrongBox<int>)row1.getFieldValue(0)).Value);
+                OrcStruct row1 = (OrcStruct)rows1.next();
+                OrcStruct row2 = (OrcStruct)rows2.next();
+                Assert.Equal(r1.Next(), row1.getFieldValue(0));
                 Assert.Equal(Long.toHexString(r2.NextLong()),
                     row2.getFieldValue(1).ToString());
             }
@@ -1396,16 +1383,14 @@ namespace OrcSharp
 
             Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
             RecordReader rows = reader.rows();
-            OrcStruct row = null;
             for (int year = minYear; year < maxYear; ++year)
             {
                 for (int ms = 1000; ms < 2000; ++ms)
                 {
-                    row = (OrcStruct)rows.next(row);
-                    Assert.Equal(new TimestampWritable
-                            (Timestamp.Parse(year + "-05-05 12:34:56." + ms)),
+                    OrcStruct row = (OrcStruct)rows.next();
+                    Assert.Equal(Timestamp.Parse(year + "-05-05 12:34:56." + ms),
                         row.getFieldValue(0));
-                    Assert.Equal(new DateWritable(new Date(year - 1900, 11, 25)),
+                    Assert.Equal(new Date(year - 1900, 11, 25),
                         row.getFieldValue(1));
                 }
             }
@@ -1619,51 +1604,45 @@ namespace OrcSharp
             Assert.Equal(0, rows.getRowNumber());
             Assert.Equal(0.0, rows.getProgress(), 6);
             Assert.Equal(true, rows.hasNext());
-            OrcStruct row = (OrcStruct)rows.next(null);
+            OrcStruct row = (OrcStruct)rows.next();
             Assert.Equal(1, rows.getRowNumber());
             ObjectInspector inspector = reader.getObjectInspector();
             Assert.Equal("struct<time:timestamp,union:uniontype<int,string>,decimal:decimal(38,18)>",
                 inspector.getTypeName());
-            Assert.Equal(new TimestampWritable(Timestamp.Parse("2000-03-12 15:00:00")),
-                row.getFieldValue(0));
+            Assert.Equal(Timestamp.Parse("2000-03-12 15:00:00"), row.getFieldValue(0));
             OrcUnion union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(0, union.getTag());
-            Assert.Equal(new IntWritable(42), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("12345678.6547456")),
-                row.getFieldValue(2));
-            row = (OrcStruct)rows.next(row);
+            Assert.Equal(42, union.getObject());
+            Assert.Equal(HiveDecimal.Parse("12345678.6547456"), row.getFieldValue(2));
+            row = (OrcStruct)rows.next();
             Assert.Equal(2, rows.getRowNumber());
-            Assert.Equal(new TimestampWritable(Timestamp.Parse("2000-03-20 12:00:00.123456789")),
-                row.getFieldValue(0));
+            Assert.Equal(Timestamp.Parse("2000-03-20 12:00:00.123456789"), row.getFieldValue(0));
             Assert.Equal(1, union.getTag());
-            Assert.Equal(new Text("hello"), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("-5643.234")),
-                row.getFieldValue(2));
-            row = (OrcStruct)rows.next(row);
+            Assert.Equal("hello", union.getObject());
+            Assert.Equal(HiveDecimal.Parse("-5643.234"), row.getFieldValue(2));
+            row = (OrcStruct)rows.next();
             Assert.Null(row.getFieldValue(0));
             Assert.Null(row.getFieldValue(1));
             Assert.Null(row.getFieldValue(2));
-            row = (OrcStruct)rows.next(row);
+            row = (OrcStruct)rows.next();
             Assert.Null(row.getFieldValue(0));
             union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(0, union.getTag());
             Assert.Null(union.getObject());
             Assert.Null(row.getFieldValue(2));
-            row = (OrcStruct)rows.next(row);
+            row = (OrcStruct)rows.next();
             Assert.Null(row.getFieldValue(0));
             Assert.Equal(1, union.getTag());
             Assert.Null(union.getObject());
             Assert.Null(row.getFieldValue(2));
-            row = (OrcStruct)rows.next(row);
-            Assert.Equal(new TimestampWritable(Timestamp.Parse("1970-01-01 00:00:00")),
-                row.getFieldValue(0));
-            Assert.Equal(new IntWritable(200000), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("10000000000000000000")),
-                         row.getFieldValue(2));
+            row = (OrcStruct)rows.next();
+            Assert.Equal(Timestamp.Parse("1970-01-01 00:00:00"), row.getFieldValue(0));
+            Assert.Equal(200000, union.getObject());
+            Assert.Equal(HiveDecimal.Parse("10000000000000000000"), row.getFieldValue(2));
             rand = new Random(42);
             for (int i = 1970; i < 2038; ++i)
             {
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 Assert.Equal(Timestamp.Parse(i + "-05-05 12:34:56." + i),
                     row.getFieldValue(0));
                 if ((i & 1) == 0)
@@ -1674,7 +1653,7 @@ namespace OrcSharp
                 else
                 {
                     Assert.Equal(1, union.getTag());
-                    Assert.Equal(new Text((i * i).ToString()), union.getObject());
+                    Assert.Equal((i * i).ToString(), union.getObject());
                 }
                 Assert.Equal(
                     HiveDecimal.create(rand.NextBigInteger(64), rand.Next(18)),
@@ -1682,25 +1661,24 @@ namespace OrcSharp
             }
             for (int i = 0; i < 5000; ++i)
             {
-                row = (OrcStruct)rows.next(row);
-                Assert.Equal(new IntWritable(1732050807), union.getObject());
+                row = (OrcStruct)rows.next();
+                Assert.Equal(1732050807, union.getObject());
             }
-            row = (OrcStruct)rows.next(row);
-            Assert.Equal(new IntWritable(0), union.getObject());
-            row = (OrcStruct)rows.next(row);
-            Assert.Equal(new IntWritable(10), union.getObject());
-            row = (OrcStruct)rows.next(row);
-            Assert.Equal(new IntWritable(138), union.getObject());
+            row = (OrcStruct)rows.next();
+            Assert.Equal(0, union.getObject());
+            row = (OrcStruct)rows.next();
+            Assert.Equal(10, union.getObject());
+            row = (OrcStruct)rows.next();
+            Assert.Equal(138, union.getObject());
             Assert.Equal(false, rows.hasNext());
             Assert.Equal(1.0, rows.getProgress(), 5);
             Assert.Equal(reader.getNumberOfRows(), rows.getRowNumber());
             rows.seekToRow(1);
-            row = (OrcStruct)rows.next(row);
-            Assert.Equal(new TimestampWritable(Timestamp.Parse("2000-03-20 12:00:00.123456789")),
-                row.getFieldValue(0));
+            row = (OrcStruct)rows.next();
+            Assert.Equal(Timestamp.Parse("2000-03-20 12:00:00.123456789"), row.getFieldValue(0));
             Assert.Equal(1, union.getTag());
-            Assert.Equal(new Text("hello"), union.getObject());
-            Assert.Equal(new HiveDecimalWritable(HiveDecimal.Parse("-5643.234")), row.getFieldValue(2));
+            Assert.Equal("hello", union.getObject());
+            Assert.Equal(HiveDecimal.Parse("-5643.234"), row.getFieldValue(2));
             rows.close();
         }
 
@@ -1743,8 +1721,8 @@ namespace OrcSharp
             for (int i = 0; i < 10000; ++i)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
-                Assert.Equal(rand.Next(), ((IntWritable)row.getFieldValue(0)).get());
+                row = (OrcStruct)rows.next();
+                Assert.Equal(rand.Next(), row.getFieldValue(0));
                 Assert.Equal(Integer.toHexString(rand.Next()),
                     row.getFieldValue(1).ToString());
             }
@@ -1795,7 +1773,6 @@ namespace OrcSharp
             Assert.Equal(0, stripe.getIndexLength());
             RecordReader rows = reader.rows();
             rand = new Random(24);
-            OrcStruct row = null;
             for (int i = 0; i < 10000; ++i)
             {
                 int intVal = rand.Next();
@@ -1803,8 +1780,8 @@ namespace OrcSharp
                 for (int j = 0; j < 5; ++j)
                 {
                     Assert.Equal(true, rows.hasNext());
-                    row = (OrcStruct)rows.next(row);
-                    Assert.Equal(intVal, ((IntWritable)row.getFieldValue(0)).get());
+                    OrcStruct row = (OrcStruct)rows.next();
+                    Assert.Equal(intVal, row.getFieldValue(0));
                     Assert.Equal(strVal, row.getFieldValue(1).ToString());
                 }
             }
@@ -1821,7 +1798,7 @@ namespace OrcSharp
             long[] intValues = new long[COUNT];
             double[] doubleValues = new double[COUNT];
             string[] stringValues = new string[COUNT];
-            BytesWritable[] byteValues = new BytesWritable[COUNT];
+            byte[][] byteValues = new byte[COUNT][];
             string[] words = new string[128];
 
             using (Stream file = File.OpenWrite(testFilePath))
@@ -1848,7 +1825,7 @@ namespace OrcSharp
                     doubleValues[i] = rand.NextDouble();
                     byte[] buf = new byte[20];
                     rand.NextBytes(buf);
-                    byteValues[i] = new BytesWritable(buf);
+                    byteValues[i] = buf;
                 }
                 for (int i = 0; i < COUNT; ++i)
                 {
@@ -1888,23 +1865,16 @@ namespace OrcSharp
             for (int i = COUNT - 1; i >= 0; --i)
             {
                 rows.seekToRow(i);
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 BigRow expected = createRandomRow(intValues, doubleValues,
                     stringValues, byteValues, words, i);
-                Assert.Equal(expected.boolean1,
-                    ((BooleanWritable)row.getFieldValue(0)).get());
-                Assert.Equal(expected.byte1,
-                    ((ByteWritable)row.getFieldValue(1)).get());
-                Assert.Equal(expected.short1,
-                    ((ShortWritable)row.getFieldValue(2)).get());
-                Assert.Equal(expected.int1,
-                    ((IntWritable)row.getFieldValue(3)).get());
-                Assert.Equal(expected.long1,
-                    ((LongWritable)row.getFieldValue(4)).get());
-                Assert.Equal(expected.float1,
-                    ((FloatWritable)row.getFieldValue(5)).get(), 4);
-                Assert.Equal(expected.double1,
-                    ((DoubleWritable)row.getFieldValue(6)).get(), 4);
+                Assert.Equal(expected.boolean1, row.getFieldValue(0));
+                Assert.Equal(expected.byte1, row.getFieldValue(1));
+                Assert.Equal(expected.short1, row.getFieldValue(2));
+                Assert.Equal(expected.int1, row.getFieldValue(3));
+                Assert.Equal(expected.long1, row.getFieldValue(4));
+                Assert.Equal(expected.float1, (float)row.getFieldValue(5), 4);
+                Assert.Equal(expected.double1, (double)row.getFieldValue(6), 4);
                 Assert.Equal(expected.bytes1, row.getFieldValue(7));
                 Assert.Equal(expected.string1, row.getFieldValue(8));
                 List<InnerStruct> expectedList = expected.middle.list;
@@ -1944,13 +1914,12 @@ namespace OrcSharp
             rows.seekToRow(lastRowOfStripe2);
             for (int i = 0; i < 2; ++i)
             {
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 BigRow expected = createRandomRow(intValues, doubleValues,
                                                   stringValues, byteValues, words,
                                                   (int)(lastRowOfStripe2 + i));
 
-                Assert.Equal(expected.long1,
-                    ((LongWritable)row.getFieldValue(4)).get());
+                Assert.Equal(expected.long1, row.getFieldValue(4));
                 Assert.Equal(expected.string1, row.getFieldValue(8));
             }
             rows.close();
@@ -1965,8 +1934,7 @@ namespace OrcSharp
             }
             else
             {
-                Assert.Equal(expect.int1,
-                    ((IntWritable)actual.getFieldValue(0)).get());
+                Assert.Equal(expect.int1, actual.getFieldValue(0));
                 Assert.Equal(expect.string1, actual.getFieldValue(1));
             }
         }
@@ -1983,7 +1951,7 @@ namespace OrcSharp
         private void appendRandomRow(VectorizedRowBatch batch,
                                      long[] intValues, double[] doubleValues,
                                      string[] stringValues,
-                                     BytesWritable[] byteValues,
+                                     byte[][] byteValues,
                                      string[] words, int i)
         {
             InnerStruct inner = new InnerStruct((int)intValues[i], stringValues[i]);
@@ -1997,7 +1965,7 @@ namespace OrcSharp
 
         private BigRow createRandomRow(long[] intValues, double[] doubleValues,
                                        string[] stringValues,
-                                       BytesWritable[] byteValues,
+                                       byte[][] byteValues,
                                        string[] words, int i)
         {
             InnerStruct inner = new InnerStruct((int)intValues[i], stringValues[i]);
@@ -2191,8 +2159,8 @@ namespace OrcSharp
             for (int i = 1000; i < 2000; ++i)
             {
                 Assert.True(rows.hasNext());
-                row = (OrcStruct)rows.next(row);
-                Assert.Equal(300 * i, ((IntWritable)row.getFieldValue(0)).get());
+                row = (OrcStruct)rows.next();
+                Assert.Equal(300 * i, row.getFieldValue(0));
                 Assert.Equal(Integer.toHexString(10 * i), row.getFieldValue(1).ToString());
             }
             Assert.True(!rows.hasNext());
@@ -2229,16 +2197,16 @@ namespace OrcSharp
             {
                 Assert.True(rows.hasNext());
                 Assert.Equal(i, rows.getRowNumber());
-                row = (OrcStruct)rows.next(row);
-                Assert.Equal(300 * i, ((IntWritable)row.getFieldValue(0)).get());
+                row = (OrcStruct)rows.next();
+                Assert.Equal(300 * i, row.getFieldValue(0));
                 Assert.Equal(Integer.toHexString(10 * i), row.getFieldValue(1).ToString());
             }
             for (int i = 3000; i < 3500; ++i)
             {
                 Assert.True(rows.hasNext());
                 Assert.Equal(i, rows.getRowNumber());
-                row = (OrcStruct)rows.next(row);
-                Assert.Equal(300 * i, ((IntWritable)row.getFieldValue(0)).get());
+                row = (OrcStruct)rows.next();
+                Assert.Equal(300 * i, row.getFieldValue(0));
                 Assert.Equal(Integer.toHexString(10 * i), row.getFieldValue(1).ToString());
             }
             Assert.True(!rows.hasNext());
@@ -2463,7 +2431,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 for (int f = 0; f < row.getNumFields(); ++f)
                 {
                     Assert.Null(row.getFieldValue(f));
@@ -2474,7 +2442,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 Assert.Equal("48 6f 72 74 6f 6e",
                     row.getFieldValue(0).ToString());
                 Assert.Equal("true", row.getFieldValue(1).ToString());
@@ -2503,7 +2471,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 for (int f = 0; f < row.getNumFields(); ++f)
                 {
                     Assert.Null(row.getFieldValue(f));
@@ -2512,7 +2480,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 byte[] hex = Integer.toHexString(r).getBytes();
                 StringBuilder expected = new StringBuilder();
                 for (int i = 0; i < hex.Length; ++i)
@@ -2726,7 +2694,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 OrcStruct inner = (OrcStruct)row.getFieldValue(0);
                 if (r < 200 || (r >= 400 && r < 600) || r >= 800)
                 {
@@ -2803,7 +2771,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 OrcUnion inner = (OrcUnion)row.getFieldValue(0);
                 if (r < 200)
                 {
@@ -2903,7 +2871,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 IList<object> inner = (IList<object>)row.getFieldValue(0);
                 if (r < 200)
                 {
@@ -3008,7 +2976,7 @@ namespace OrcSharp
             for (int r = 0; r < 1024; ++r)
             {
                 Assert.Equal(true, rows.hasNext());
-                row = (OrcStruct)rows.next(row);
+                row = (OrcStruct)rows.next();
                 Dictionary<object, object> inner = (Dictionary<object, object>)row.getFieldValue(0);
                 if (r < 200)
                 {
@@ -3055,108 +3023,6 @@ namespace OrcSharp
             long time = t.getSeconds();
             int nanos = t.getNanos();
             return (time * 1000000) + (nanos % 1000000);
-        }
-    }
-
-    class IntWritable
-    {
-        private int p;
-
-        public IntWritable(int p)
-        {
-            // TODO: Complete member initialization
-            this.p = p;
-        }
-
-        internal int get()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class TimestampWritable
-    {
-        private Timestamp timestamp;
-
-        public TimestampWritable(Timestamp timestamp)
-        {
-            // TODO: Complete member initialization
-            this.timestamp = timestamp;
-        }
-    }
-
-    class HiveDecimalWritable
-    {
-        private HiveDecimal hiveDecimal;
-
-        public HiveDecimalWritable(HiveDecimal hiveDecimal)
-        {
-            // TODO: Complete member initialization
-            this.hiveDecimal = hiveDecimal;
-        }
-    }
-
-    class DateWritable
-    {
-        private Date date;
-
-        public DateWritable(Date date)
-        {
-            // TODO: Complete member initialization
-            this.date = date;
-        }
-
-        internal long getDays()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class BooleanWritable
-    {
-        internal bool get()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class LongWritable
-    {
-        internal long get()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class ShortWritable
-    {
-        internal short get()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class ByteWritable
-    {
-        internal byte get()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class DoubleWritable
-    {
-        internal double get()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class FloatWritable
-    {
-        internal float get()
-        {
-            throw new NotImplementedException();
         }
     }
 }

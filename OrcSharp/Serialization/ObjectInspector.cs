@@ -23,7 +23,6 @@ namespace OrcSharp.Serialization
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
     using OrcSharp.Types;
     using System.Diagnostics;
 
@@ -291,10 +290,6 @@ namespace OrcSharp.Serialization
 
         public long get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (long)obj;
         }
     }
@@ -308,10 +303,6 @@ namespace OrcSharp.Serialization
 
         internal bool get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (bool)obj;
         }
     }
@@ -325,10 +316,6 @@ namespace OrcSharp.Serialization
 
         internal short get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (short)obj;
         }
     }
@@ -342,10 +329,6 @@ namespace OrcSharp.Serialization
 
         internal int get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (int)obj;
         }
     }
@@ -359,10 +342,6 @@ namespace OrcSharp.Serialization
 
         internal byte get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (byte)obj;
         }
     }
@@ -381,10 +360,6 @@ namespace OrcSharp.Serialization
 
         internal virtual string getPrimitiveJavaObject(object obj)
         {
-            if (obj is Text)
-            {
-                return FixLength(((Text)obj).Value);
-            }
             return FixLength((string)obj);
         }
 
@@ -450,29 +425,6 @@ namespace OrcSharp.Serialization
         }
     }
 
-    sealed class TextObjectInspector : StringBaseObjectInspector
-    {
-        public TextObjectInspector()
-            : base(TypeInfoFactory.stringTypeInfo)
-        {
-        }
-
-        internal override string get(object obj)
-        {
-            return ((Text)obj).Value;
-        }
-
-        internal override string getPrimitiveJavaObject(object obj)
-        {
-            return ((Text)obj).Value;
-        }
-
-        protected override string FixLength(string value)
-        {
-            return value;
-        }
-    }
-
     class BinaryObjectInspector : PrimitiveObjectInspector
     {
         public BinaryObjectInspector()
@@ -483,24 +435,6 @@ namespace OrcSharp.Serialization
         internal virtual byte[] get(object obj)
         {
             return (byte[])obj;
-        }
-
-        internal virtual BytesWritable getPrimitiveWritableObject(object obj)
-        {
-            return (BytesWritable)obj;
-        }
-    }
-
-    class BytesWritableObjectInspector : BinaryObjectInspector
-    {
-        internal override byte[] get(object obj)
-        {
-            return ((BytesWritable)obj).getBytes();
-        }
-
-        internal override BytesWritable getPrimitiveWritableObject(object obj)
-        {
-            return (BytesWritable)obj;
         }
     }
 
@@ -513,10 +447,6 @@ namespace OrcSharp.Serialization
 
         internal float get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (float)obj;
         }
     }
@@ -530,10 +460,6 @@ namespace OrcSharp.Serialization
 
         internal double get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (double)obj;
         }
     }
@@ -565,10 +491,6 @@ namespace OrcSharp.Serialization
 
         internal Date get(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             return (Date)obj;
         }
     }
@@ -591,10 +513,6 @@ namespace OrcSharp.Serialization
 
         internal Timestamp getPrimitiveJavaObject(object obj)
         {
-            if (obj is IStrongBox)
-            {
-                obj = ((IStrongBox)obj).Value;
-            }
             if (obj is Timestamp)
             {
                 return (Timestamp)obj;
@@ -982,17 +900,13 @@ namespace OrcSharp.Serialization
             {
                 return new TimestampObjectInspector();
             }
-            if (type == typeof(Text))
-            {
-                return new TextObjectInspector();
-            }
-            if (type == typeof(BytesWritable))
-            {
-                return new BytesWritableObjectInspector();
-            }
             if (type == typeof(HiveDecimal))
             {
                 return new HiveDecimalObjectInspector(HiveDecimal.MAX_PRECISION, HiveDecimal.MAX_SCALE);
+            }
+            if (type == typeof(byte[]))
+            {
+                return PrimitiveObjectInspectorFactory.writableBinaryObjectInspector;
             }
             if (type.IsArray && type.GetArrayRank() == 1)
             {

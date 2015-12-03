@@ -19,13 +19,12 @@
 namespace OrcSharp
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using OrcSharp.Serialization;
     using Xunit;
-    using OrcSharp.External;
-    using System.Collections.Generic;
-    using System.Runtime.CompilerServices;
-    using Serialization;
+    using External;
 
     public class TestBitPack : WithLocalDirectory
     {
@@ -339,8 +338,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
     }

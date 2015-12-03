@@ -60,8 +60,6 @@
     <Compile Include="Types\MapColumnVector.cs" />
     <Compile Include="Types\MultiValuedColumnVector.cs" />
     <Compile Include="Types\StructColumnVector.cs" />
-    <Compile Include="Types\Text.cs" />
-    <Compile Include="Types\BytesWritable.cs" />
     <Compile Include="Types\ColumnVector.cs" />
     <Compile Include="External\Configuration.cs" />
     <Compile Include="Types\DecimalColumnVector.cs" />

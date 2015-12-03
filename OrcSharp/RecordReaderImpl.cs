@@ -1314,11 +1314,11 @@ namespace OrcSharp
             return true;
         }
 
-        public object next(object previous)
+        public object next()
         {
             try
             {
-                object result = reader.next(previous);
+                object result = reader.next();
                 // find the next row
                 rowInStripe++;
                 advanceToNextRow(reader, rowInStripe + rowBaseInStripe, true);

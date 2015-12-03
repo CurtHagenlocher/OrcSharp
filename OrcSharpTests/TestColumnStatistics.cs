@@ -182,30 +182,22 @@ namespace OrcSharp
 
         public class SimpleStruct
         {
-            BytesWritable bytes1;
-            Text string1;
+            byte[] bytes1;
+            string string1;
 
-            public SimpleStruct(BytesWritable b1, string s1)
+            public SimpleStruct(byte[] b1, string s1)
             {
                 this.bytes1 = b1;
-                if (s1 == null)
-                {
-                    this.string1 = null;
-                }
-                else
-                {
-                    this.string1 = new Text(s1);
-                }
+                this.string1 = s1;
             }
         }
 
-        private static BytesWritable bytes(params int[] items)
+        private static byte[] bytes(params int[] items)
         {
-            BytesWritable result = new BytesWritable();
-            result.setSize(items.Length);
+            byte[] result = new byte[items.Length];
             for (int i = 0; i < items.Length; ++i)
             {
-                result.getBytes()[i] = (byte)items[i];
+                result[i] = (byte)items[i];
             }
             return result;
         }

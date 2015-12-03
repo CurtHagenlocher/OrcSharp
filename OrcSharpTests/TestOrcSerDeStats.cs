@@ -51,32 +51,25 @@ namespace OrcSharp
 
         public class SimpleStruct
         {
-            BytesWritable bytes1;
-            Text string1;
+            byte[] bytes1;
+            string string1;
 
-            public SimpleStruct(BytesWritable b1, string s1)
+            public SimpleStruct(byte[] b1, string s1)
             {
                 this.bytes1 = b1;
-                if (s1 == null)
-                {
-                    this.string1 = null;
-                }
-                else
-                {
-                    this.string1 = new Text(s1);
-                }
+                this.string1 = s1;
             }
         }
 
         public class InnerStruct
         {
             int int1;
-            internal Text string1 = new Text();
+            internal string string1;
 
             public InnerStruct(int int1, string string1)
             {
                 this.int1 = int1;
-                this.string1.set(string1);
+                this.string1 = string1;
             }
         }
 
@@ -99,18 +92,18 @@ namespace OrcSharp
             long long1;
             float float1;
             double double1;
-            BytesWritable bytes1;
-            Text string1;
+            byte[] bytes1;
+            string string1;
             List<InnerStruct> list = new List<InnerStruct>();
-            Dictionary<Text, InnerStruct> map = new Dictionary<Text, InnerStruct>();
+            Dictionary<string, InnerStruct> map = new Dictionary<string, InnerStruct>();
             DateTime ts; // Timestamp ts;
             HiveDecimal decimal1;
             MiddleStruct middle;
 
             public BigRow(bool b1, byte b2, short s1, int i1, long l1, float f1,
                 double d1,
-                BytesWritable b3, string s2, MiddleStruct m1,
-                List<InnerStruct> l2, Dictionary<Text, InnerStruct> m2, DateTime ts1, // Timestamp ts1,
+                byte[] b3, string s2, MiddleStruct m1,
+                List<InnerStruct> l2, Dictionary<string, InnerStruct> m2, DateTime ts1, // Timestamp ts1,
                 HiveDecimal dec1)
             {
                 this.boolean1 = b1;
@@ -121,14 +114,7 @@ namespace OrcSharp
                 this.float1 = f1;
                 this.double1 = d1;
                 this.bytes1 = b3;
-                if (s2 == null)
-                {
-                    this.string1 = null;
-                }
-                else
-                {
-                    this.string1 = new Text(s2);
-                }
+                this.string1 = s2;
                 this.middle = m1;
                 this.list = l2;
                 this.map = m2;
@@ -148,12 +134,12 @@ namespace OrcSharp
             return new InnerStruct(i, s);
         }
 
-        private static Dictionary<Text, InnerStruct> map(params InnerStruct[] items)
+        private static Dictionary<string, InnerStruct> map(params InnerStruct[] items)
         {
-            Dictionary<Text, InnerStruct> result = new Dictionary<Text, InnerStruct>();
+            Dictionary<string, InnerStruct> result = new Dictionary<string, InnerStruct>();
             foreach (InnerStruct i in items)
             {
-                result[new Text(i.string1)] = i;
+                result[i.string1] = i;
             }
             return result;
         }
@@ -163,13 +149,12 @@ namespace OrcSharp
             return items.ToList();
         }
 
-        private static BytesWritable bytes(params int[] items)
+        private static byte[] bytes(params int[] items)
         {
-            BytesWritable result = new BytesWritable();
-            result.setSize(items.Length);
+            byte[] result = new byte[items.Length];
             for (int i = 0; i < items.Length; ++i)
             {
-                result.getBytes()[i] = (byte)items[i];
+                result[i] = (byte)items[i];
             }
             return result;
         }
@@ -229,34 +214,34 @@ namespace OrcSharp
             StringObjectInspector st = (StringObjectInspector)readerInspector.
                 getStructFieldRef("string1").getFieldObjectInspector();
             RecordReader rows = reader.rows();
-            object row = rows.next(null);
+            object row = rows.next();
             Assert.NotNull(row);
             // check the contents of the first row
-            Assert.Equal(bytes(0, 1, 2, 3, 4), bi.getPrimitiveWritableObject(
+            Assert.Equal(bytes(0, 1, 2, 3, 4), bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal("foo", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
 
             // check the contents of second row
             Assert.Equal(true, rows.hasNext());
-            row = rows.next(row);
-            Assert.Equal(bytes(0, 1, 2, 3), bi.getPrimitiveWritableObject(
+            row = rows.next();
+            Assert.Equal(bytes(0, 1, 2, 3), bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal("bar", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
 
             // check the contents of second row
             Assert.Equal(true, rows.hasNext());
-            row = rows.next(row);
-            Assert.Equal(bytes(0, 1, 2, 3, 4, 5), bi.getPrimitiveWritableObject(
+            row = rows.next();
+            Assert.Equal(bytes(0, 1, 2, 3, 4, 5), bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Null(st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
 
             // check the contents of second row
             Assert.Equal(true, rows.hasNext());
-            row = rows.next(row);
-            Assert.Null(bi.getPrimitiveWritableObject(
+            row = rows.next();
+            Assert.Null(bi.get(
                 readerInspector.getStructFieldData(row, fields[0])));
             Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector.
                 getStructFieldData(row, fields[1])));
@@ -350,7 +335,7 @@ namespace OrcSharp
                 {
                     if (row % 2 == 0)
                     {
-                        writer.addRow(new SimpleStruct(new BytesWritable(new byte[] { 1, 2, 3 }), "hi"));
+                        writer.addRow(new SimpleStruct(new byte[] { 1, 2, 3 }, "hi"));
                     }
                     else
                     {

@@ -19,7 +19,6 @@
 namespace OrcSharp
 {
     using System;
-    using System.Runtime.CompilerServices;
     using OrcSharp.Serialization;
     using Xunit;
     using System.IO;
@@ -75,8 +74,8 @@ namespace OrcSharp
             int idx = 0;
             while (rows.hasNext())
             {
-                object row = rows.next(null);
-                Assert.Equal(input[idx++], ((StrongBox<long>)row).Value);
+                object row = rows.next();
+                Assert.Equal(input[idx++], ((long)row));
             }
         }
     }

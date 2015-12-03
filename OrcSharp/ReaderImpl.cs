@@ -238,14 +238,14 @@ namespace OrcSharp
             int offset = buffer.arrayOffset() + buffer.position() + buffer.limit() - 1 - len;
             byte[] array = buffer.array();
             // now look for the magic string at the end of the postscript.
-            if (!Text.decode(array, offset, len).Equals(OrcFile.MAGIC))
+            if (!Lists.AreEqual(array, offset, OrcFile.MAGIC, len))
             {
                 // If it isn't there, this may be the 0.11.0 version of ORC.
                 // Read the first 3 bytes of the file to check for the header
                 byte[] header = new byte[len];
                 @in.readFully(0, header, 0, len);
                 // if it isn't there, this isn't an ORC file
-                if (!Text.decode(header, 0, len).Equals(OrcFile.MAGIC))
+                if (!Lists.AreEqual(header, 0, OrcFile.MAGIC, len))
                 {
                     throw new FormatException("Malformed ORC file " + path +
                         ". Invalid postscript.");

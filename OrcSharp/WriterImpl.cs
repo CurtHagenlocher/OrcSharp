@@ -3187,7 +3187,7 @@ namespace OrcSharp
             if (rawWriter == null)
             {
                 rawWriter = baseStream;
-                rawWriter.Write(Encoding.UTF8.GetBytes(OrcFile.MAGIC), 0, 3);
+                rawWriter.Write(OrcFile.MAGIC, 0, OrcFile.MAGIC.Length);
                 headerLength = rawWriter.Position;
                 writer = new OutStream("metadata", bufferSize, codec, new DirectStream(rawWriter));
                 protobufWriter = CodedOutputStream.CreateInstance(writer);
@@ -3468,7 +3468,7 @@ namespace OrcSharp
             builder.Compression = writeCompressionKind(compress);
             builder.FooterLength = (ulong)footerLength;
             builder.MetadataLength = (ulong)metadataLength;
-            builder.Magic = OrcFile.MAGIC;
+            builder.Magic = OrcFile.MagicText;
             builder.AddVersion((uint)OrcFile.VersionHelper.getMajor(version));
             builder.AddVersion((uint)OrcFile.VersionHelper.getMinor(version));
             builder.WriterVersion = (uint)(int)OrcFile.WriterVersion.HIVE_4243;
