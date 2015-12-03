@@ -19,6 +19,8 @@
 namespace OrcSharp.Types
 {
     using System;
+    using System.Globalization;
+    using System.Text;
 
     sealed public class BytesWritable : IEquatable<BytesWritable>
     {
@@ -79,6 +81,20 @@ namespace OrcSharp.Types
             }
 
             return true;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder(3 * bytes.Length + 1);
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if (i > 0)
+                {
+                    builder.Append(' ');
+                }
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
         }
     }
 }
