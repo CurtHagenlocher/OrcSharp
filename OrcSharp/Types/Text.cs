@@ -57,7 +57,10 @@ namespace OrcSharp.Types
 
         internal void enforceMaxLength(int maxLength)
         {
-            throw new NotImplementedException();
+            if (value.Length > maxLength)
+            {
+                value = value.Substring(0, maxLength);
+            }
         }
 
         internal void readWithKnownLength(InStream stream, int len)

@@ -208,13 +208,13 @@ namespace OrcSharp
             Assert.Equal(7500, stats[1].getNumberOfValues());
             Assert.Equal(3750, ((BooleanColumnStatistics)stats[1]).getFalseCount());
             Assert.Equal(3750, ((BooleanColumnStatistics)stats[1]).getTrueCount());
-            Assert.Equal("count: 7500 hasNull: true true: 3750", stats[1].ToString());
+            Assert.Equal("count: 7500 hasNull: True true: 3750", stats[1].ToString());
 
             Assert.Equal(2048, ((IntegerColumnStatistics)stats[3]).getMaximum());
             Assert.Equal(1024, ((IntegerColumnStatistics)stats[3]).getMinimum());
             Assert.Equal(true, ((IntegerColumnStatistics)stats[3]).isSumDefined());
             Assert.Equal(11520000, ((IntegerColumnStatistics)stats[3]).getSum());
-            Assert.Equal("count: 7500 hasNull: true min: 1024 max: 2048 sum: 11520000",
+            Assert.Equal("count: 7500 hasNull: True min: 1024 max: 2048 sum: 11520000",
                 stats[3].ToString());
 
             Assert.Equal(Int64.MaxValue,
@@ -223,16 +223,16 @@ namespace OrcSharp
                 ((IntegerColumnStatistics)stats[5]).getMinimum());
             Assert.Equal(false, ((IntegerColumnStatistics)stats[5]).isSumDefined());
             Assert.Equal(
-                "count: 7500 hasNull: true min: 9223372036854775807 max: 9223372036854775807",
+                "count: 7500 hasNull: True min: 9223372036854775807 max: 9223372036854775807",
                 stats[5].ToString());
 
             Assert.Equal(-15.0, ((DoubleColumnStatistics)stats[7]).getMinimum());
             Assert.Equal(-5.0, ((DoubleColumnStatistics)stats[7]).getMaximum());
             Assert.Equal(-75000.0, ((DoubleColumnStatistics)stats[7]).getSum(), 5);
-            Assert.Equal("count: 7500 hasNull: true min: -15.0 max: -5.0 sum: -75000.0",
+            Assert.Equal("count: 7500 hasNull: True min: -15 max: -5 sum: -75000",
                 stats[7].ToString());
 
-            Assert.Equal("count: 7500 hasNull: true min: bye max: hi sum: 0", stats[9].ToString());
+            Assert.Equal("count: 7500 hasNull: True min: bye max: hi sum: 0", stats[9].ToString());
 
             // check the inspectors
             StructObjectInspector readerInspector = (StructObjectInspector)reader
@@ -542,17 +542,17 @@ namespace OrcSharp
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();
             Assert.Equal(4, stats[0].getNumberOfValues());
-            Assert.Equal("count: 4 hasNull: false", stats[0].ToString());
+            Assert.Equal("count: 4 hasNull: False", stats[0].ToString());
 
             Assert.Equal(3, stats[1].getNumberOfValues());
             Assert.Equal(15, ((BinaryColumnStatistics)stats[1]).getSum());
-            Assert.Equal("count: 3 hasNull: true sum: 15", stats[1].ToString());
+            Assert.Equal("count: 3 hasNull: True sum: 15", stats[1].ToString());
 
             Assert.Equal(3, stats[2].getNumberOfValues());
             Assert.Equal("bar", ((StringColumnStatistics)stats[2]).getMinimum());
             Assert.Equal("hi", ((StringColumnStatistics)stats[2]).getMaximum());
             Assert.Equal(8, ((StringColumnStatistics)stats[2]).getSum());
-            Assert.Equal("count: 3 hasNull: true min: bar max: hi sum: 8",
+            Assert.Equal("count: 3 hasNull: True min: bar max: hi sum: 8",
                 stats[2].ToString());
 
             // check the inspectors
@@ -1387,7 +1387,7 @@ namespace OrcSharp
                             TimestampUtils.getTimeNanoSec(Timestamp.Parse(year +
                                 "-05-05 12:34:56." + ms));
                         ((LongColumnVector)batch.cols[1]).vector[ms - 1000] =
-                            new DateWritable(new Date(year - 1900, 11, 25)).getDays();
+                            new Date(year - 1900, 11, 25).Days;
                     }
                     writer.addRowBatch(batch);
                 }
@@ -2329,8 +2329,7 @@ namespace OrcSharp
                 ((LongColumnVector)batch.cols[3]).vector[0] = 0x123456789abcdef0L;
                 ((DoubleColumnVector)batch.cols[4]).vector[0] = 1.125;
                 ((DoubleColumnVector)batch.cols[5]).vector[0] = 0.0009765625;
-                ((LongColumnVector)batch.cols[6]).vector[0] =
-                    new DateWritable(new Date(111, 6, 1)).getDays();
+                ((LongColumnVector)batch.cols[6]).vector[0] = new Date(111, 6, 1).Days;
                 ((LongColumnVector)batch.cols[7]).vector[0] =
                     TimestampUtils.getTimeNanoSec(new Timestamp(115, 9, 23, 10, 11, 59,
                         999999999));
@@ -2386,8 +2385,7 @@ namespace OrcSharp
                     ((LongColumnVector)batch.cols[3]).vector[r] = 31415L * r;
                     ((DoubleColumnVector)batch.cols[4]).vector[r] = 1.125 * r;
                     ((DoubleColumnVector)batch.cols[5]).vector[r] = 0.0009765625 * r;
-                    ((LongColumnVector)batch.cols[6]).vector[r] =
-                        new DateWritable(new Date(111, 6, 1)).getDays() + r;
+                    ((LongColumnVector)batch.cols[6]).vector[r] = new Date(111, 6, 1).Days + r;
                     ((LongColumnVector)batch.cols[7]).vector[r] =
                         TimestampUtils.getTimeNanoSec(new Timestamp(115, 9, 23, 10, 11, 59,
                             999999999)) + r * 1000000000L;
@@ -3052,9 +3050,11 @@ namespace OrcSharp
     // Hacks to make this file build
     class TimestampUtils
     {
-        internal static long getTimeNanoSec(Timestamp ts)
+        internal static long getTimeNanoSec(Timestamp t)
         {
-            throw new NotImplementedException();
+            long time = t.getSeconds();
+            int nanos = t.getNanos();
+            return (time * 1000000) + (nanos % 1000000);
         }
     }
 

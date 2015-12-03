@@ -491,13 +491,13 @@ namespace OrcSharp
                     }
                     else if (str.minimum != null)
                     {
-                        if (minimum.CompareTo(str.minimum) > 0)
+                        if (string.CompareOrdinal(minimum, str.minimum) > 0)
                         {
-                            minimum = str.getMinimum();
+                            minimum = str.minimum;
                         }
-                        if (maximum.CompareTo(str.maximum) < 0)
+                        if (string.CompareOrdinal(maximum, str.maximum) < 0)
                         {
-                            maximum = str.getMaximum();
+                            maximum = str.maximum;
                         }
                     }
                     sum += str.sum;

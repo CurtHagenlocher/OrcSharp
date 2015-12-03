@@ -25,6 +25,7 @@ namespace OrcSharp.Serialization
     using System.Reflection;
     using System.Runtime.CompilerServices;
     using OrcSharp.Types;
+    using System.Diagnostics;
 
     public class ObjectInspector
     {
@@ -366,10 +367,10 @@ namespace OrcSharp.Serialization
         }
     }
 
-    class StringObjectInspector : PrimitiveObjectInspector
+    abstract class StringBaseObjectInspector : PrimitiveObjectInspector
     {
-        public StringObjectInspector()
-            : base(TypeInfoFactory.stringTypeInfo)
+        protected StringBaseObjectInspector(PrimitiveTypeInfo typeInfo)
+            : base(typeInfo)
         {
         }
 
@@ -382,14 +383,80 @@ namespace OrcSharp.Serialization
         {
             if (obj is Text)
             {
-                return ((Text)obj).Value;
+                return FixLength(((Text)obj).Value);
             }
-            return (string)obj;
+            return FixLength((string)obj);
+        }
+
+        protected abstract string FixLength(string value);
+    }
+
+    sealed class StringObjectInspector : StringBaseObjectInspector
+    {
+        public StringObjectInspector()
+            : base(TypeInfoFactory.stringTypeInfo)
+        {
+        }
+
+        protected override string FixLength(string value)
+        {
+            return value;
         }
     }
 
-    class TextObjectInspector : StringObjectInspector
+    sealed class CharObjectInspector : StringBaseObjectInspector
     {
+        readonly int length;
+
+        public CharObjectInspector(CharTypeInfo typeInfo)
+            : base(typeInfo)
+        {
+            Debug.Assert(typeInfo.getPrimitiveCategory() == PrimitiveCategory.CHAR);
+            length = typeInfo.getLength();
+        }
+
+        protected override string FixLength(string value)
+        {
+            if (value.Length < length)
+            {
+                return value.PadRight(length);
+            }
+            else if (value.Length > length)
+            {
+                return value.Substring(0, length);
+            }
+            return value;
+        }
+    }
+
+    sealed class VarcharObjectInspector : StringBaseObjectInspector
+    {
+        readonly int length;
+
+        public VarcharObjectInspector(VarcharTypeInfo typeInfo)
+            : base(typeInfo)
+        {
+            Debug.Assert(typeInfo.getPrimitiveCategory() == PrimitiveCategory.VARCHAR);
+            length = typeInfo.getLength();
+        }
+
+        protected override string FixLength(string value)
+        {
+            if (value.Length > length)
+            {
+                return value.Substring(0, length);
+            }
+            return value;
+        }
+    }
+
+    sealed class TextObjectInspector : StringBaseObjectInspector
+    {
+        public TextObjectInspector()
+            : base(TypeInfoFactory.stringTypeInfo)
+        {
+        }
+
         internal override string get(object obj)
         {
             return ((Text)obj).Value;
@@ -398,6 +465,11 @@ namespace OrcSharp.Serialization
         internal override string getPrimitiveJavaObject(object obj)
         {
             return ((Text)obj).Value;
+        }
+
+        protected override string FixLength(string value)
+        {
+            return value;
         }
     }
 
@@ -1016,12 +1088,16 @@ namespace OrcSharp.Serialization
                     return writableLongObjectInspector;
                 case PrimitiveCategory.SHORT:
                     return writableShortObjectInspector;
+                case PrimitiveCategory.CHAR:
+                    return new CharObjectInspector((CharTypeInfo)primitiveTypeInfo);
                 case PrimitiveCategory.STRING:
                     return writableStringObjectInspector;
+                case PrimitiveCategory.VARCHAR:
+                    return new VarcharObjectInspector((VarcharTypeInfo)primitiveTypeInfo);
                 case PrimitiveCategory.TIMESTAMP:
                     return writableTimestampObjectInspector;
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException(primitiveTypeInfo.getPrimitiveCategory().ToString());
             }
         }
 

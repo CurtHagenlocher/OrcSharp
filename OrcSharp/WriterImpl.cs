@@ -1457,30 +1457,28 @@ namespace OrcSharp
             }
         }
 
-        sealed private class StringTreeWriter : TreeWriter
+        private abstract class StringBaseTreeWriter : TreeWriter
         {
             private const int INITIAL_DICTIONARY_SIZE = 4096;
             private OutStream stringOutput;
             private IntegerWriter lengthOutput;
             private IntegerWriter rowOutput;
-            private StringRedBlackTree dictionary =
-                new StringRedBlackTree(INITIAL_DICTIONARY_SIZE);
-            private DynamicIntArray rows = new DynamicIntArray();
-            private PositionedOutputStream directStreamOutput;
-            private IntegerWriter directLengthOutput;
-            private List<OrcProto.RowIndexEntry> savedRowIndex =
-                new List<OrcProto.RowIndexEntry>();
+            protected StringRedBlackTree dictionary = new StringRedBlackTree(INITIAL_DICTIONARY_SIZE);
+            protected DynamicIntArray rows = new DynamicIntArray();
+            protected PositionedOutputStream directStreamOutput;
+            protected IntegerWriter directLengthOutput;
+            private List<OrcProto.RowIndexEntry> savedRowIndex = new List<OrcProto.RowIndexEntry>();
             private bool buildIndex;
             private List<long> rowIndexValueCount = new List<long>();
             // If the number of keys in a dictionary is greater than this fraction of
             //the total number of non-null rows, turn off dictionary encoding
             private double dictionaryKeySizeThreshold;
-            private bool useDictionaryEncoding = true;
+            protected bool useDictionaryEncoding = true;
             private bool isDirectV2 = true;
             private bool doneDictionaryCheck;
             private bool strideDictionaryCheck;
 
-            public StringTreeWriter(int columnId,
+            public StringBaseTreeWriter(int columnId,
                              ObjectInspector inspector,
                              TypeDescription schema,
                              StreamFactory writer,
@@ -1512,7 +1510,7 @@ namespace OrcSharp
              * @param obj  value
              * @return Text text value from obj
              */
-            string getTextValue(object obj)
+            protected virtual string getTextValue(object obj)
             {
                 return ((StringObjectInspector)inspector).get(obj);
             }
@@ -1538,68 +1536,6 @@ namespace OrcSharp
                     if (createBloomFilter)
                     {
                         bloomFilter.addBytes(encodedVal, 0, encodedVal.Length);
-                    }
-                }
-            }
-
-            internal override void writeBatch(ColumnVector vector, int offset, int length)
-            {
-                base.writeBatch(vector, offset, length);
-                BytesColumnVector vec = (BytesColumnVector)vector;
-                if (vector.isRepeating)
-                {
-                    if (vector.noNulls || !vector.isNull[0])
-                    {
-                        if (useDictionaryEncoding)
-                        {
-                            int id = dictionary.add(vec.vector[0], vec.start[0], vec.length[0]);
-                            for (int i = 0; i < length; ++i)
-                            {
-                                rows.add(id);
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < length; ++i)
-                            {
-                                directStreamOutput.Write(vec.vector[0], vec.start[0],
-                                    vec.length[0]);
-                                directLengthOutput.write(vec.length[0]);
-                            }
-                        }
-                        indexStatistics.updateString(vec.vector[0], vec.start[0],
-                            vec.length[0], length);
-                        if (createBloomFilter)
-                        {
-                            bloomFilter.addBytes(vec.vector[0], vec.start[0], vec.length[0]);
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < length; ++i)
-                    {
-                        if (vec.noNulls || !vec.isNull[i + offset])
-                        {
-                            if (useDictionaryEncoding)
-                            {
-                                rows.add(dictionary.add(vec.vector[offset + i],
-                                    vec.start[offset + i], vec.length[offset + i]));
-                            }
-                            else
-                            {
-                                directStreamOutput.Write(vec.vector[offset + i],
-                                    vec.start[offset + i], vec.length[offset + i]);
-                                directLengthOutput.write(vec.length[offset + i]);
-                            }
-                            indexStatistics.updateString(vec.vector[offset + i],
-                                vec.start[offset + i], vec.length[offset + i], 1);
-                            if (createBloomFilter)
-                            {
-                                bloomFilter.addBytes(vec.vector[offset + i],
-                                    vec.start[offset + i], vec.length[offset + i]);
-                            }
-                        }
                     }
                 }
             }
@@ -1728,11 +1664,11 @@ namespace OrcSharp
 
             class StringWriterTreeVisitor : StringRedBlackTree.Visitor
             {
-                private readonly StringTreeWriter writer;
+                private readonly StringBaseTreeWriter writer;
                 private readonly int[] dumpOrder;
                 private int currentId = 0;
 
-                public StringWriterTreeVisitor(StringTreeWriter writer, int[] dumpOrder)
+                public StringWriterTreeVisitor(StringBaseTreeWriter writer, int[] dumpOrder)
                 {
                     this.writer = writer;
                     this.dumpOrder = dumpOrder;
@@ -1819,17 +1755,298 @@ namespace OrcSharp
             }
         }
 
+        sealed private class StringTreeWriter : StringBaseTreeWriter
+        {
+            public StringTreeWriter(
+                int columnId,
+                ObjectInspector inspector,
+                TypeDescription schema,
+                StreamFactory writer,
+                bool nullable)
+                : base(columnId, inspector, schema, writer, nullable)
+            {
+            }
+
+            internal override void writeBatch(ColumnVector vector, int offset, int length)
+            {
+                base.writeBatch(vector, offset, length);
+                BytesColumnVector vec = (BytesColumnVector)vector;
+                if (vector.isRepeating)
+                {
+                    if (vector.noNulls || !vector.isNull[0])
+                    {
+                        if (useDictionaryEncoding)
+                        {
+                            int id = dictionary.add(vec.vector[0], vec.start[0], vec.length[0]);
+                            for (int i = 0; i < length; ++i)
+                            {
+                                rows.add(id);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < length; ++i)
+                            {
+                                directStreamOutput.Write(vec.vector[0], vec.start[0],
+                                    vec.length[0]);
+                                directLengthOutput.write(vec.length[0]);
+                            }
+                        }
+                        indexStatistics.updateString(vec.vector[0], vec.start[0],
+                            vec.length[0], length);
+                        if (createBloomFilter)
+                        {
+                            bloomFilter.addBytes(vec.vector[0], vec.start[0], vec.length[0]);
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < length; ++i)
+                    {
+                        if (vec.noNulls || !vec.isNull[i + offset])
+                        {
+                            if (useDictionaryEncoding)
+                            {
+                                rows.add(dictionary.add(vec.vector[offset + i],
+                                    vec.start[offset + i], vec.length[offset + i]));
+                            }
+                            else
+                            {
+                                directStreamOutput.Write(vec.vector[offset + i],
+                                    vec.start[offset + i], vec.length[offset + i]);
+                                directLengthOutput.write(vec.length[offset + i]);
+                            }
+                            indexStatistics.updateString(vec.vector[offset + i],
+                                vec.start[offset + i], vec.length[offset + i], 1);
+                            if (createBloomFilter)
+                            {
+                                bloomFilter.addBytes(vec.vector[offset + i],
+                                    vec.start[offset + i], vec.length[offset + i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Under the covers, char is written to ORC the same way as string.
+         */
+        sealed private class CharTreeWriter : StringBaseTreeWriter
+        {
+            private readonly int itemLength;
+            private readonly byte[] padding;
+
+            public CharTreeWriter(
+                int columnId,
+                ObjectInspector inspector,
+                TypeDescription schema,
+                StreamFactory writer,
+                bool nullable)
+                : base(columnId, inspector, schema, writer, nullable)
+            {
+                itemLength = schema.getMaxLength();
+                padding = new byte[itemLength];
+            }
+
+            /**
+             * Override base class implementation to support char values.
+             */
+            protected override string getTextValue(object obj)
+            {
+                return (((CharObjectInspector)inspector).getPrimitiveJavaObject(obj));
+            }
+
+            internal override void writeBatch(ColumnVector vector, int offset, int length)
+            {
+                base.writeBatch(vector, offset, length);
+                BytesColumnVector vec = (BytesColumnVector)vector;
+                if (vector.isRepeating)
+                {
+                    if (vector.noNulls || !vector.isNull[0])
+                    {
+                        byte[] ptr;
+                        int ptrOffset;
+                        if (vec.length[0] >= itemLength)
+                        {
+                            ptr = vec.vector[0];
+                            ptrOffset = vec.start[0];
+                        }
+                        else
+                        {
+                            ptr = padding;
+                            ptrOffset = 0;
+                            Array.Copy(vec.vector[0], vec.start[0], ptr, 0, vec.length[0]);
+                            Arrays.fill(ptr, vec.length[0], itemLength, (byte)' ');
+                        }
+                        if (useDictionaryEncoding)
+                        {
+                            int id = dictionary.add(ptr, ptrOffset, itemLength);
+                            for (int i = 0; i < length; ++i)
+                            {
+                                rows.add(id);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < length; ++i)
+                            {
+                                directStreamOutput.Write(ptr, ptrOffset, itemLength);
+                                directLengthOutput.write(itemLength);
+                            }
+                        }
+                        indexStatistics.updateString(ptr, ptrOffset, itemLength, length);
+                        if (createBloomFilter)
+                        {
+                            bloomFilter.addBytes(ptr, ptrOffset, itemLength);
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < length; ++i)
+                    {
+                        if (vec.noNulls || !vec.isNull[i + offset])
+                        {
+                            byte[] ptr;
+                            int ptrOffset;
+                            if (vec.length[offset + i] >= itemLength)
+                            {
+                                ptr = vec.vector[offset + i];
+                                ptrOffset = vec.start[offset + i];
+                            }
+                            else
+                            {
+                                // it is the wrong length, so copy it
+                                ptr = padding;
+                                ptrOffset = 0;
+                                Array.Copy(vec.vector[offset + i], vec.start[offset + i], ptr, 0, vec.length[offset + i]);
+                                Arrays.fill(ptr, vec.length[offset + i], itemLength, (byte)' ');
+                            }
+                            if (useDictionaryEncoding)
+                            {
+                                rows.add(dictionary.add(ptr, ptrOffset, itemLength));
+                            }
+                            else
+                            {
+                                directStreamOutput.Write(ptr, ptrOffset, itemLength);
+                                directLengthOutput.write(itemLength);
+                            }
+                            indexStatistics.updateString(ptr, ptrOffset, itemLength, 1);
+                            if (createBloomFilter)
+                            {
+                                bloomFilter.addBytes(ptr, ptrOffset, itemLength);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Under the covers, varchar is written to ORC the same way as string.
+         */
+        private class VarcharTreeWriter : StringBaseTreeWriter
+        {
+            private readonly int maxLength;
+
+            public VarcharTreeWriter(
+                int columnId,
+                ObjectInspector inspector,
+                TypeDescription schema,
+                StreamFactory writer,
+                bool nullable)
+                    : base(columnId, inspector, schema, writer, nullable)
+            {
+                maxLength = schema.getMaxLength();
+            }
+
+            /**
+             * Override base class implementation to support varchar values.
+             */
+            protected override string getTextValue(object obj)
+            {
+                return (((VarcharObjectInspector)inspector).getPrimitiveJavaObject(obj));
+            }
+
+            internal override void writeBatch(ColumnVector vector, int offset, int length)
+            {
+                base.writeBatch(vector, offset, length);
+                BytesColumnVector vec = (BytesColumnVector)vector;
+                if (vector.isRepeating)
+                {
+                    if (vector.noNulls || !vector.isNull[0])
+                    {
+                        int itemLength = Math.Min(vec.length[0], maxLength);
+                        if (useDictionaryEncoding)
+                        {
+                            int id = dictionary.add(vec.vector[0], vec.start[0], itemLength);
+                            for (int i = 0; i < length; ++i)
+                            {
+                                rows.add(id);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < length; ++i)
+                            {
+                                directStreamOutput.Write(vec.vector[0], vec.start[0],
+                                    itemLength);
+                                directLengthOutput.write(itemLength);
+                            }
+                        }
+                        indexStatistics.updateString(vec.vector[0], vec.start[0],
+                            itemLength, length);
+                        if (createBloomFilter)
+                        {
+                            bloomFilter.addBytes(vec.vector[0], vec.start[0], itemLength);
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < length; ++i)
+                    {
+                        if (vec.noNulls || !vec.isNull[i + offset])
+                        {
+                            int itemLength = Math.Min(vec.length[offset + i], maxLength);
+                            if (useDictionaryEncoding)
+                            {
+                                rows.add(dictionary.add(vec.vector[offset + i],
+                                    vec.start[offset + i], itemLength));
+                            }
+                            else
+                            {
+                                directStreamOutput.Write(vec.vector[offset + i],
+                                    vec.start[offset + i], itemLength);
+                                directLengthOutput.write(itemLength);
+                            }
+                            indexStatistics.updateString(vec.vector[offset + i],
+                                vec.start[offset + i], itemLength, 1);
+                            if (createBloomFilter)
+                            {
+                                bloomFilter.addBytes(vec.vector[offset + i],
+                                    vec.start[offset + i], itemLength);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private class BinaryTreeWriter : TreeWriter
         {
             private PositionedOutputStream stream;
             private IntegerWriter length;
             private bool isDirectV2 = true;
 
-            public BinaryTreeWriter(int columnId,
-                             ObjectInspector inspector,
-                             TypeDescription schema,
-                             StreamFactory writer,
-                             bool nullable) :
+            public BinaryTreeWriter(
+                int columnId,
+                ObjectInspector inspector,
+                TypeDescription schema,
+                StreamFactory writer,
+                bool nullable) :
                 base(columnId, inspector, schema, writer, nullable)
             {
                 this.stream = writer.createStream(id,
@@ -2691,14 +2908,18 @@ namespace OrcSharp
                           bool nullable) :
                 base(columnId, inspector, schema, writer, nullable)
             {
-                UnionObjectInspector insp = (UnionObjectInspector)inspector;
-                IList<ObjectInspector> choices = insp.getObjectInspectors();
+                IList<ObjectInspector> choices = null;
+                if (inspector != null)
+                {
+                    UnionObjectInspector insp = (UnionObjectInspector)inspector;
+                    choices = insp.getObjectInspectors();
+                }
                 IList<TypeDescription> children = schema.getChildren();
                 childrenWriters = new TreeWriter[children.Count];
                 for (int i = 0; i < childrenWriters.Length; ++i)
                 {
-                    childrenWriters[i] = createTreeWriter(choices[i],
-                                                          children[i], writer, true);
+                    childrenWriters[i] = createTreeWriter(
+                        choices != null ? choices[i] : null, children[i], writer, true);
                 }
                 tags =
                   new RunLengthByteWriter(writer.createStream(columnId,
@@ -2827,9 +3048,13 @@ namespace OrcSharp
                     return new DoubleTreeWriter(streamFactory.getNextColumnId(),
                         inspector, schema, streamFactory, nullable);
                 case Category.STRING:
-                case Category.CHAR:
-                case Category.VARCHAR:
                     return new StringTreeWriter(streamFactory.getNextColumnId(),
+                        inspector, schema, streamFactory, nullable);
+                case Category.CHAR:
+                    return new CharTreeWriter(streamFactory.getNextColumnId(),
+                        inspector, schema, streamFactory, nullable);
+                case Category.VARCHAR:
+                    return new VarcharTreeWriter(streamFactory.getNextColumnId(),
                         inspector, schema, streamFactory, nullable);
                 case Category.BINARY:
                     return new BinaryTreeWriter(streamFactory.getNextColumnId(),

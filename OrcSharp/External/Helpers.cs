@@ -26,9 +26,9 @@ namespace OrcSharp.External
 
     public static class Arrays
     {
-        public static void fill<T>(T[] array, int position, int length, T value)
+        public static void fill<T>(T[] array, int start, int end, T value)
         {
-            for (int i = position; i < position + length; i++)
+            for (int i = start; i < end; i++)
             {
                 array[i] = value;
             }
