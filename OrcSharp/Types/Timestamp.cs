@@ -52,6 +52,12 @@ namespace OrcSharp.Types
             get { return milliseconds; }
         }
 
+        public long Nanoseconds
+        {
+            // TODO:
+            get { return milliseconds * 1000000; } 
+        }
+
         public long getSeconds()
         {
             return milliseconds / 1000;

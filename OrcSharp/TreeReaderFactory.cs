@@ -1104,7 +1104,7 @@ namespace OrcSharp
                     }
                     else
                     {
-                        result.vector[i] = obj.Value.Milliseconds;
+                        result.vector[i] = obj.Value.Nanoseconds;
                     }
                 }
 
