@@ -179,6 +179,16 @@ namespace OrcSharp
                     return true;
                 }
             }
+
+            public override int GetHashCode()
+            {
+                int result = 0;
+                for (int i = 0; i < children.Count; ++i)
+                {
+                    result = (result << 1) ^ children[i].GetHashCode();
+                }
+                return result;
+            }
         }
     }
 }
