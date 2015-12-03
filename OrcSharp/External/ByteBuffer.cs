@@ -256,5 +256,15 @@ namespace OrcSharp.External
 
             return true;
         }
+
+        public override int GetHashCode()
+        {
+            int result = 0;
+            for (int i = 0; i < Length; i++)
+            {
+                result = (result << 3) ^ buffer[i];
+            }
+            return result;
+        }
     }
 }

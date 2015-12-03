@@ -330,6 +330,16 @@ namespace OrcSharp
                     return true;
                 }
             }
+
+            public override int GetHashCode()
+            {
+                int result = 0;
+                for (int i = 0; i < fields.Count; i++)
+                {
+                    result = (result << 1) ^ fields[i].getFieldName().ToLowerInvariant().GetHashCode();
+                }
+                return result;
+            }
         }
 
         class OrcMapObjectInspector : MapObjectInspector, SettableMapObjectInspector
@@ -431,6 +441,11 @@ namespace OrcSharp
                     OrcMapObjectInspector other = (OrcMapObjectInspector)o;
                     return other.key.Equals(key) && other.value.Equals(value);
                 }
+            }
+
+            public override int GetHashCode()
+            {
+                return (key.GetHashCode() << 1) ^ value.GetHashCode();
             }
         }
 
@@ -534,6 +549,11 @@ namespace OrcSharp
                     ObjectInspector other = ((OrcListObjectInspector)o).child;
                     return other.Equals(child);
                 }
+            }
+
+            public override int GetHashCode()
+            {
+                return child.GetHashCode();
             }
         }
 

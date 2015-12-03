@@ -182,5 +182,10 @@ namespace OrcSharp.Types
         {
             return CompareTo((HiveDecimal)obj);
         }
+
+        public override int GetHashCode()
+        {
+            return mantissa.GetHashCode() ^ _scale;
+        }
     }
 }
