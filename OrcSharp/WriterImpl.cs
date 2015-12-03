@@ -2269,13 +2269,13 @@ namespace OrcSharp
                 else
                 {
                     nanos /= 100;
-                    int trailingZeros = 1;
+                    uint trailingZeros = 1;
                     while (nanos % 10 == 0 && trailingZeros < 7)
                     {
                         nanos /= 10;
                         trailingZeros += 1;
                     }
-                    return ((long)nanos) << 3 | trailingZeros;
+                    return (long)(((ulong)nanos) << 3 | trailingZeros);
                 }
             }
 

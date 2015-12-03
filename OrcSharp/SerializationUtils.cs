@@ -645,10 +645,10 @@ namespace OrcSharp
             int remainder = len % numHops;
             int endOffset = offset + len;
             int endUnroll = endOffset - remainder;
-            int val = 0;
+            uint val = 0;
             for (int i = offset; i < endUnroll; i = i + numHops)
             {
-                val = (int)((val | ((input[i] & 1) << 7)
+                val = (uint)((val | ((input[i] & 1) << 7)
                     | ((input[i + 1] & 1) << 6)
                     | ((input[i + 2] & 1) << 5)
                     | ((input[i + 3] & 1) << 4)
@@ -665,7 +665,7 @@ namespace OrcSharp
                 int startShift = 7;
                 for (int i = endUnroll; i < endOffset; i++)
                 {
-                    val = (int)(val | (input[i] & 1) << startShift);
+                    val = (uint)(val | (input[i] & 1) << startShift);
                     startShift -= 1;
                 }
                 output.WriteByte((byte)val);
@@ -679,10 +679,10 @@ namespace OrcSharp
             int remainder = len % numHops;
             int endOffset = offset + len;
             int endUnroll = endOffset - remainder;
-            int val = 0;
+            uint val = 0;
             for (int i = offset; i < endUnroll; i = i + numHops)
             {
-                val = (int)(val | ((input[i] & 3) << 6)
+                val = (uint)(val | ((input[i] & 3) << 6)
                     | ((input[i + 1] & 3) << 4)
                     | ((input[i + 2] & 3) << 2)
                     | (input[i + 3]) & 3);
@@ -695,7 +695,7 @@ namespace OrcSharp
                 int startShift = 6;
                 for (int i = endUnroll; i < endOffset; i++)
                 {
-                    val = (int)(val | (input[i] & 3) << startShift);
+                    val = (uint)(val | (input[i] & 3) << startShift);
                     startShift -= 2;
                 }
                 output.WriteByte((byte)val);
@@ -709,10 +709,10 @@ namespace OrcSharp
             int remainder = len % numHops;
             int endOffset = offset + len;
             int endUnroll = endOffset - remainder;
-            int val = 0;
+            uint val = 0;
             for (int i = offset; i < endUnroll; i = i + numHops)
             {
-                val = (int)(val | ((input[i] & 15) << 4) | (input[i + 1]) & 15);
+                val = (uint)(val | ((input[i] & 15) << 4) | (input[i + 1]) & 15);
                 output.WriteByte((byte)val);
                 val = 0;
             }
@@ -722,7 +722,7 @@ namespace OrcSharp
                 int startShift = 4;
                 for (int i = endUnroll; i < endOffset; i++)
                 {
-                    val = (int)(val | (input[i] & 15) << startShift);
+                    val = (uint)(val | (input[i] & 15) << startShift);
                     startShift -= 4;
                 }
                 output.WriteByte((byte)val);
@@ -1043,7 +1043,7 @@ namespace OrcSharp
         public void readInts(long[] buffer, int offset, int len, int bitSize, Stream input)
         {
             int bitsLeft = 0;
-            int current = 0;
+            uint current = 0;
 
             switch (bitSize)
             {
@@ -1093,7 +1093,7 @@ namespace OrcSharp
                     result <<= bitsLeft;
                     result |= current & ((1 << bitsLeft) - 1);
                     bitsLeftToRead -= bitsLeft;
-                    current = input.ReadByte();
+                    current = (uint)input.ReadByte();
                     bitsLeft = 8;
                 }
 
