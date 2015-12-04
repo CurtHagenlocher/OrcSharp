@@ -20,14 +20,13 @@ namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.Text;
+    using Google.ProtocolBuffers;
     using OrcSharp.External;
     using OrcSharp.Serialization;
     using OrcSharp.Types;
     using OrcProto = global::orc.proto;
-    using ByteString = Google.ProtocolBuffers.ByteString;
-    using System.IO;
-    using Google.ProtocolBuffers;
-    using System.Text;
 
     /**
      * An ORC file writer. The file is divided into stripes, which is the natural
@@ -101,7 +100,6 @@ namespace OrcSharp
         private OrcFile.CompressionStrategy compressionStrategy;
         private bool[] bloomFilterColumns;
         private double bloomFilterFpp;
-        private bool writeTimeZone;
 
         public WriterImpl(
             Stream stream,
@@ -430,6 +428,11 @@ namespace OrcSharp
                 this.writer = writer;
             }
 
+            public string Timezone
+            {
+                get { return writer.options.timeZone; }
+            }
+
             /**
              * Create a stream to store part of a column.
              * @param column the column id for the stream
@@ -566,16 +569,6 @@ namespace OrcSharp
             public OrcFile.Version getVersion()
             {
                 return writer.version;
-            }
-
-            public void useWriterTimeZone(bool val)
-            {
-                writer.writeTimeZone = val;
-            }
-
-            public bool hasWriterTimeZone()
-            {
-                return writer.writeTimeZone;
             }
         }
 
@@ -880,10 +873,7 @@ namespace OrcSharp
                 foundNulls = false;
 
                 builder.AddColumns(getEncoding());
-                if (streamFactory.hasWriterTimeZone())
-                {
-                    builder.WriterTimezone = TimeZone.CurrentTimeZone.StandardName;
-                }
+                builder.WriterTimezone = streamFactory.Timezone;
                 if (rowIndexStream != null)
                 {
                     if (rowIndex.EntryCount != requiredIndexEntries)
@@ -2145,7 +2135,6 @@ namespace OrcSharp
         internal const int MILLIS_PER_SECOND = 1000;
         internal const int NANOS_PER_SECOND = 1000000000;
         internal const int MILLIS_PER_NANO = 1000000;
-        internal const string BASE_TIMESTAMP_STRING = "2015-01-01 00:00:00";
 
         private class TimestampTreeWriter : TreeWriter
         {
@@ -2167,9 +2156,8 @@ namespace OrcSharp
                 this.nanos = createIntegerWriter(writer.createStream(id,
                     OrcProto.Stream.Types.Kind.SECONDARY), false, isDirectV2, writer);
                 recordPosition(rowIndexPosition);
-                // for unit tests to set different time zones
-                this.base_timestamp = DateTime.Parse(BASE_TIMESTAMP_STRING).getTimestamp() / MILLIS_PER_SECOND;
-                writer.useWriterTimeZone(true);
+                TimeZoneInfo timeZone;
+                this.base_timestamp = TimeZones.GetBaseTimestamp(writer.Timezone, out timeZone);
             }
 
             public override OrcProto.ColumnEncoding getEncoding()

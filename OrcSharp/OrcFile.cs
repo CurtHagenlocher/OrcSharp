@@ -250,6 +250,7 @@ namespace OrcSharp
             internal double _paddingTolerance;
             internal string _bloomFilterColumns;
             internal double _bloomFilterFpp;
+            internal string timeZone;
 
             public WriterOptions(Properties tableProperties, Configuration conf)
             {
@@ -285,6 +286,7 @@ namespace OrcSharp
                     conf);
                 _bloomFilterFpp = OrcConf.BLOOM_FILTER_FPP.getDouble(tableProperties,
                     conf);
+                timeZone = TimeZoneInfo.Local.Id;
             }
 
             /**
@@ -440,6 +442,12 @@ namespace OrcSharp
             public WriterOptions memory(MemoryManager value)
             {
                 memoryManagerValue = value;
+                return this;
+            }
+
+            public WriterOptions setTimeZone(string timeZone)
+            {
+                this.timeZone = timeZone;
                 return this;
             }
 

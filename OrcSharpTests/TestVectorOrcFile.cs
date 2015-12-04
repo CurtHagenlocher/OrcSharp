@@ -1616,6 +1616,7 @@ namespace OrcSharp
             row = (OrcStruct)rows.next();
             Assert.Equal(2, rows.getRowNumber());
             Assert.Equal(Timestamp.Parse("2000-03-20 12:00:00.123456789"), row.getFieldValue(0));
+            union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(1, union.getTag());
             Assert.Equal("hello", union.getObject());
             Assert.Equal(HiveDecimal.Parse("-5643.234"), row.getFieldValue(2));
@@ -1631,11 +1632,13 @@ namespace OrcSharp
             Assert.Null(row.getFieldValue(2));
             row = (OrcStruct)rows.next();
             Assert.Null(row.getFieldValue(0));
+            union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(1, union.getTag());
             Assert.Null(union.getObject());
             Assert.Null(row.getFieldValue(2));
             row = (OrcStruct)rows.next();
             Assert.Equal(Timestamp.Parse("1970-01-01 00:00:00"), row.getFieldValue(0));
+            union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(200000, union.getObject());
             Assert.Equal(HiveDecimal.Parse("10000000000000000000"), row.getFieldValue(2));
             rand = new Random(42);
@@ -1644,6 +1647,7 @@ namespace OrcSharp
                 row = (OrcStruct)rows.next();
                 Assert.Equal(Timestamp.Parse(i + "-05-05 12:34:56." + i),
                     row.getFieldValue(0));
+                union = (OrcUnion)row.getFieldValue(1);
                 if ((i & 1) == 0)
                 {
                     Assert.Equal(0, union.getTag());
@@ -1661,13 +1665,17 @@ namespace OrcSharp
             for (int i = 0; i < 5000; ++i)
             {
                 row = (OrcStruct)rows.next();
+                union = (OrcUnion)row.getFieldValue(1);
                 Assert.Equal(1732050807, union.getObject());
             }
             row = (OrcStruct)rows.next();
+            union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(0, union.getObject());
             row = (OrcStruct)rows.next();
+            union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(10, union.getObject());
             row = (OrcStruct)rows.next();
+            union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(138, union.getObject());
             Assert.Equal(false, rows.hasNext());
             Assert.Equal(1.0, rows.getProgress(), 5);
@@ -1675,6 +1683,7 @@ namespace OrcSharp
             rows.seekToRow(1);
             row = (OrcStruct)rows.next();
             Assert.Equal(Timestamp.Parse("2000-03-20 12:00:00.123456789"), row.getFieldValue(0));
+            union = (OrcUnion)row.getFieldValue(1);
             Assert.Equal(1, union.getTag());
             Assert.Equal("hello", union.getObject());
             Assert.Equal(HiveDecimal.Parse("-5643.234"), row.getFieldValue(2));

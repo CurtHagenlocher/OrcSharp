@@ -934,7 +934,6 @@ namespace OrcSharp
             private IntegerReader data = null;
             private IntegerReader nanos = null;
             private bool _skipCorrupt;
-            private Dictionary<string, long> baseTimestampMap;
             private long base_timestamp;
             private TimeZoneInfo readerTimeZone;
             private TimeZoneInfo writerTimeZone;
@@ -950,11 +949,9 @@ namespace OrcSharp
                 : base(columnId, presentStream)
             {
                 this._skipCorrupt = skipCorrupt;
-                this.baseTimestampMap = new Dictionary<string, long>();
                 this.readerTimeZone = (CreateTimeZone != null) ? CreateTimeZone() : TimeZoneInfo.Local;
-                this.writerTimeZone = readerTimeZone;
+                this.base_timestamp = TimeZones.GetBaseTimestamp(readerTimeZone.Id, out writerTimeZone);
                 this.hasSameTZRules = writerTimeZone.HasSameRules(readerTimeZone);
-                this.base_timestamp = getBaseTimestamp(readerTimeZone.Id);
                 if (encoding != null)
                 {
                     checkEncoding(encoding);
@@ -991,37 +988,8 @@ namespace OrcSharp
                 nanos = createIntegerReader(stripeFooter.ColumnsList[columnId].Kind,
                     streams.get(new StreamName(columnId,
                         OrcProto.Stream.Types.Kind.SECONDARY)), false, _skipCorrupt);
-                base_timestamp = getBaseTimestamp(stripeFooter.WriterTimezone);
-            }
-
-            private long getBaseTimestamp(string timeZoneId)
-            {
-                // to make sure new readers read old files in the same way
-                if (string.IsNullOrEmpty(timeZoneId))
-                {
-                    timeZoneId = readerTimeZone.Id;
-                }
-
-                long epoch;
-                if (!baseTimestampMap.TryGetValue(timeZoneId, out epoch))
-                {
-                    writerTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-                    hasSameTZRules = writerTimeZone.HasSameRules(readerTimeZone);
-                    try
-                    {
-                        DateTime dateTime = DateTime.Parse(WriterImpl.BASE_TIMESTAMP_STRING);
-                        dateTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, writerTimeZone);
-                        epoch = dateTime.getTimestamp() / WriterImpl.MILLIS_PER_SECOND;
-                        baseTimestampMap[timeZoneId] = epoch;
-                        return epoch;
-                    }
-                    catch (FormatException e)
-                    {
-                        throw new IOException("Unable to create base timestamp", e);
-                    }
-                }
-
-                return epoch;
+                this.base_timestamp = TimeZones.GetBaseTimestamp(stripeFooter.WriterTimezone, out writerTimeZone);
+                this.hasSameTZRules = writerTimeZone.HasSameRules(readerTimeZone);
             }
 
             public override void seek(PositionProvider[] index)

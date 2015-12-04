@@ -52,6 +52,7 @@
     <Compile Include="External\BloomFilter.cs" />
     <Compile Include="External\BloomFilterIO.cs" />
     <Compile Include="External\ByteBuffer.cs" />
+    <Compile Include="External\TimeZones.cs" />
     <Compile Include="Types\BytesColumnVector.cs" />
     <Compile Include="External\CommandLine.cs" />
     <Compile Include="External\JsonWriter.cs" />
