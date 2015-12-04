@@ -142,7 +142,7 @@ namespace OrcSharp
          * @return a new ORC file reader.
          * @
          */
-        public static Reader createReader(Stream file, string path)
+        public static Reader createReader(Func<Stream> file, string path)
         {
             ReaderOptions opts = new ReaderOptions(new Configuration());
             // opts.filesystem(fs);
@@ -218,7 +218,7 @@ namespace OrcSharp
 
         public static Reader createReader(string path, ReaderOptions options)
         {
-            return new ReaderImpl(File.OpenRead(path), path, options);
+            return new ReaderImpl(() => File.OpenRead(path), path, options);
         }
 
         public interface WriterCallback

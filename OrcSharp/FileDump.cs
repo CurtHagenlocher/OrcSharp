@@ -526,11 +526,10 @@ namespace OrcSharp
 
         static void printJsonData(Configuration conf, string path)
         {
-            using (Stream file = File.OpenRead(path))
+            Reader reader = OrcFile.createReader(() => File.OpenRead(path), path);
+            TextWriter @out = System.Console.Out;
+            using (RecordReader rows = reader.rows(null))
             {
-                Reader reader = OrcFile.createReader(file, path);
-                TextWriter @out = System.Console.Out;
-                RecordReader rows = reader.rows(null);
                 IList<OrcProto.Type> types = reader.getTypes();
                 while (rows.hasNext())
                 {

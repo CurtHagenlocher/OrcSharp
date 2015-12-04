@@ -18,16 +18,15 @@
 
 namespace OrcSharp
 {
+    using System;
     using global::orc.proto;
 
-    public interface MetadataReader
+    public interface MetadataReader : IDisposable
     {
         RecordReaderImpl.Index readRowIndex(StripeInformation stripe, StripeFooter footer,
             bool[] included, RowIndex[] indexes, bool[] sargColumns,
             BloomFilterIndex[] bloomFilterIndices);
 
         StripeFooter readStripeFooter(StripeInformation stripe);
-
-        void close();
     }
 }

@@ -51,10 +51,9 @@ namespace OrcSharp
                 writer.close();
             }
 
-            using (Stream file = File.OpenRead(filename))
+            Reader reader = OrcFile.createReader(() => File.OpenRead(filename), filename);
+            using (RecordReader recordReader = reader.rows())
             {
-                Reader reader = OrcFile.createReader(file, filename);
-                RecordReader recordReader = reader.rows();
                 object value = recordReader.next();
                 Assert.True(value is string);
                 Assert.Equal("hello", value);

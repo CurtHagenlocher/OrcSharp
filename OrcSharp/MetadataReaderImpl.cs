@@ -18,6 +18,7 @@
 
 namespace OrcSharp
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using OrcSharp.External;
@@ -30,10 +31,10 @@ namespace OrcSharp
         private int bufferSize;
         private int typeCount;
 
-        public MetadataReaderImpl(Stream file,
+        public MetadataReaderImpl(Func<Stream> streamCreator,
             CompressionCodec codec, int bufferSize, int typeCount)
         {
-            this.file = file;
+            this.file = streamCreator();
             this.codec = codec;
             this.bufferSize = bufferSize;
             this.typeCount = typeCount;
@@ -116,10 +117,9 @@ namespace OrcSharp
                 tailLength, codec, bufferSize));
         }
 
-        public void close()
+        public void Dispose()
         {
-            // TODO:
-            // file.Close();
+            file.Dispose();
         }
     }
 }

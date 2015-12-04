@@ -33,15 +33,16 @@ namespace OrcSharp
     {
         private class DefaultDataReader : DataReader
         {
+            private Func<Stream> streamCreator;
             private Stream file;
             private string path;
             private bool useZeroCopy;
             private CompressionCodec codec;
 
             public DefaultDataReader(
-                Stream file, string path, bool useZeroCopy, CompressionCodec codec)
+                Func<Stream> streamCreator, string path, bool useZeroCopy, CompressionCodec codec)
             {
-                this.file = file;
+                this.streamCreator = streamCreator;
                 this.path = path;
                 this.useZeroCopy = useZeroCopy;
                 this.codec = codec;
@@ -49,7 +50,7 @@ namespace OrcSharp
 
             public void open()
             {
-                // this.file = fs.open(path);
+                this.file = streamCreator();
             }
 
             public DiskRangeList readFileData(
@@ -62,9 +63,14 @@ namespace OrcSharp
             {
                 if (file != null)
                 {
-                    // TODO:
-                    // file.Close();
+                    file.Dispose();
+                    file = null;
                 }
+            }
+
+            public void Dispose()
+            {
+                close();
             }
 
             public bool isTrackingDiskRanges()
@@ -78,9 +84,9 @@ namespace OrcSharp
         }
 
         public static DataReader createDefaultDataReader(
-            Stream file, string path, bool useZeroCopy, CompressionCodec codec)
+            Func<Stream> streamCreator, string path, bool useZeroCopy, CompressionCodec codec)
         {
-            return new DefaultDataReader(file, path, useZeroCopy, codec);
+            return new DefaultDataReader(streamCreator, path, useZeroCopy, codec);
         }
 
         public static bool[] findPresentStreamsByColumn(

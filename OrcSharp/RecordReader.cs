@@ -18,12 +18,13 @@
 
 namespace OrcSharp
 {
+    using System;
     using OrcSharp.Types;
 
     /// <summary>
     /// A row-by-row iterator for ORC files.
     /// </summary>
-    public interface RecordReader
+    public interface RecordReader : IDisposable
     {
         /**
          * Does the reader have more rows available.

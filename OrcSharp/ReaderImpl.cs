@@ -37,7 +37,7 @@ namespace OrcSharp
 
         private const int DIRECTORY_SIZE_GUESS = 16 * 1024;
 
-        protected Stream baseStream;
+        protected Func<Stream> streamCreator;
         protected string path;
         protected CompressionKind compressionKind;
         protected CompressionCodec codec;
@@ -50,7 +50,6 @@ namespace OrcSharp
         private IList<StripeInformation> stripes;
         protected int rowIndexStride;
         private long contentLength, numberOfRows;
-
 
         private ObjectInspector inspector;
         private long deserializedSize = -1;
@@ -306,9 +305,9 @@ namespace OrcSharp
          * @param options options for reading
          * @
          */
-        public ReaderImpl(Stream stream, string path, OrcFile.ReaderOptions options)
+        public ReaderImpl(Func<Stream> streamCreator, string path, OrcFile.ReaderOptions options)
         {
-            this.baseStream = stream;
+            this.streamCreator = streamCreator;
             this.path = path;
             this.conf = options.getConfiguration();
 
@@ -343,9 +342,11 @@ namespace OrcSharp
                 }
                 else
                 {
-                    footerMetaData = extractMetaInfoFromFooter(baseStream, path,
-                        options.getMaxLength());
-                    this.footerMetaAndPsBuffer = footerMetaData.footerMetaAndPsBuffer;
+                    using (Stream file = streamCreator())
+                    {
+                        footerMetaData = extractMetaInfoFromFooter(file, path, options.getMaxLength());
+                        this.footerMetaAndPsBuffer = footerMetaData.footerMetaAndPsBuffer;
+                    }
                 }
                 MetaInfoObjExtractor rInfo =
                     new MetaInfoObjExtractor(footerMetaData.compressionKind,
@@ -501,7 +502,6 @@ namespace OrcSharp
             int metadataSize = (int)ps.MetadataLength;
             OrcFile.WriterVersion writerVersion = extractWriterVersion(ps);
 
-
             //check if extra bytes need to be read
             ByteBuffer fullFooterBuffer = null;
             int extra = Math.Max(0, psLen + 1 + footerSize + metadataSize - readSize);
@@ -530,9 +530,6 @@ namespace OrcSharp
             // remember position for later
             buffer.mark();
 
-            // TODO:
-            // file.Close();
-
             CompressionKind compressionKind = (CompressionKind)Enum.Parse(
                 typeof(CompressionKind), ps.Compression.ToString(), true);
             return new FileMetaInfo(
@@ -542,8 +539,7 @@ namespace OrcSharp
                 buffer,
                 ps.VersionList,
                 writerVersion,
-                fullFooterBuffer
-                );
+                fullFooterBuffer);
         }
 
         private static OrcFile.WriterVersion extractWriterVersion(OrcProto.PostScript ps)
@@ -666,7 +662,7 @@ namespace OrcSharp
                 Arrays.fill(include, true);
                 options.include(include);
             }
-            return new RecordReaderImpl(this.getStripes(), File.OpenRead(path), path,
+            return new RecordReaderImpl(this.getStripes(), streamCreator, path,
                 options, types, codec, bufferSize, rowIndexStride, conf);
         }
 
@@ -869,7 +865,7 @@ namespace OrcSharp
 
         public MetadataReader metadata()
         {
-            return new MetadataReaderImpl(baseStream, codec, bufferSize, types.Count);
+            return new MetadataReaderImpl(streamCreator, codec, bufferSize, types.Count);
         }
 
         public IList<int> getVersionList()
@@ -884,7 +880,7 @@ namespace OrcSharp
 
         public DataReader createDefaultDataReader(bool useZeroCopy)
         {
-            return RecordReaderUtils.createDefaultDataReader(baseStream, path, useZeroCopy, codec);
+            return RecordReaderUtils.createDefaultDataReader(streamCreator, path, useZeroCopy, codec);
         }
     }
 }

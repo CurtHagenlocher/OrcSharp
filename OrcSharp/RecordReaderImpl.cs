@@ -131,7 +131,7 @@ namespace OrcSharp
 
         public RecordReaderImpl(
             IList<StripeInformation> stripes,
-            Stream file,
+            Func<Stream> streamCreator,
             string path,
             RecordReaderOptions options,
             IList<OrcProto.Type> types,
@@ -147,7 +147,7 @@ namespace OrcSharp
             this.included = options.getInclude();
             this.conf = conf;
             this.rowIndexStride = strideRate;
-            this.metadata = new MetadataReaderImpl(file, codec, bufferSize, types.Count);
+            this.metadata = new MetadataReaderImpl(streamCreator, codec, bufferSize, types.Count);
             SearchArgument sarg = options.getSearchArgument();
             if (sarg != null && strideRate != 0)
             {
@@ -182,7 +182,7 @@ namespace OrcSharp
                 zeroCopy = OrcConf.USE_ZEROCOPY.getBoolean(conf);
             }
             // TODO: we could change the ctor to pass this externally
-            this.dataReader = RecordReaderUtils.createDefaultDataReader(file, path, zeroCopy.Value, codec);
+            this.dataReader = RecordReaderUtils.createDefaultDataReader(streamCreator, path, zeroCopy.Value, codec);
             this.dataReader.open();
 
             firstRow = skippedRows;
@@ -197,6 +197,12 @@ namespace OrcSharp
             indexes = new OrcProto.RowIndex[types.Count];
             bloomFilterIndices = new OrcProto.BloomFilterIndex[types.Count];
             advanceToNextRow(reader, 0L, true);
+        }
+
+        public void Dispose()
+        {
+            this.dataReader.Dispose();
+            this.metadata.Dispose();
         }
 
         public class PositionProviderImpl : PositionProvider

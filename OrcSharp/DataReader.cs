@@ -18,12 +18,13 @@
 
 namespace OrcSharp
 {
+    using System;
     using OrcSharp.External;
 
     /// <summary>
     /// An abstract data reader that IO formats can use to read bytes from underlying storage.
     /// </summary>
-    public interface DataReader
+    public interface DataReader : IDisposable
     {
         /** Opens the DataReader, making it ready to use. */
         void open();
