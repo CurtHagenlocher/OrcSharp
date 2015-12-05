@@ -178,11 +178,6 @@ namespace OrcSharp.External
             return Start.AddDays(days);
         }
 
-        public static int getNanos(this DateTime dateTime)
-        {
-            return (int)((dateTime.Ticks % TimeSpan.TicksPerMillisecond) % 1e6);
-        }
-
         public static DateTime getTimestamp(long millis)
         {
             return Start.AddTicks(TimeSpan.TicksPerMillisecond * millis);

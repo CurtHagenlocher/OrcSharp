@@ -23,28 +23,34 @@ namespace OrcSharp.Types
 
     public struct Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>, IComparable
     {
-        private readonly long milliseconds;
+        private const int NanosecondsPerMillisecond = 1000000;
+        private const int TicksPerNanosecond = 100;
 
-        public Timestamp(long milliseconds)
+        private readonly long milliseconds;
+        private readonly int nanoseconds;
+
+        public Timestamp(long milliseconds, int nanoseconds = 0)
         {
-            this.milliseconds = milliseconds;
+            this.milliseconds = milliseconds + nanoseconds / NanosecondsPerMillisecond;
+            this.nanoseconds = nanoseconds % NanosecondsPerMillisecond;
         }
 
         public Timestamp(DateTime date)
         {
             milliseconds = Epoch.getTimestamp(date);
+            nanoseconds = GetNanoseconds(date);
         }
 
         public Timestamp(int year1900, int month, int day, int hour, int minute, int second, int nanos)
         {
-            // TODO:
-            DateTime datetime = new DateTime(1900 + year1900, month, day, hour, minute, second);
-            milliseconds = Epoch.getTimestamp(datetime);
+            DateTime datetime = new DateTime(1900 + year1900, month + 1, day, hour, minute, second);
+            milliseconds = Epoch.getTimestamp(datetime) + nanos / NanosecondsPerMillisecond;
+            nanoseconds = nanos % NanosecondsPerMillisecond;
         }
 
         public DateTime AsDateTime
         {
-            get { return Epoch.getTimestamp(milliseconds); }
+            get { return Epoch.getTimestamp(milliseconds).AddTicks(nanoseconds * TicksPerNanosecond); }
         }
 
         public long Milliseconds
@@ -55,7 +61,7 @@ namespace OrcSharp.Types
         public long Nanoseconds
         {
             // TODO:
-            get { return milliseconds * 1000000; } 
+            get { return milliseconds * 1000000 + nanoseconds; }
         }
 
         public long getSeconds()
@@ -66,7 +72,7 @@ namespace OrcSharp.Types
         public int getNanos()
         {
             // TODO:
-            return AsDateTime.getNanos();
+            return (int)(milliseconds % 1000) + nanoseconds;
         }
 
         public static Timestamp Parse(string timestamp)
@@ -116,6 +122,11 @@ namespace OrcSharp.Types
         public static bool operator >(Timestamp left, Timestamp right)
         {
             return left.milliseconds > right.milliseconds;
+        }
+
+        static int GetNanoseconds(DateTime datetime)
+        {
+            return (int)((datetime.Ticks % TimeSpan.TicksPerMillisecond) % 1000000);
         }
     }
 }

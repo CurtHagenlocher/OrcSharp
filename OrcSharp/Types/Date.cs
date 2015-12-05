@@ -42,7 +42,7 @@ namespace OrcSharp.Types
 
         public Date(int year, int month, int day)
         {
-            days = Epoch.getDays(new DateTime(year + 1900, month, day));
+            days = Epoch.getDays(new DateTime(year + 1900, month + 1, day));
         }
 
         public static Date Parse(string date)

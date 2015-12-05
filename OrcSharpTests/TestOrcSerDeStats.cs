@@ -49,40 +49,6 @@ namespace OrcSharp
             }
         }
 
-        public class SimpleStruct
-        {
-            byte[] bytes1;
-            string string1;
-
-            public SimpleStruct(byte[] b1, string s1)
-            {
-                this.bytes1 = b1;
-                this.string1 = s1;
-            }
-        }
-
-        public class InnerStruct
-        {
-            int int1;
-            internal string string1;
-
-            public InnerStruct(int int1, string string1)
-            {
-                this.int1 = int1;
-                this.string1 = string1;
-            }
-        }
-
-        public class MiddleStruct
-        {
-            List<InnerStruct> list = new List<InnerStruct>();
-
-            public MiddleStruct(params InnerStruct[] items)
-            {
-                list.AddRange(items);
-            }
-        }
-
         public class BigRow
         {
             bool boolean1;
@@ -96,14 +62,14 @@ namespace OrcSharp
             string string1;
             List<InnerStruct> list = new List<InnerStruct>();
             Dictionary<string, InnerStruct> map = new Dictionary<string, InnerStruct>();
-            DateTime ts; // Timestamp ts;
+            Timestamp ts;
             HiveDecimal decimal1;
             MiddleStruct middle;
 
             public BigRow(bool b1, sbyte b2, short s1, int i1, long l1, float f1,
                 double d1,
                 byte[] b3, string s2, MiddleStruct m1,
-                List<InnerStruct> l2, Dictionary<string, InnerStruct> m2, DateTime ts1, // Timestamp ts1,
+                List<InnerStruct> l2, Dictionary<string, InnerStruct> m2, Timestamp ts1,
                 HiveDecimal dec1)
             {
                 this.boolean1 = b1;
@@ -125,7 +91,8 @@ namespace OrcSharp
 
         const string testFileName = "TestOrcSerDeStats.orc";
 
-        public TestOrcSerDeStats() : base(testFileName)
+        public TestOrcSerDeStats()
+            : base(testFileName)
         {
         }
 
@@ -375,7 +342,7 @@ namespace OrcSharp
                         Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
                         new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                         list(inner(3, "good"), inner(4, "bad")),
-                        map(), Timestamp.valueOf("2000-03-12 15:00:00"), HiveDecimal.Parse(
+                        map(), Timestamp.Parse("2000-03-12 15:00:00"), HiveDecimal.Parse(
                             "12345678.6547456")));
                 // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
                 // 97
@@ -383,7 +350,7 @@ namespace OrcSharp
                     Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
                     new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                     list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
-                    map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.valueOf("2000-03-11 15:00:00"),
+                    map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.Parse("2000-03-11 15:00:00"),
                     HiveDecimal.Parse("12345678.6547452")));
                 writer.close();
                 long rowCount = writer.getNumberOfRows();
@@ -470,7 +437,7 @@ namespace OrcSharp
                         Int64.MaxValue, (float)1.0, -15.0, bytes(0, 1, 2, 3, 4), "hi",
                         new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                         list(inner(3, "good"), inner(4, "bad")),
-                        map(), Timestamp.valueOf("2000-03-12 15:00:00"), HiveDecimal.Parse(
+                        map(), Timestamp.Parse("2000-03-12 15:00:00"), HiveDecimal.Parse(
                             "12345678.6547456")));
                 // 1 + 2 + 4 + 8 + 4 + 8 + 3 + 4 + 3 + 4 + 4 + 4 + 3 + 4 + 2 + 4 + 3 + 5 + 4 + 5 + 7 + 4 + 7 =
                 // 97
@@ -478,7 +445,7 @@ namespace OrcSharp
                     Int64.MaxValue, (float)2.0, -5.0, bytes(), "bye",
                     new MiddleStruct(inner(1, "bye"), inner(2, "sigh")),
                     list(inner(100000000, "cat"), inner(-100000, "in"), inner(1234, "hat")),
-                    map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.valueOf("2000-03-11 15:00:00"),
+                    map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.Parse("2000-03-11 15:00:00"),
                     HiveDecimal.Parse("12345678.6547452")));
                 writer.close();
                 long rowCount = writer.getNumberOfRows();
@@ -620,14 +587,6 @@ namespace OrcSharp
             // since old orc format doesn't support binary statistics,
             // this should throw ClassCastException
             Assert.Throws<InvalidCastException>(() => ((BinaryColumnStatistics)stats[8]).getSum());
-        }
-
-        static class Timestamp
-        {
-            public static DateTime valueOf(string s)
-            {
-                return DateTime.Parse(s);
-            }
         }
     }
 }

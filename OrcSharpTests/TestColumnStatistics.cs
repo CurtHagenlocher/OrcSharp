@@ -180,18 +180,6 @@ namespace OrcSharp
             Assert.Equal(10000, typed.getMaximum().longValue());
         }
 
-        public class SimpleStruct
-        {
-            byte[] bytes1;
-            string string1;
-
-            public SimpleStruct(byte[] b1, string s1)
-            {
-                this.bytes1 = b1;
-                this.string1 = s1;
-            }
-        }
-
         private static byte[] bytes(params int[] items)
         {
             byte[] result = new byte[items.Length];

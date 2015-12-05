@@ -988,7 +988,9 @@ namespace OrcSharp
                 nanos = createIntegerReader(stripeFooter.ColumnsList[columnId].Kind,
                     streams.get(new StreamName(columnId,
                         OrcProto.Stream.Types.Kind.SECONDARY)), false, _skipCorrupt);
-                this.base_timestamp = TimeZones.GetBaseTimestamp(stripeFooter.WriterTimezone, out writerTimeZone);
+
+                string timezone = stripeFooter.HasWriterTimezone ? stripeFooter.WriterTimezone : "UTC";
+                this.base_timestamp = TimeZones.GetBaseTimestamp(timezone, out writerTimeZone);
                 this.hasSameTZRules = writerTimeZone.HasSameRules(readerTimeZone);
             }
 
@@ -1042,11 +1044,9 @@ namespace OrcSharp
                     long newOffset =
                         (long)((writerTimeZone.GetUtcOffset(timestamp) - readerTimeZone.GetUtcOffset(ts)).TotalMilliseconds);
                     adjustedMillis = millis + newOffset;
-                    ts = Epoch.getTimestamp(adjustedMillis);
                 }
-                // TODO: fix
-                // ts.setNanos(newNanos);
-                return new Timestamp(ts);
+
+                return new Timestamp(adjustedMillis, newNanos);
             }
 
             public override object nextVector(object previousVector, long batchSize)
