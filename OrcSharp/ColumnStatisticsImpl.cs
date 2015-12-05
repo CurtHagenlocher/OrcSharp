@@ -20,7 +20,6 @@ namespace OrcSharp
 {
     using System;
     using System.Text;
-    using OrcSharp.External;
     using OrcSharp.Types;
     using OrcProto = global::orc.proto;
 

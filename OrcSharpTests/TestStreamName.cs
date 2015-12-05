@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
     using Xunit;
+    using OrcSharp;
     using OrcProto = global::orc.proto;
 
     public class TestStreamName

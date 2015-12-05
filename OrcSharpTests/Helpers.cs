@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
     using System;
     using System.Collections.Generic;
@@ -25,6 +25,7 @@ namespace OrcSharp
     using System.Reflection;
     using System.Text;
     using System.Threading;
+    using OrcSharp;
     using Xunit;
 
     static class TestHelpers

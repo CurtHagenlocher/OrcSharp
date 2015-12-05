@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
-
+    using OrcSharp;
     using Xunit;
 
     public class TestOrcWideTable

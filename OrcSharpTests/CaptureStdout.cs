@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
     using System;
     using System.IO;

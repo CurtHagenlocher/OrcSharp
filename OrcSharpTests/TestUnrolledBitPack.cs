@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
     using System;
+    using System.IO;
+    using OrcSharp;
     using OrcSharp.Serialization;
     using Xunit;
-    using System.IO;
 
     public class TestUnrolledBitPack : WithLocalDirectory
     {

@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
+    using OrcSharp;
     using Xunit;
 
     public class TestTypeDescription
     {
-
         [Fact]
         public void testJson()
         {

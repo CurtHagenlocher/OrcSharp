@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
     using System;
     using System.Collections.Generic;
     using OrcSharp.Query;
+    using OrcSharp.Types;
     using Xunit;
-    using Types;
 
     /**
      * These test the SARG implementation.

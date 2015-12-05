@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
     using System;
+    using OrcSharp;
     using Xunit;
 
     public class TestDynamicArray

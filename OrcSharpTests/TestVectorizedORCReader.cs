@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-namespace OrcSharp
+namespace OrcSharpTests
 {
     using System;
     using System.IO;
     using System.Text;
+    using OrcSharp;
     using OrcSharp.Serialization;
     using OrcSharp.Types;
     using Xunit;
