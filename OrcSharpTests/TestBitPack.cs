@@ -22,9 +22,9 @@ namespace OrcSharp
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using OrcSharp.External;
     using OrcSharp.Serialization;
     using Xunit;
-    using External;
 
     public class TestBitPack : WithLocalDirectory
     {
@@ -330,16 +330,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
     }

@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace OrcSharp
 {
     using System;
@@ -81,21 +82,21 @@ namespace OrcSharp
                 {
                     writer.addRow(Timestamp.Parse(t));
                 }
-                writer.close();
             }
 
             using (TestHelpers.SetTimeZoneInfo(readerTimeZone))
             {
                 Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-                RecordReader rows = reader.rows(null);
-                int idx = 0;
-                while (rows.hasNext())
+                using (RecordReader rows = reader.rows(null))
                 {
-                    object row = rows.next();
-                    Timestamp got = ((Timestamp)row);
-                    Assert.Equal(ts[idx++], got.ToString());
+                    int idx = 0;
+                    while (rows.hasNext())
+                    {
+                        object row = rows.next();
+                        Timestamp got = ((Timestamp)row);
+                        Assert.Equal(ts[idx++], got.ToString());
+                    }
                 }
-                rows.close();
             }
         }
     }

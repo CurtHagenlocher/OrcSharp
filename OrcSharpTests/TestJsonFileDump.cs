@@ -59,8 +59,8 @@ namespace OrcSharp
                 .rowIndexStride(1000)
                 .bloomFilterColumns("s");
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, options);
                 Random r1 = new Random(1);
                 for (int i = 0; i < 21000; ++i)
                 {
@@ -74,8 +74,6 @@ namespace OrcSharp
                             TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
                     }
                 }
-
-                writer.close();
             }
 
             const string outputFilename = "orc-file-dump.json";

@@ -56,26 +56,27 @@ namespace OrcSharp
 
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(long));
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)))
             {
-                Writer writer = OrcFile.createWriter(
-                    testFilePath,
-                    file,
-                    OrcFile.writerOptions(conf).inspector(inspector).stripeSize(100000)
-                        .compress(CompressionKind.NONE).bufferSize(10000));
                 foreach (long l in input)
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
     }

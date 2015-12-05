@@ -103,7 +103,6 @@ namespace OrcSharp
                         writer.addRow(new MyRecord(null, null, i, (long)200, null, null, null, null, null, null));
                     }
                 }
-                writer.close();
             }
             checkVectorizedReader();
         }
@@ -114,114 +113,116 @@ namespace OrcSharp
                 OrcFile.readerOptions(conf));
             Reader reader = OrcFile.createReader(testFilePath,
                 OrcFile.readerOptions(conf));
-            RecordReaderImpl vrr = (RecordReaderImpl)vreader.rows();
-            RecordReaderImpl rr = (RecordReaderImpl)reader.rows();
-            VectorizedRowBatch batch = null;
-
-            // Check Vectorized ORC reader against ORC row reader
-            while (vrr.hasNext())
+            using (RecordReaderImpl vrr = (RecordReaderImpl)vreader.rows())
+            using (RecordReaderImpl rr = (RecordReaderImpl)reader.rows())
             {
-                batch = vrr.nextBatch(batch);
-                for (int i = 0; i < batch.size; i++)
+                VectorizedRowBatch batch = null;
+
+                // Check Vectorized ORC reader against ORC row reader
+                while (vrr.hasNext())
                 {
-                    OrcStruct row = (OrcStruct)rr.next();
-                    for (int j = 0; j < batch.cols.Length; j++)
+                    batch = vrr.nextBatch(batch);
+                    for (int i = 0; i < batch.size; i++)
                     {
-                        object a = (row.getFieldValue(j));
-                        ColumnVector cv = batch.cols[j];
-                        // if the value is repeating, use row 0
-                        int rowId = cv.isRepeating ? 0 : i;
+                        OrcStruct row = (OrcStruct)rr.next();
+                        for (int j = 0; j < batch.cols.Length; j++)
+                        {
+                            object a = (row.getFieldValue(j));
+                            ColumnVector cv = batch.cols[j];
+                            // if the value is repeating, use row 0
+                            int rowId = cv.isRepeating ? 0 : i;
 
-                        // make sure the null flag agrees
-                        if (a == null)
-                        {
-                            Assert.True(!cv.noNulls && cv.isNull[rowId]);
-                        }
-                        else if (a is bool)
-                        {
+                            // make sure the null flag agrees
+                            if (a == null)
+                            {
+                                Assert.True(!cv.noNulls && cv.isNull[rowId]);
+                            }
+                            else if (a is bool)
+                            {
 
-                            // bool values are stores a 1's and 0's, so convert and compare
-                            long temp = (bool)a ? 1 : 0;
-                            long b = ((LongColumnVector)cv).vector[rowId];
-                            Assert.Equal(temp.ToString(), b.ToString());
-                        }
-                        else if (a is Timestamp)
-                        {
-                            // Timestamps are stored as long, so convert and compare
-                            Timestamp t = (Timestamp)a;
-                            // Timestamp.getTime() is overriden and is 
-                            // long time = super.getTime();
-                            // return (time + (nanos / 1000000));
-                            long timeInNanoSec = (t.Milliseconds * 1000000)
-                                + (t.getNanos() % 1000000);
-                            long b = ((LongColumnVector)cv).vector[rowId];
-                            Assert.Equal(timeInNanoSec.ToString(), b.ToString());
+                                // bool values are stores a 1's and 0's, so convert and compare
+                                long temp = (bool)a ? 1 : 0;
+                                long b = ((LongColumnVector)cv).vector[rowId];
+                                Assert.Equal(temp.ToString(), b.ToString());
+                            }
+                            else if (a is Timestamp)
+                            {
+                                // Timestamps are stored as long, so convert and compare
+                                Timestamp t = (Timestamp)a;
+                                // Timestamp.getTime() is overriden and is 
+                                // long time = super.getTime();
+                                // return (time + (nanos / 1000000));
+                                long timeInNanoSec = (t.Milliseconds * 1000000)
+                                    + (t.getNanos() % 1000000);
+                                long b = ((LongColumnVector)cv).vector[rowId];
+                                Assert.Equal(timeInNanoSec.ToString(), b.ToString());
 
-                        }
-                        else if (a is Date)
-                        {
-                            // Dates are stored as long, so convert and compare
+                            }
+                            else if (a is Date)
+                            {
+                                // Dates are stored as long, so convert and compare
 
-                            Date adt = (Date)a;
-                            long b = ((LongColumnVector)cv).vector[rowId];
-                            // Assert.Equal(adt, Date.daysToMillis((int)b));
-                            Assert.Equal(adt.Days, (int)b);
-                        }
-                        else if (a is HiveDecimal)
-                        {
-                            // Decimals are stored as BigInteger, so convert and compare
-                            HiveDecimal dec = (HiveDecimal)a;
-                            HiveDecimal b = ((DecimalColumnVector)cv).vector[i];
-                            Assert.Equal(dec, b);
-                        }
-                        else if (a is double)
-                        {
-                            double b = ((DoubleColumnVector)cv).vector[rowId];
-                            Assert.Equal(a.ToString(), b.ToString());
-                        }
-                        else if (a is string)
-                        {
-                            BytesColumnVector bcv = (BytesColumnVector)cv;
-                            string b = Encoding.UTF8.GetString(bcv.vector[rowId], bcv.start[rowId], bcv.length[rowId]);
-                            Assert.Equal((string)a, b);
-                        }
-                        else if (a is int || a is long || a is sbyte || a is short)
-                        {
-                            Assert.Equal(a.ToString(),
-                                ((LongColumnVector)cv).vector[rowId].ToString());
-                        }
-                        else
-                        {
-                            Assert.True(false);
+                                Date adt = (Date)a;
+                                long b = ((LongColumnVector)cv).vector[rowId];
+                                // Assert.Equal(adt, Date.daysToMillis((int)b));
+                                Assert.Equal(adt.Days, (int)b);
+                            }
+                            else if (a is HiveDecimal)
+                            {
+                                // Decimals are stored as BigInteger, so convert and compare
+                                HiveDecimal dec = (HiveDecimal)a;
+                                HiveDecimal b = ((DecimalColumnVector)cv).vector[i];
+                                Assert.Equal(dec, b);
+                            }
+                            else if (a is double)
+                            {
+                                double b = ((DoubleColumnVector)cv).vector[rowId];
+                                Assert.Equal(a.ToString(), b.ToString());
+                            }
+                            else if (a is string)
+                            {
+                                BytesColumnVector bcv = (BytesColumnVector)cv;
+                                string b = Encoding.UTF8.GetString(bcv.vector[rowId], bcv.start[rowId], bcv.length[rowId]);
+                                Assert.Equal((string)a, b);
+                            }
+                            else if (a is int || a is long || a is sbyte || a is short)
+                            {
+                                Assert.Equal(a.ToString(),
+                                    ((LongColumnVector)cv).vector[rowId].ToString());
+                            }
+                            else
+                            {
+                                Assert.True(false);
+                            }
                         }
                     }
+
+                    // Check repeating
+                    Assert.Equal(false, batch.cols[0].isRepeating);
+                    Assert.Equal(false, batch.cols[1].isRepeating);
+                    Assert.Equal(false, batch.cols[2].isRepeating);
+                    Assert.Equal(true, batch.cols[3].isRepeating);
+                    Assert.Equal(false, batch.cols[4].isRepeating);
+                    Assert.Equal(false, batch.cols[5].isRepeating);
+                    Assert.Equal(false, batch.cols[6].isRepeating);
+                    Assert.Equal(false, batch.cols[7].isRepeating);
+                    Assert.Equal(false, batch.cols[8].isRepeating);
+                    Assert.Equal(false, batch.cols[9].isRepeating);
+
+                    // Check non null
+                    Assert.Equal(false, batch.cols[0].noNulls);
+                    Assert.Equal(false, batch.cols[1].noNulls);
+                    Assert.Equal(true, batch.cols[2].noNulls);
+                    Assert.Equal(true, batch.cols[3].noNulls);
+                    Assert.Equal(false, batch.cols[4].noNulls);
+                    Assert.Equal(false, batch.cols[5].noNulls);
+                    Assert.Equal(false, batch.cols[6].noNulls);
+                    Assert.Equal(false, batch.cols[7].noNulls);
+                    Assert.Equal(false, batch.cols[8].noNulls);
+                    Assert.Equal(false, batch.cols[9].noNulls);
                 }
-
-                // Check repeating
-                Assert.Equal(false, batch.cols[0].isRepeating);
-                Assert.Equal(false, batch.cols[1].isRepeating);
-                Assert.Equal(false, batch.cols[2].isRepeating);
-                Assert.Equal(true, batch.cols[3].isRepeating);
-                Assert.Equal(false, batch.cols[4].isRepeating);
-                Assert.Equal(false, batch.cols[5].isRepeating);
-                Assert.Equal(false, batch.cols[6].isRepeating);
-                Assert.Equal(false, batch.cols[7].isRepeating);
-                Assert.Equal(false, batch.cols[8].isRepeating);
-                Assert.Equal(false, batch.cols[9].isRepeating);
-
-                // Check non null
-                Assert.Equal(false, batch.cols[0].noNulls);
-                Assert.Equal(false, batch.cols[1].noNulls);
-                Assert.Equal(true, batch.cols[2].noNulls);
-                Assert.Equal(true, batch.cols[3].noNulls);
-                Assert.Equal(false, batch.cols[4].noNulls);
-                Assert.Equal(false, batch.cols[5].noNulls);
-                Assert.Equal(false, batch.cols[6].noNulls);
-                Assert.Equal(false, batch.cols[7].noNulls);
-                Assert.Equal(false, batch.cols[8].noNulls);
-                Assert.Equal(false, batch.cols[9].noNulls);
+                Assert.Equal(false, rr.hasNext());
             }
-            Assert.Equal(false, rr.hasNext());
         }
     }
 }

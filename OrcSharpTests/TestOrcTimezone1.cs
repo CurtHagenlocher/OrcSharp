@@ -92,21 +92,21 @@ namespace OrcSharp
                 {
                     writer.addRow(Timestamp.Parse(t));
                 }
-                writer.close();
             }
 
             using (TestHelpers.SetTimeZoneInfo(readerTimeZone))
             {
                 Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-                RecordReader rows = reader.rows(null);
-                int idx = 0;
-                while (rows.hasNext())
+                using (RecordReader rows = reader.rows(null))
                 {
-                    object row = rows.next();
-                    Timestamp got = ((Timestamp)row);
-                    Assert.Equal(ts[idx++], got.ToString());
+                    int idx = 0;
+                    while (rows.hasNext())
+                    {
+                        object row = rows.next();
+                        Timestamp got = ((Timestamp)row);
+                        Assert.Equal(ts[idx++], got.ToString());
+                    }
                 }
-                rows.close();
             }
         }
 
@@ -123,24 +123,24 @@ namespace OrcSharp
                 TimestampObjectInspector tso = (TimestampObjectInspector)readerInspector
                     .getStructFieldRef("ts").getFieldObjectInspector();
 
-                RecordReader rows = reader.rows();
-                object row = rows.next();
-                Assert.NotNull(row);
-                Assert.Equal(Timestamp.Parse("2000-03-12 15:00:00"),
-                    tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
-                        fields[12])));
+                using (RecordReader rows = reader.rows())
+                {
+                    object row = rows.next();
+                    Assert.NotNull(row);
+                    Assert.Equal(Timestamp.Parse("2000-03-12 15:00:00"),
+                        tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
+                            fields[12])));
 
-                // check the contents of second row
-                Assert.Equal(true, rows.hasNext());
-                rows.seekToRow(7499);
-                row = rows.next();
-                Assert.Equal(Timestamp.Parse("2000-03-12 15:00:01"),
-                    tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
-                        fields[12])));
+                    // check the contents of second row
+                    Assert.Equal(true, rows.hasNext());
+                    rows.seekToRow(7499);
+                    row = rows.next();
+                    Assert.Equal(Timestamp.Parse("2000-03-12 15:00:01"),
+                        tso.getPrimitiveJavaObject(readerInspector.getStructFieldData(row,
+                            fields[12])));
 
-                // handle the close up
-                Assert.Equal(false, rows.hasNext());
-                rows.close();
+                    Assert.Equal(false, rows.hasNext());
+                }
             }
         }
     }

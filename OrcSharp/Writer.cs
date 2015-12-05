@@ -52,9 +52,9 @@ namespace OrcSharp
         void addRow(object row);
 
         /**
-        * Add a row batch to the ORC file.
-        * @param batch the rows to add
-        */
+         * Add a row batch to the ORC file.
+         * @param batch the rows to add
+         */
         void addRowBatch(VectorizedRowBatch batch);
 
         /**

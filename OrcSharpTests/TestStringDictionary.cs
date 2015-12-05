@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace OrcSharp
 {
     using System;
@@ -46,28 +47,29 @@ namespace OrcSharp
                 {
                     writer.addRow(i.ToString());
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal((idx++).ToString(), row);
-            }
-
-            // make sure the encoding type is correct
-            foreach (StripeInformation stripe in reader.getStripes())
-            {
-                // hacky but does the job, this casting will work as long this test resides
-                // within the same package as ORC reader
-                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
-                for (int i = 0; i < footer.ColumnsCount; ++i)
+                int idx = 0;
+                while (rows.hasNext())
                 {
-                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
-                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DIRECT_V2, encoding.Kind);
+                    object row = rows.next();
+                    Assert.Equal((idx++).ToString(), row);
+                }
+
+                // make sure the encoding type is correct
+                foreach (StripeInformation stripe in reader.getStripes())
+                {
+                    // hacky but does the job, this casting will work as long this test resides
+                    // within the same package as ORC reader
+                    OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                    for (int i = 0; i < footer.ColumnsCount; ++i)
+                    {
+                        OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                        Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DIRECT_V2, encoding.Kind);
+                    }
                 }
             }
         }
@@ -94,28 +96,29 @@ namespace OrcSharp
                 {
                     writer.addRow(input[i].ToString());
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++].ToString(), row);
-            }
-
-            // make sure the encoding type is correct
-            foreach (StripeInformation stripe in reader.getStripes())
-            {
-                // hacky but does the job, this casting will work as long this test resides
-                // within the same package as ORC reader
-                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
-                for (int i = 0; i < footer.ColumnsCount; ++i)
+                int idx = 0;
+                while (rows.hasNext())
                 {
-                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
-                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2, encoding.Kind);
+                    object row = rows.next();
+                    Assert.Equal(input[idx++].ToString(), row);
+                }
+
+                // make sure the encoding type is correct
+                foreach (StripeInformation stripe in reader.getStripes())
+                {
+                    // hacky but does the job, this casting will work as long this test resides
+                    // within the same package as ORC reader
+                    OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                    for (int i = 0; i < footer.ColumnsCount; ++i)
+                    {
+                        OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                        Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2, encoding.Kind);
+                    }
                 }
             }
         }
@@ -136,28 +139,29 @@ namespace OrcSharp
                 {
                     writer.addRow(i.ToString());
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal((idx++).ToString(), row);
-            }
-
-            // make sure the encoding type is correct
-            foreach (StripeInformation stripe in reader.getStripes())
-            {
-                // hacky but does the job, this casting will work as long this test resides
-                // within the same package as ORC reader
-                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
-                for (int i = 0; i < footer.ColumnsCount; ++i)
+                int idx = 0;
+                while (rows.hasNext())
                 {
-                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
-                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DIRECT_V2, encoding.Kind);
+                    object row = rows.next();
+                    Assert.Equal((idx++).ToString(), row);
+                }
+
+                // make sure the encoding type is correct
+                foreach (StripeInformation stripe in reader.getStripes())
+                {
+                    // hacky but does the job, this casting will work as long this test resides
+                    // within the same package as ORC reader
+                    OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                    for (int i = 0; i < footer.ColumnsCount; ++i)
+                    {
+                        OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                        Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DIRECT_V2, encoding.Kind);
+                    }
                 }
             }
         }
@@ -185,28 +189,29 @@ namespace OrcSharp
                 {
                     writer.addRow(input[i].ToString());
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++].ToString(), row);
-            }
-
-            // make sure the encoding type is correct
-            foreach (StripeInformation stripe in reader.getStripes())
-            {
-                // hacky but does the job, this casting will work as long this test resides
-                // within the same package as ORC reader
-                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
-                for (int i = 0; i < footer.ColumnsCount; ++i)
+                int idx = 0;
+                while (rows.hasNext())
                 {
-                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
-                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2, encoding.Kind);
+                    object row = rows.next();
+                    Assert.Equal(input[idx++].ToString(), row);
+                }
+
+                // make sure the encoding type is correct
+                foreach (StripeInformation stripe in reader.getStripes())
+                {
+                    // hacky but does the job, this casting will work as long this test resides
+                    // within the same package as ORC reader
+                    OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                    for (int i = 0; i < footer.ColumnsCount; ++i)
+                    {
+                        OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                        Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2, encoding.Kind);
+                    }
                 }
             }
         }
@@ -227,28 +232,29 @@ namespace OrcSharp
                 {
                     writer.addRow(i.ToString());
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal((idx++).ToString(), row);
-            }
-
-            // make sure the encoding type is correct
-            foreach (StripeInformation stripe in reader.getStripes())
-            {
-                // hacky but does the job, this casting will work as long this test resides
-                // within the same package as ORC reader
-                OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
-                for (int i = 0; i < footer.ColumnsCount; ++i)
+                int idx = 0;
+                while (rows.hasNext())
                 {
-                    OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
-                    Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY, encoding.Kind);
+                    object row = rows.next();
+                    Assert.Equal((idx++).ToString(), row);
+                }
+
+                // make sure the encoding type is correct
+                foreach (StripeInformation stripe in reader.getStripes())
+                {
+                    // hacky but does the job, this casting will work as long this test resides
+                    // within the same package as ORC reader
+                    OrcProto.StripeFooter footer = ((RecordReaderImpl)rows).readStripeFooter(stripe);
+                    for (int i = 0; i < footer.ColumnsCount; ++i)
+                    {
+                        OrcProto.ColumnEncoding encoding = footer.GetColumns(i);
+                        Assert.Equal(OrcProto.ColumnEncoding.Types.Kind.DICTIONARY, encoding.Kind);
+                    }
                 }
             }
         }

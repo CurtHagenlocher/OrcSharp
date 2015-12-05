@@ -146,114 +146,115 @@ namespace OrcSharp
                 Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
                 System.Console.WriteLine("File Version: " + reader.getFileVersion().ToString() +
                     " with " + reader.getWriterVersion());
-                RecordReaderImpl rows = (RecordReaderImpl)reader.rows();
-                System.Console.WriteLine("Rows: " + reader.getNumberOfRows());
-                System.Console.WriteLine("Compression: " + reader.getCompression());
-                if (reader.getCompression() != CompressionKind.NONE)
+                using (RecordReaderImpl rows = (RecordReaderImpl)reader.rows())
                 {
-                    System.Console.WriteLine("Compression size: " + reader.getCompressionSize());
-                }
-                System.Console.WriteLine("Type: " + reader.getObjectInspector().getTypeName());
-                System.Console.WriteLine();
-                System.Console.WriteLine("Stripe Statistics:");
-                List<StripeStatistics> stripeStats = reader.getStripeStatistics();
-                for (int n = 0; n < stripeStats.Count; n++)
-                {
-                    System.Console.WriteLine("  Stripe " + (n + 1) + ":");
-                    StripeStatistics ss = stripeStats[n];
-                    for (int i = 0; i < ss.getColumnStatistics().Length; ++i)
+                    System.Console.WriteLine("Rows: " + reader.getNumberOfRows());
+                    System.Console.WriteLine("Compression: " + reader.getCompression());
+                    if (reader.getCompression() != CompressionKind.NONE)
                     {
-                        System.Console.WriteLine("    Column " + i + ": " +
-                            ss.getColumnStatistics()[i].ToString());
+                        System.Console.WriteLine("Compression size: " + reader.getCompressionSize());
                     }
-                }
-                ColumnStatistics[] stats = reader.getStatistics();
-                int colCount = stats.Length;
-                System.Console.WriteLine();
-                System.Console.WriteLine("File Statistics:");
-                for (int i = 0; i < stats.Length; ++i)
-                {
-                    System.Console.WriteLine("  Column " + i + ": " + stats[i].ToString());
-                }
-                System.Console.WriteLine();
-                System.Console.WriteLine("Stripes:");
-                int stripeIx = -1;
-                foreach (StripeInformation stripe in reader.getStripes())
-                {
-                    ++stripeIx;
-                    long stripeStart = stripe.getOffset();
-                    OrcProto.StripeFooter footer = rows.readStripeFooter(stripe);
-                    if (printTimeZone)
+                    System.Console.WriteLine("Type: " + reader.getObjectInspector().getTypeName());
+                    System.Console.WriteLine();
+                    System.Console.WriteLine("Stripe Statistics:");
+                    List<StripeStatistics> stripeStats = reader.getStripeStatistics();
+                    for (int n = 0; n < stripeStats.Count; n++)
                     {
-                        string tz = footer.WriterTimezone;
-                        if (string.IsNullOrEmpty(tz))
+                        System.Console.WriteLine("  Stripe " + (n + 1) + ":");
+                        StripeStatistics ss = stripeStats[n];
+                        for (int i = 0; i < ss.getColumnStatistics().Length; ++i)
                         {
-                            tz = UNKNOWN;
+                            System.Console.WriteLine("    Column " + i + ": " +
+                                ss.getColumnStatistics()[i].ToString());
                         }
-                        System.Console.WriteLine("  Stripe: " + stripe.ToString() + " timezone: " + tz);
                     }
-                    else
+                    ColumnStatistics[] stats = reader.getStatistics();
+                    int colCount = stats.Length;
+                    System.Console.WriteLine();
+                    System.Console.WriteLine("File Statistics:");
+                    for (int i = 0; i < stats.Length; ++i)
                     {
-                        System.Console.WriteLine("  Stripe: " + stripe.ToString());
+                        System.Console.WriteLine("  Column " + i + ": " + stats[i].ToString());
                     }
-                    long sectionStart = stripeStart;
-                    foreach (OrcProto.Stream section in footer.StreamsList)
+                    System.Console.WriteLine();
+                    System.Console.WriteLine("Stripes:");
+                    int stripeIx = -1;
+                    foreach (StripeInformation stripe in reader.getStripes())
                     {
-                        string kind = section.HasKind ? section.Kind.ToString() : UNKNOWN;
-                        System.Console.WriteLine("    Stream: column " + section.Column +
-                            " section " + kind + " start: " + sectionStart +
-                            " length " + section.Length);
-                        sectionStart += (long)section.Length;
-                    }
-                    for (int i = 0; i < footer.ColumnsCount; ++i)
-                    {
-                        OrcProto.ColumnEncoding encoding = footer.ColumnsList[i];
-                        StringBuilder buf = new StringBuilder();
-                        buf.Append("    Encoding column ");
-                        buf.Append(i);
-                        buf.Append(": ");
-                        buf.Append(encoding.Kind);
-                        if (encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY ||
-                            encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2)
+                        ++stripeIx;
+                        long stripeStart = stripe.getOffset();
+                        OrcProto.StripeFooter footer = rows.readStripeFooter(stripe);
+                        if (printTimeZone)
                         {
-                            buf.Append("[");
-                            buf.Append(encoding.DictionarySize);
-                            buf.Append("]");
+                            string tz = footer.WriterTimezone;
+                            if (string.IsNullOrEmpty(tz))
+                            {
+                                tz = UNKNOWN;
+                            }
+                            System.Console.WriteLine("  Stripe: " + stripe.ToString() + " timezone: " + tz);
                         }
-                        System.Console.WriteLine(buf);
-                    }
-                    if (rowIndexCols != null && rowIndexCols.Count != 0)
-                    {
-                        // include the columns that are specified, only if the columns are included, bloom filter
-                        // will be read
-                        bool[] sargColumns = new bool[colCount];
-                        foreach (int colIdx in rowIndexCols)
+                        else
                         {
-                            sargColumns[colIdx] = true;
+                            System.Console.WriteLine("  Stripe: " + stripe.ToString());
                         }
-                        RecordReaderImpl.Index indices = rows.readRowIndex(stripeIx, null, null, null, sargColumns);
-                        foreach (int col in rowIndexCols)
+                        long sectionStart = stripeStart;
+                        foreach (OrcProto.Stream section in footer.StreamsList)
                         {
+                            string kind = section.HasKind ? section.Kind.ToString() : UNKNOWN;
+                            System.Console.WriteLine("    Stream: column " + section.Column +
+                                " section " + kind + " start: " + sectionStart +
+                                " length " + section.Length);
+                            sectionStart += (long)section.Length;
+                        }
+                        for (int i = 0; i < footer.ColumnsCount; ++i)
+                        {
+                            OrcProto.ColumnEncoding encoding = footer.ColumnsList[i];
                             StringBuilder buf = new StringBuilder();
-                            string rowIdxString = getFormattedRowIndices(col, indices.getRowGroupIndex());
-                            buf.Append(rowIdxString);
-                            string bloomFilString = getFormattedBloomFilters(col, indices.getBloomFilterIndex());
-                            buf.Append(bloomFilString);
+                            buf.Append("    Encoding column ");
+                            buf.Append(i);
+                            buf.Append(": ");
+                            buf.Append(encoding.Kind);
+                            if (encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY ||
+                                encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2)
+                            {
+                                buf.Append("[");
+                                buf.Append(encoding.DictionarySize);
+                                buf.Append("]");
+                            }
                             System.Console.WriteLine(buf);
                         }
+                        if (rowIndexCols != null && rowIndexCols.Count != 0)
+                        {
+                            // include the columns that are specified, only if the columns are included, bloom filter
+                            // will be read
+                            bool[] sargColumns = new bool[colCount];
+                            foreach (int colIdx in rowIndexCols)
+                            {
+                                sargColumns[colIdx] = true;
+                            }
+                            RecordReaderImpl.Index indices = rows.readRowIndex(stripeIx, null, null, null, sargColumns);
+                            foreach (int col in rowIndexCols)
+                            {
+                                StringBuilder buf = new StringBuilder();
+                                string rowIdxString = getFormattedRowIndices(col, indices.getRowGroupIndex());
+                                buf.Append(rowIdxString);
+                                string bloomFilString = getFormattedBloomFilters(col, indices.getBloomFilterIndex());
+                                buf.Append(bloomFilString);
+                                System.Console.WriteLine(buf);
+                            }
+                        }
                     }
-                }
 
-                // TODO: Storage
-                long fileLen = new FileInfo(path).Length;
-                long paddedBytes = getTotalPaddingSize(reader);
-                // empty ORC file is ~45 bytes. Assumption here is file length always >0
-                double percentPadding = ((double)paddedBytes / (double)fileLen) * 100;
-                System.Console.WriteLine();
-                System.Console.WriteLine("File length: {0} bytes", fileLen);
-                System.Console.WriteLine("Padding length: {0} bytes", paddedBytes);
-                System.Console.WriteLine("Padding ratio: {0:00.00}%", percentPadding);
-                rows.close();
+                    // TODO: Storage
+                    long fileLen = new FileInfo(path).Length;
+                    long paddedBytes = getTotalPaddingSize(reader);
+                    // empty ORC file is ~45 bytes. Assumption here is file length always >0
+                    double percentPadding = ((double)paddedBytes / (double)fileLen) * 100;
+                    System.Console.WriteLine();
+                    System.Console.WriteLine("File length: {0} bytes", fileLen);
+                    System.Console.WriteLine("Padding length: {0} bytes", paddedBytes);
+                    System.Console.WriteLine("Padding ratio: {0:00.00}%", percentPadding);
+                }
                 if (files.Count > 1)
                 {
                     System.Console.WriteLine(new string('=', 80) + Environment.NewLine);

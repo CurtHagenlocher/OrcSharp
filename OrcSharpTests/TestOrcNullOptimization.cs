@@ -66,12 +66,12 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyStruct));
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
                 Random rand = new Random(100);
                 writer.addRow(new MyStruct(null, null, true, new List<InnerStruct> { new InnerStruct(100) }));
                 for (int i = 2; i < 20000; i++)
@@ -79,7 +79,6 @@ namespace OrcSharp
                     writer.addRow(new MyStruct(rand.Next(1), "a", true, new List<InnerStruct> { new InnerStruct(100) }));
                 }
                 writer.addRow(new MyStruct(null, null, true, new List<InnerStruct> { new InnerStruct(100) }));
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath,
@@ -110,56 +109,56 @@ namespace OrcSharp
             Assert.Equal("struct<a:int,b:string,c:boolean,list:array<struct<z:int>>>",
                 readerInspector.getTypeName());
 
-            RecordReader rows = reader.rows();
-
-            List<bool> expected = new List<bool>();
-            foreach (StripeInformation sinfo in reader.getStripes())
+            using (RecordReader rows = reader.rows())
             {
-                expected.Add(false);
+                List<bool> expected = new List<bool>();
+                foreach (StripeInformation sinfo in reader.getStripes())
+                {
+                    expected.Add(false);
+                }
+                // only the first and last stripe will have PRESENT stream
+                expected[0] = true;
+                expected[expected.Count - 1] = true;
+
+                List<bool> got = new List<bool>();
+                // check if the strip footer contains PRESENT stream
+                foreach (StripeInformation sinfo in reader.getStripes())
+                {
+                    OrcProto.StripeFooter sf =
+                      ((RecordReaderImpl)rows).readStripeFooter(sinfo);
+                    got.Add(sf.ToString().IndexOf(OrcProto.Stream.Types.Kind.PRESENT.ToString()) != -1);
+                }
+                Assert.Equal(expected, got);
+
+                // row 1
+                OrcStruct row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.Null(row.getFieldValue(0));
+                Assert.Null(row.getFieldValue(1));
+                Assert.Equal(true, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                     getFieldValue(0));
+
+                rows.seekToRow(19998);
+                // last-1 row
+                row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.NotNull(row.getFieldValue(1));
+                Assert.Equal(0, row.getFieldValue(0));
+                Assert.Equal(true, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                     getFieldValue(0));
+
+                // last row
+                row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.Null(row.getFieldValue(0));
+                Assert.Null(row.getFieldValue(1));
+                Assert.Equal(true, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                     getFieldValue(0));
+
             }
-            // only the first and last stripe will have PRESENT stream
-            expected[0] = true;
-            expected[expected.Count - 1] = true;
-
-            List<bool> got = new List<bool>();
-            // check if the strip footer contains PRESENT stream
-            foreach (StripeInformation sinfo in reader.getStripes())
-            {
-                OrcProto.StripeFooter sf =
-                  ((RecordReaderImpl)rows).readStripeFooter(sinfo);
-                got.Add(sf.ToString().IndexOf(OrcProto.Stream.Types.Kind.PRESENT.ToString()) != -1);
-            }
-            Assert.Equal(expected, got);
-
-            // row 1
-            OrcStruct row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.Null(row.getFieldValue(0));
-            Assert.Null(row.getFieldValue(1));
-            Assert.Equal(true, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0));
-
-            rows.seekToRow(19998);
-            // last-1 row
-            row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.NotNull(row.getFieldValue(1));
-            Assert.Equal(0, row.getFieldValue(0));
-            Assert.Equal(true, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0));
-
-            // last row
-            row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.Null(row.getFieldValue(0));
-            Assert.Null(row.getFieldValue(1));
-            Assert.Equal(true, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0));
-
-            rows.close();
         }
 
         [Fact]
@@ -168,12 +167,12 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyStruct));
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .compress(CompressionKind.NONE)
+                .bufferSize(10000)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .compress(CompressionKind.NONE)
-                    .bufferSize(10000));
                 Random rand = new Random(100);
                 for (int i = 1; i < 20000; i++)
                 {
@@ -182,7 +181,6 @@ namespace OrcSharp
                 }
                 writer.addRow(new MyStruct(0, "b", true,
                                            Lists.newArrayList(new InnerStruct(100))));
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath,
@@ -213,46 +211,46 @@ namespace OrcSharp
             Assert.Equal("struct<a:int,b:string,c:boolean,list:array<struct<z:int>>>",
                 readerInspector.getTypeName());
 
-            RecordReader rows = reader.rows();
-
-            // none of the stripes will have PRESENT stream
-            List<bool> expected = new List<bool>();
-            foreach (StripeInformation sinfo in reader.getStripes())
+            using (RecordReader rows = reader.rows())
             {
-                expected.Add(false);
+                // none of the stripes will have PRESENT stream
+                List<bool> expected = new List<bool>();
+                foreach (StripeInformation sinfo in reader.getStripes())
+                {
+                    expected.Add(false);
+                }
+
+                List<bool> got = new List<bool>();
+                // check if the strip footer contains PRESENT stream
+                foreach (StripeInformation sinfo in reader.getStripes())
+                {
+                    OrcProto.StripeFooter sf =
+                      ((RecordReaderImpl)rows).readStripeFooter(sinfo);
+                    got.Add(sf.ToString().IndexOf(OrcProto.Stream.Types.Kind.PRESENT.ToString()) != -1);
+                }
+                Assert.Equal(expected, got);
+
+                rows.seekToRow(19998);
+                // last-1 row
+                OrcStruct row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.NotNull(row.getFieldValue(1));
+                Assert.Equal(0, row.getFieldValue(0));
+                Assert.Equal("a", row.getFieldValue(1).ToString());
+                Assert.Equal(true, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                       getFieldValue(0));
+
+                // last row
+                row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.NotNull(row.getFieldValue(0));
+                Assert.NotNull(row.getFieldValue(1));
+                Assert.Equal("b", row.getFieldValue(1).ToString());
+                Assert.Equal(true, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                       getFieldValue(0));
             }
-
-            List<bool> got = new List<bool>();
-            // check if the strip footer contains PRESENT stream
-            foreach (StripeInformation sinfo in reader.getStripes())
-            {
-                OrcProto.StripeFooter sf =
-                  ((RecordReaderImpl)rows).readStripeFooter(sinfo);
-                got.Add(sf.ToString().IndexOf(OrcProto.Stream.Types.Kind.PRESENT.ToString()) != -1);
-            }
-            Assert.Equal(expected, got);
-
-            rows.seekToRow(19998);
-            // last-1 row
-            OrcStruct row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.NotNull(row.getFieldValue(1));
-            Assert.Equal(0, row.getFieldValue(0));
-            Assert.Equal("a", row.getFieldValue(1).ToString());
-            Assert.Equal(true, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                   getFieldValue(0));
-
-            // last row
-            row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.NotNull(row.getFieldValue(0));
-            Assert.NotNull(row.getFieldValue(1));
-            Assert.Equal("b", row.getFieldValue(1).ToString());
-            Assert.Equal(true, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                   getFieldValue(0));
-            rows.close();
         }
 
         [Fact]
@@ -261,11 +259,11 @@ namespace OrcSharp
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyStruct));
 
             using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+                .inspector(inspector)
+                .stripeSize(100000)
+                .bufferSize(10000)))
             {
-                Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
-                    .inspector(inspector)
-                    .stripeSize(100000)
-                    .bufferSize(10000));
                 writer.addRow(new MyStruct(3, "a", true,
                                            Lists.newArrayList(new InnerStruct(100))));
                 writer.addRow(new MyStruct(null, "b", true,
@@ -282,7 +280,6 @@ namespace OrcSharp
                                            Lists.newArrayList(new InnerStruct(100))));
                 writer.addRow(new MyStruct(2, "h", true,
                                            Lists.newArrayList(new InnerStruct(100))));
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath,
@@ -312,51 +309,52 @@ namespace OrcSharp
             Assert.Equal("struct<a:int,b:string,c:boolean,list:array<struct<z:int>>>",
                 readerInspector.getTypeName());
 
-            RecordReader rows = reader.rows();
-            // only the last strip will have PRESENT stream
-            List<bool> expected = new List<bool>();
-            foreach (StripeInformation sinfo in reader.getStripes())
+            using (RecordReader rows = reader.rows())
             {
-                expected.Add(false);
+                // only the last strip will have PRESENT stream
+                List<bool> expected = new List<bool>();
+                foreach (StripeInformation sinfo in reader.getStripes())
+                {
+                    expected.Add(false);
+                }
+                expected[expected.Count - 1] = true;
+
+                List<bool> got = new List<bool>();
+                // check if the strip footer contains PRESENT stream
+                foreach (StripeInformation sinfo in reader.getStripes())
+                {
+                    OrcProto.StripeFooter sf = ((RecordReaderImpl)rows).readStripeFooter(sinfo);
+                    got.Add(sf.ToString().IndexOf(OrcProto.Stream.Types.Kind.PRESENT.ToString()) != -1);
+                }
+                Assert.Equal(expected, got);
+
+                // row 1
+                OrcStruct row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.Equal(3, row.getFieldValue(0));
+                Assert.Equal("a", row.getFieldValue(1).ToString());
+                Assert.Equal(true, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                     getFieldValue(0));
+
+                // row 2
+                row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.Null(row.getFieldValue(0));
+                Assert.Equal("b", row.getFieldValue(1).ToString());
+                Assert.Equal(true, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                     getFieldValue(0));
+
+                // row 3
+                row = (OrcStruct)rows.next();
+                Assert.NotNull(row);
+                Assert.Null(row.getFieldValue(1));
+                Assert.Equal(3, row.getFieldValue(0));
+                Assert.Equal(false, row.getFieldValue(2));
+                Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
+                     getFieldValue(0));
             }
-            expected[expected.Count - 1] = true;
-
-            List<bool> got = new List<bool>();
-            // check if the strip footer contains PRESENT stream
-            foreach (StripeInformation sinfo in reader.getStripes())
-            {
-                OrcProto.StripeFooter sf = ((RecordReaderImpl)rows).readStripeFooter(sinfo);
-                got.Add(sf.ToString().IndexOf(OrcProto.Stream.Types.Kind.PRESENT.ToString()) != -1);
-            }
-            Assert.Equal(expected, got);
-
-            // row 1
-            OrcStruct row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.Equal(3, row.getFieldValue(0));
-            Assert.Equal("a", row.getFieldValue(1).ToString());
-            Assert.Equal(true, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0));
-
-            // row 2
-            row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.Null(row.getFieldValue(0));
-            Assert.Equal("b", row.getFieldValue(1).ToString());
-            Assert.Equal(true, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0));
-
-            // row 3
-            row = (OrcStruct)rows.next();
-            Assert.NotNull(row);
-            Assert.Null(row.getFieldValue(1));
-            Assert.Equal(3, row.getFieldValue(0));
-            Assert.Equal(false, row.getFieldValue(2));
-            Assert.Equal(100, ((OrcStruct)((IList<object>)row.getFieldValue(3))[0]).
-                 getFieldValue(0));
-            rows.close();
         }
     }
 }

@@ -142,6 +142,7 @@ namespace OrcSharp
                 writer.addRow(new SimpleStruct(bytes(0, 1, 2, 3, 4, 5), null));
                 writer.addRow(new SimpleStruct(null, "hi"));
                 writer.close();
+
                 Assert.Equal(4, writer.getNumberOfRows());
                 Assert.Equal(273, writer.getRawDataSize());
             }
@@ -180,42 +181,42 @@ namespace OrcSharp
                 getStructFieldRef("bytes1").getFieldObjectInspector();
             StringObjectInspector st = (StringObjectInspector)readerInspector.
                 getStructFieldRef("string1").getFieldObjectInspector();
-            RecordReader rows = reader.rows();
-            object row = rows.next();
-            Assert.NotNull(row);
-            // check the contents of the first row
-            Assert.Equal(bytes(0, 1, 2, 3, 4), bi.get(
-                readerInspector.getStructFieldData(row, fields[0])));
-            Assert.Equal("foo", st.getPrimitiveJavaObject(readerInspector.
-                getStructFieldData(row, fields[1])));
+            using (RecordReader rows = reader.rows())
+            {
+                object row = rows.next();
+                Assert.NotNull(row);
+                // check the contents of the first row
+                Assert.Equal(bytes(0, 1, 2, 3, 4), bi.get(
+                    readerInspector.getStructFieldData(row, fields[0])));
+                Assert.Equal("foo", st.getPrimitiveJavaObject(readerInspector.
+                    getStructFieldData(row, fields[1])));
 
-            // check the contents of second row
-            Assert.Equal(true, rows.hasNext());
-            row = rows.next();
-            Assert.Equal(bytes(0, 1, 2, 3), bi.get(
-                readerInspector.getStructFieldData(row, fields[0])));
-            Assert.Equal("bar", st.getPrimitiveJavaObject(readerInspector.
-                getStructFieldData(row, fields[1])));
+                // check the contents of second row
+                Assert.Equal(true, rows.hasNext());
+                row = rows.next();
+                Assert.Equal(bytes(0, 1, 2, 3), bi.get(
+                    readerInspector.getStructFieldData(row, fields[0])));
+                Assert.Equal("bar", st.getPrimitiveJavaObject(readerInspector.
+                    getStructFieldData(row, fields[1])));
 
-            // check the contents of second row
-            Assert.Equal(true, rows.hasNext());
-            row = rows.next();
-            Assert.Equal(bytes(0, 1, 2, 3, 4, 5), bi.get(
-                readerInspector.getStructFieldData(row, fields[0])));
-            Assert.Null(st.getPrimitiveJavaObject(readerInspector.
-                getStructFieldData(row, fields[1])));
+                // check the contents of second row
+                Assert.Equal(true, rows.hasNext());
+                row = rows.next();
+                Assert.Equal(bytes(0, 1, 2, 3, 4, 5), bi.get(
+                    readerInspector.getStructFieldData(row, fields[0])));
+                Assert.Null(st.getPrimitiveJavaObject(readerInspector.
+                    getStructFieldData(row, fields[1])));
 
-            // check the contents of second row
-            Assert.Equal(true, rows.hasNext());
-            row = rows.next();
-            Assert.Null(bi.get(
-                readerInspector.getStructFieldData(row, fields[0])));
-            Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector.
-                getStructFieldData(row, fields[1])));
+                // check the contents of second row
+                Assert.Equal(true, rows.hasNext());
+                row = rows.next();
+                Assert.Null(bi.get(
+                    readerInspector.getStructFieldData(row, fields[0])));
+                Assert.Equal("hi", st.getPrimitiveJavaObject(readerInspector.
+                    getStructFieldData(row, fields[1])));
 
-            // handle the close up
-            Assert.Equal(false, rows.hasNext());
-            rows.close();
+                Assert.Equal(false, rows.hasNext());
+            }
         }
 
 
@@ -274,6 +275,7 @@ namespace OrcSharp
                     writer.addRow(new MapStruct(test));
                 }
                 writer.close();
+
                 // stats from writer
                 Assert.Equal(1000, writer.getNumberOfRows());
                 Assert.Equal(950000, writer.getRawDataSize());
@@ -310,6 +312,7 @@ namespace OrcSharp
                     }
                 }
                 writer.close();
+
                 // stats from writer
                 Assert.Equal(1000, writer.getNumberOfRows());
                 Assert.Equal(44500, writer.getRawDataSize());
@@ -353,6 +356,7 @@ namespace OrcSharp
                     map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.Parse("2000-03-11 15:00:00"),
                     HiveDecimal.Parse("12345678.6547452")));
                 writer.close();
+
                 long rowCount = writer.getNumberOfRows();
                 rawDataSize = writer.getRawDataSize();
                 Assert.Equal(2, rowCount);
@@ -448,6 +452,7 @@ namespace OrcSharp
                     map(inner(5, "chani"), inner(1, "mauddib")), Timestamp.Parse("2000-03-11 15:00:00"),
                     HiveDecimal.Parse("12345678.6547452")));
                 writer.close();
+
                 long rowCount = writer.getNumberOfRows();
                 rawDataSize = writer.getRawDataSize();
                 Assert.Equal(2, rowCount);

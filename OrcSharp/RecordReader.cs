@@ -67,12 +67,6 @@ namespace OrcSharp
         float getProgress();
 
         /**
-         * Release the resources associated with the given reader.
-         * @throws java.io.IOException
-         */
-        void close();
-
-        /**
          * Seek to a particular row number.
          */
         void seekToRow(long rowCount);

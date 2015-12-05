@@ -45,10 +45,9 @@ namespace OrcSharp
             OrcFile.WriterOptions options = new OrcFile.WriterOptions(new Properties(), new Configuration());
             options.inspector(PrimitiveObjectInspectorFactory.writableStringObjectInspector);
             using (Stream file = File.Create(filename))
+            using (Writer writer = OrcFile.createWriter(filename, file, options))
             {
-                Writer writer = OrcFile.createWriter(filename, file, options);
                 writer.addRow("hello");
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(() => File.OpenRead(filename), filename);
@@ -57,7 +56,6 @@ namespace OrcSharp
                 object value = recordReader.next();
                 Assert.True(value is string);
                 Assert.Equal("hello", value);
-                recordReader.close();
             }
         }
     }

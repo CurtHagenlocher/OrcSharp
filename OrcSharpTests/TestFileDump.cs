@@ -117,7 +117,6 @@ namespace OrcSharp
                         writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
                             TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
                     }
-                    writer.close();
                 }
             }
 
@@ -177,8 +176,6 @@ namespace OrcSharp
                         m,
                         new List<int> { 200, 300 },
                         new AllTypesRecord.Struct(20, "bar")));
-
-                    writer.close();
                 }
             }
 
@@ -231,7 +228,6 @@ namespace OrcSharp
                         }
                         writer.addRow(new MyRecord(r1.Next(), r1.NextLong(), TestHelpers.words[nextInt]));
                     }
-                    writer.close();
                 }
             }
 
@@ -265,7 +261,6 @@ namespace OrcSharp
                         writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
                             TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
                     }
-                    writer.close();
                 }
             }
 
@@ -300,7 +295,6 @@ namespace OrcSharp
                         writer.addRow(new MyRecord(r1.Next(), r1.NextLong(),
                             TestHelpers.words[r1.Next(TestHelpers.words.Length)]));
                     }
-                    writer.close();
                 }
             }
 

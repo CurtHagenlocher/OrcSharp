@@ -74,16 +74,17 @@ namespace OrcSharp
                 writer.addRow(new Row(111, 1111L));
                 writer.addRow(new Row(111, 1111L));
                 writer.addRow(new Row(111, 1111L));
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(111, ((OrcStruct)row).getFieldValue(0));
-                Assert.Equal(1111L, ((OrcStruct)row).getFieldValue(1));
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(111, ((OrcStruct)row).getFieldValue(0));
+                    Assert.Equal(1111L, ((OrcStruct)row).getFieldValue(1));
+                }
             }
         }
 
@@ -115,16 +116,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -156,16 +158,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -190,16 +193,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -224,16 +228,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -258,16 +263,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -292,16 +298,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -328,16 +335,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -364,16 +372,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -400,16 +409,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -433,16 +443,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -467,16 +478,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -501,16 +513,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -535,16 +548,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -574,16 +588,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -613,16 +628,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -661,16 +677,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -709,16 +726,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -757,16 +775,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -796,16 +815,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -836,16 +856,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -876,16 +897,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -915,16 +937,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -954,16 +977,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -993,16 +1017,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -1032,16 +1057,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -1071,16 +1097,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -1112,16 +1139,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -1165,16 +1193,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -1222,16 +1251,17 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
 
@@ -1288,18 +1318,18 @@ namespace OrcSharp
                 {
                     writer.addRow(new TSRow(ts));
                 }
-
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 0;
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(tslist[idx++].getNanos(),
-                      ((Timestamp)((OrcStruct)row).getFieldValue(0)).getNanos());
+                int idx = 0;
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(tslist[idx++].getNanos(),
+                          ((Timestamp)((OrcStruct)row).getFieldValue(0)).getNanos());
+                }
             }
         }
 
@@ -1322,21 +1352,22 @@ namespace OrcSharp
                 writer.addRow(1L);
                 writer.addRow(1L);
                 writer.addRow(-5535739865598783616L);
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            object row = rows.next();
-            Assert.Equal(-7486502418706614742L, ((long)row));
-            row = rows.next();
-            Assert.Equal(0L, ((long)row));
-            row = rows.next();
-            Assert.Equal(1L, ((long)row));
-            row = rows.next();
-            Assert.Equal(1L, ((long)row));
-            row = rows.next();
-            Assert.Equal(-5535739865598783616L, ((long)row));
+            using (RecordReader rows = reader.rows())
+            {
+                object row = rows.next();
+                Assert.Equal(-7486502418706614742L, ((long)row));
+                row = rows.next();
+                Assert.Equal(0L, ((long)row));
+                row = rows.next();
+                Assert.Equal(1L, ((long)row));
+                row = rows.next();
+                Assert.Equal(1L, ((long)row));
+                row = rows.next();
+                Assert.Equal(-5535739865598783616L, ((long)row));
+            }
         }
 
         [Theory]
@@ -1366,17 +1397,18 @@ namespace OrcSharp
                 {
                     writer.addRow(l);
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
-            RecordReader rows = reader.rows();
-            int idx = 55555;
-            rows.seekToRow(idx);
-            while (rows.hasNext())
+            using (RecordReader rows = reader.rows())
             {
-                object row = rows.next();
-                Assert.Equal(input[idx++], ((long)row));
+                int idx = 55555;
+                rows.seekToRow(idx);
+                while (rows.hasNext())
+                {
+                    object row = rows.next();
+                    Assert.Equal(input[idx++], ((long)row));
+                }
             }
         }
     }

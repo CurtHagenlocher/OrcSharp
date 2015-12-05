@@ -23,7 +23,6 @@ namespace OrcSharp
 
     public class TestBitFieldReader
     {
-
         public void runSeekTest(CompressionCodec codec)
         {
             TestInStream.OutputCollector collect = new TestInStream.OutputCollector();

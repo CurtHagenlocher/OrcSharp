@@ -243,7 +243,6 @@ namespace OrcSharp
                 {
                     writer.addRow(new SimpleStruct(bytes(1, 2, 3), null));
                 }
-                writer.close();
             }
 
             Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));

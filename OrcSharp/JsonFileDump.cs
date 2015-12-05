@@ -52,131 +52,133 @@ namespace OrcSharp
                 Reader reader = OrcFile.createReader(filename, OrcFile.readerOptions(conf));
                 writer.key("fileVersion").value(OrcFile.VersionHelper.getName(reader.getFileVersion()));
                 writer.key("writerVersion").value(reader.getWriterVersion().ToString());
-                RecordReaderImpl rows = (RecordReaderImpl)reader.rows();
-                writer.key("numberOfRows").value(reader.getNumberOfRows());
-                writer.key("compression").value(reader.getCompression().ToString());
-                if (reader.getCompression() != CompressionKind.NONE)
+                using (RecordReaderImpl rows = (RecordReaderImpl)reader.rows())
                 {
-                    writer.key("compressionBufferSize").value(reader.getCompressionSize());
-                }
-                writer.key("schemaString").value(reader.getObjectInspector().getTypeName());
-                writer.key("schema").array();
-                writeSchema(writer, reader.getTypes());
-                writer.endArray();
-
-                writer.key("stripeStatistics").array();
-                List<StripeStatistics> stripeStatistics = reader.getStripeStatistics();
-                for (int n = 0; n < stripeStatistics.Count; n++)
-                {
-                    writer.newObject();
-                    writer.key("stripeNumber").value(n + 1);
-                    StripeStatistics ss = stripeStatistics[n];
-                    writer.key("columnStatistics").array();
-                    for (int i = 0; i < ss.getColumnStatistics().Length; i++)
+                    writer.key("numberOfRows").value(reader.getNumberOfRows());
+                    writer.key("compression").value(reader.getCompression().ToString());
+                    if (reader.getCompression() != CompressionKind.NONE)
                     {
-                        writer.newObject();
-                        writer.key("columnId").value(i);
-                        writeColumnStatistics(writer, ss.getColumnStatistics()[i]);
-                        writer.endObject();
+                        writer.key("compressionBufferSize").value(reader.getCompressionSize());
                     }
-                    writer.endArray();
-                    writer.endObject();
-                }
-                writer.endArray();
-
-                ColumnStatistics[] stats = reader.getStatistics();
-                int colCount = stats.Length;
-                writer.key("fileStatistics").array();
-                for (int i = 0; i < stats.Length; ++i)
-                {
-                    writer.newObject();
-                    writer.key("columnId").value(i);
-                    writeColumnStatistics(writer, stats[i]);
-                    writer.endObject();
-                }
-                writer.endArray();
-
-                writer.key("stripes").array();
-                int stripeIx = -1;
-                foreach (StripeInformation stripe in reader.getStripes())
-                {
-                    ++stripeIx;
-                    long stripeStart = stripe.getOffset();
-                    OrcProto.StripeFooter footer = rows.readStripeFooter(stripe);
-                    writer.newObject(); // start of stripe information
-                    writer.key("stripeNumber").value(stripeIx + 1);
-                    writer.key("stripeInformation");
-                    writeStripeInformation(writer, stripe);
-                    if (printTimeZone)
-                    {
-                        writer.key("writerTimezone").value(
-                            footer.HasWriterTimezone ? footer.WriterTimezone : FileDump.UNKNOWN);
-                    }
-                    long sectionStart = stripeStart;
-
-                    writer.key("streams").array();
-                    foreach (OrcProto.Stream section in footer.StreamsList)
-                    {
-                        writer.newObject();
-                        string kind = section.HasKind ? section.Kind.ToString() : FileDump.UNKNOWN;
-                        writer.key("columnId").value(section.Column);
-                        writer.key("section").value(kind);
-                        writer.key("startOffset").value(sectionStart);
-                        writer.key("length").value(section.Length);
-                        sectionStart += (long)section.Length;
-                        writer.endObject();
-                    }
+                    writer.key("schemaString").value(reader.getObjectInspector().getTypeName());
+                    writer.key("schema").array();
+                    writeSchema(writer, reader.getTypes());
                     writer.endArray();
 
-                    writer.key("encodings").array();
-                    for (int i = 0; i < footer.ColumnsCount; ++i)
+                    writer.key("stripeStatistics").array();
+                    List<StripeStatistics> stripeStatistics = reader.getStripeStatistics();
+                    for (int n = 0; n < stripeStatistics.Count; n++)
                     {
                         writer.newObject();
-                        OrcProto.ColumnEncoding encoding = footer.ColumnsList[i];
-                        writer.key("columnId").value(i);
-                        writer.key("kind").value(encoding.Kind.ToString());
-                        if (encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY ||
-                            encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2)
-                        {
-                            writer.key("dictionarySize").value(encoding.DictionarySize);
-                        }
-                        writer.endObject();
-                    }
-                    writer.endArray();
-
-                    if (rowIndexCols != null && rowIndexCols.Count != 0)
-                    {
-                        // include the columns that are specified, only if the columns are included, bloom filter
-                        // will be read
-                        bool[] sargColumns = new bool[colCount];
-                        foreach (int colIdx in rowIndexCols)
-                        {
-                            sargColumns[colIdx] = true;
-                        }
-                        RecordReaderImpl.Index indices = rows.readRowIndex(stripeIx, null, sargColumns);
-                        writer.key("indexes").array();
-                        foreach (int col in rowIndexCols)
+                        writer.key("stripeNumber").value(n + 1);
+                        StripeStatistics ss = stripeStatistics[n];
+                        writer.key("columnStatistics").array();
+                        for (int i = 0; i < ss.getColumnStatistics().Length; i++)
                         {
                             writer.newObject();
-                            writer.key("columnId").value(col);
-                            writeRowGroupIndexes(writer, col, indices.getRowGroupIndex());
-                            writeBloomFilterIndexes(writer, col, indices.getBloomFilterIndex());
+                            writer.key("columnId").value(i);
+                            writeColumnStatistics(writer, ss.getColumnStatistics()[i]);
                             writer.endObject();
                         }
                         writer.endArray();
+                        writer.endObject();
                     }
-                    writer.endObject(); // end of stripe information
-                }
-                writer.endArray();
+                    writer.endArray();
 
-                long fileLen = new FileInfo(filename).Length;
-                long paddedBytes = FileDump.getTotalPaddingSize(reader);
-                // empty ORC file is ~45 bytes. Assumption here is file length always >0
-                double percentPadding = ((double)paddedBytes / (double)fileLen) * 100;
-                writer.key("fileLength").value(fileLen);
-                writer.key("paddingLength").value(paddedBytes);
-                writer.key("paddingRatio").value(percentPadding);
-                rows.close();
+                    ColumnStatistics[] stats = reader.getStatistics();
+                    int colCount = stats.Length;
+                    writer.key("fileStatistics").array();
+                    for (int i = 0; i < stats.Length; ++i)
+                    {
+                        writer.newObject();
+                        writer.key("columnId").value(i);
+                        writeColumnStatistics(writer, stats[i]);
+                        writer.endObject();
+                    }
+                    writer.endArray();
+
+                    writer.key("stripes").array();
+                    int stripeIx = -1;
+                    foreach (StripeInformation stripe in reader.getStripes())
+                    {
+                        ++stripeIx;
+                        long stripeStart = stripe.getOffset();
+                        OrcProto.StripeFooter footer = rows.readStripeFooter(stripe);
+                        writer.newObject(); // start of stripe information
+                        writer.key("stripeNumber").value(stripeIx + 1);
+                        writer.key("stripeInformation");
+                        writeStripeInformation(writer, stripe);
+                        if (printTimeZone)
+                        {
+                            writer.key("writerTimezone").value(
+                                footer.HasWriterTimezone ? footer.WriterTimezone : FileDump.UNKNOWN);
+                        }
+                        long sectionStart = stripeStart;
+
+                        writer.key("streams").array();
+                        foreach (OrcProto.Stream section in footer.StreamsList)
+                        {
+                            writer.newObject();
+                            string kind = section.HasKind ? section.Kind.ToString() : FileDump.UNKNOWN;
+                            writer.key("columnId").value(section.Column);
+                            writer.key("section").value(kind);
+                            writer.key("startOffset").value(sectionStart);
+                            writer.key("length").value(section.Length);
+                            sectionStart += (long)section.Length;
+                            writer.endObject();
+                        }
+                        writer.endArray();
+
+                        writer.key("encodings").array();
+                        for (int i = 0; i < footer.ColumnsCount; ++i)
+                        {
+                            writer.newObject();
+                            OrcProto.ColumnEncoding encoding = footer.ColumnsList[i];
+                            writer.key("columnId").value(i);
+                            writer.key("kind").value(encoding.Kind.ToString());
+                            if (encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY ||
+                                encoding.Kind == OrcProto.ColumnEncoding.Types.Kind.DICTIONARY_V2)
+                            {
+                                writer.key("dictionarySize").value(encoding.DictionarySize);
+                            }
+                            writer.endObject();
+                        }
+                        writer.endArray();
+
+                        if (rowIndexCols != null && rowIndexCols.Count != 0)
+                        {
+                            // include the columns that are specified, only if the columns are included, bloom filter
+                            // will be read
+                            bool[] sargColumns = new bool[colCount];
+                            foreach (int colIdx in rowIndexCols)
+                            {
+                                sargColumns[colIdx] = true;
+                            }
+                            RecordReaderImpl.Index indices = rows.readRowIndex(stripeIx, null, sargColumns);
+                            writer.key("indexes").array();
+                            foreach (int col in rowIndexCols)
+                            {
+                                writer.newObject();
+                                writer.key("columnId").value(col);
+                                writeRowGroupIndexes(writer, col, indices.getRowGroupIndex());
+                                writeBloomFilterIndexes(writer, col, indices.getBloomFilterIndex());
+                                writer.endObject();
+                            }
+                            writer.endArray();
+                        }
+                        writer.endObject(); // end of stripe information
+                    }
+                    writer.endArray();
+
+                    long fileLen = new FileInfo(filename).Length;
+                    long paddedBytes = FileDump.getTotalPaddingSize(reader);
+                    // empty ORC file is ~45 bytes. Assumption here is file length always >0
+                    double percentPadding = ((double)paddedBytes / (double)fileLen) * 100;
+                    writer.key("fileLength").value(fileLen);
+                    writer.key("paddingLength").value(paddedBytes);
+                    writer.key("paddingRatio").value(percentPadding);
+                    rows.close();
+                }
 
                 writer.endObject();
             }
