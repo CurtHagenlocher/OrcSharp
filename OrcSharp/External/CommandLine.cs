@@ -25,9 +25,9 @@ namespace OrcSharp.External
     class CommandLine
     {
         private readonly string[] args;
-        private readonly Dictionary<char, string> options;
+        private readonly List<KeyValuePair<Option, string>> options;
 
-        private CommandLine(string[] args, Dictionary<char, string> options)
+        private CommandLine(string[] args, List<KeyValuePair<Option, string>> options)
         {
             this.args = args;
             this.options = options;
@@ -36,14 +36,14 @@ namespace OrcSharp.External
         internal static CommandLine parse(Options opts, string[] args)
         {
             List<string> newArgs = new List<string>(args.Length);
-            Dictionary<char, string> options = new Dictionary<char, string>(args.Length);
+            List<KeyValuePair<Option, string>> options = new List<KeyValuePair<Option, string>>(args.Length);
             for (int i = 0; i < args.Length; i++)
             {
-                char option;
+                Option option;
                 string value;
                 if (args[i].StartsWith("-") && opts.TryGetOption(args[i], out option, out value))
                 {
-                    options[option] = value;
+                    options.Add(new KeyValuePair<Option, string>(option, value));
                 }
                 else
                 {
@@ -56,7 +56,12 @@ namespace OrcSharp.External
 
         internal bool hasOption(char v)
         {
-            return options.ContainsKey(v);
+            return options.Any(o => o.Key.ShortOption == v);
+        }
+
+        internal bool hasOption(string v)
+        {
+            return options.Any(o => o.Key.LongOption == v);
         }
 
         internal static void printHelp(string v, Options opts)
@@ -74,6 +79,11 @@ namespace OrcSharp.External
             internal Option create(char shortOption)
             {
                 this.shortOption = shortOption;
+                return this;
+            }
+
+            internal Option create()
+            {
                 return this;
             }
 
@@ -103,7 +113,12 @@ namespace OrcSharp.External
 
         internal string getOptionValue(char v)
         {
-            return options[v];
+            return options.First(o => o.Key.ShortOption == v).Value;
+        }
+
+        internal string getOptionValue(string v)
+        {
+            return options.First(o => o.Key.LongOption == v).Value;
         }
 
         internal class Option
@@ -126,36 +141,33 @@ namespace OrcSharp.External
                 Add(option);
             }
 
-            public bool TryGetOption(string arg, out char option, out string value)
+            public bool TryGetOption(string arg, out Option option, out string value)
             {
                 string[] args = arg.Split('=');
                 arg = args[0];
 
-                Option opt;
                 if (arg.Length == 2 && arg[0] == '-')
                 {
-                    opt = this.Where(o => o.ShortOption == arg[1]).FirstOrDefault();
+                    option = this.Where(o => o.ShortOption == arg[1]).FirstOrDefault();
                 }
                 else if (arg.Length > 2 && arg[0] == '-' && arg[1] == '-')
                 {
                     arg = arg.Substring(2);
-                    opt = this.Where(o => o.LongOption == arg).FirstOrDefault();
+                    option = this.Where(o => o.LongOption == arg).FirstOrDefault();
                 }
                 else
                 {
-                    opt = null;
+                    option = null;
                 }
 
-                if (opt == null)
+                if (option == null)
                 {
-                    option = (char)0;
                     value = null;
                     return false;
                 }
                 else
                 {
-                    option = opt.ShortOption;
-                    value = opt.HasArgument ? args[1] : null;
+                    value = option.HasArgument ? args[1] : null;
                     return true;
                 }
             }

@@ -16,18 +16,18 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System.Collections.Generic;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
+    using OrcSharp.Serialization;
 
     /**
      * Merges a base and a list of delta files together into a single stream of
      * events.
      */
-    public class OrcRawRecordMerger : AcidInputFormat.RawReader<OrcStruct>
+    public class OrcRawRecordMerger // : AcidInputFormat.RawReader<OrcStruct>
     {
-
         private static Log LOG = LogFactory.getLog(typeof(OrcRawRecordMerger));
 
         private Configuration conf;
@@ -152,7 +152,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 return compareToInternal(other);
             }
 
-            public override string toString()
+            public override string ToString()
             {
                 return "{originalTxn: " + getTransactionId() + ", bucket: " +
                     getBucketId() + ", row: " + getRowId() + ", currentTxn: " +
@@ -170,7 +170,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             OrcStruct nextRecord;
             Reader reader;
-            RecordReader recordReader;
+            internal RecordReader recordReader;
             ReaderKey key;
             RecordIdentifier maxKey;
             int bucket;
@@ -189,7 +189,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
              * @param statementId id of SQL statement within a transaction
              * @
              */
-            ReaderPair(ReaderKey key, Reader reader, int bucket,
+            public ReaderPair(ReaderKey key, Reader reader, int bucket,
                        RecordIdentifier minKey, RecordIdentifier maxKey,
                        ReaderImpl.Options options, int statementId)
             {
@@ -225,19 +225,19 @@ namespace org.apache.hadoop.hive.ql.io.orc
                     {
                         LOG.debug("key " + key + " > maxkey " + maxKey);
                         nextRecord = null;
-                        recordReader.close();
+                        recordReader.Dispose();
                     }
                 }
                 else
                 {
                     nextRecord = null;
-                    recordReader.close();
+                    recordReader.Dispose();
                 }
             }
 
             int getColumns()
             {
-                return reader.getTypes().get(OrcRecordUpdater.ROW + 1).getSubtypesCount();
+                return reader.getTypes()[OrcRecordUpdater.ROW + 1].SubtypesCount;
             }
         }
 
@@ -476,6 +476,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
             this.offset = options.getOffset();
             this.length = options.getLength();
             this.validTxnList = validTxnList;
+    TypeDescription typeDescr = OrcUtils.getDesiredRowTypeDescr(conf);
+    if (typeDescr == null) {
+      throw new IOException(ErrorMsg.SCHEMA_REQUIRED_TO_READ_ACID_TABLES.getErrorCodedMsg());
+    }
+
+    objectInspector = OrcRecordUpdater.createEventSchema
+        (OrcStruct.createObjectInspector(0, OrcUtils.getOrcTypes(typeDescr)));
+
             // modify the options to reflect the event instead of the base row
             Reader.Options eventOptions = createEventOptions(options);
             if (reader == null)
@@ -734,6 +742,9 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public void close()
         {
+   if (primary != null) {
+      primary.recordReader.close();
+    }
             foreach (ReaderPair pair in readers.values())
             {
                 pair.recordReader.close();
@@ -747,55 +758,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
 
         public ObjectInspector getObjectInspector()
         {
-            // Read the configuration parameters
-            String columnNameProperty = conf.get(serdeConstants.LIST_COLUMNS);
-            // NOTE: if "columns.types" is missing, all columns will be of String type
-            String columnTypeProperty = conf.get(serdeConstants.LIST_COLUMN_TYPES);
-
-            // Parse the configuration parameters
-            List<string> columnNames = new List<string>();
-            Deque<int> virtualColumns = new ArrayDeque<int>();
-            if (columnNameProperty != null && columnNameProperty.length() > 0)
-            {
-                String[] colNames = columnNameProperty.split(",");
-                for (int i = 0; i < colNames.length; i++)
-                {
-                    if (VirtualColumn.VIRTUAL_COLUMN_NAMES.contains(colNames[i]))
-                    {
-                        virtualColumns.addLast(i);
-                    }
-                    else
-                    {
-                        columnNames.add(colNames[i]);
-                    }
-                }
-            }
-            if (columnTypeProperty == null)
-            {
-                // Default type: all string
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < columnNames.size(); i++)
-                {
-                    if (i > 0)
-                    {
-                        sb.append(":");
-                    }
-                    sb.append("string");
-                }
-                columnTypeProperty = sb.toString();
-            }
-
-            List<TypeInfo> fieldTypes =
-                TypeInfoUtils.getTypeInfosFromTypeString(columnTypeProperty);
-            while (virtualColumns.size() > 0)
-            {
-                fieldTypes.remove(virtualColumns.removeLast());
-            }
-            StructTypeInfo rowType = new StructTypeInfo();
-            rowType.setAllStructFieldNames(columnNames);
-            rowType.setAllStructFieldTypeInfos(fieldTypes);
-            return OrcRecordUpdater.createEventSchema
-                (OrcStruct.createObjectInspector(rowType));
+            return objectInspector;
         }
 
         public bool isDelete(OrcStruct value)

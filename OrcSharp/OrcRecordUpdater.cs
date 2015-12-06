@@ -16,19 +16,19 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using OrcSharp.External;
+    using OrcSharp.Serialization;
 
     /// <summary>
     /// A RecordUpdater where the files are stored as ORC.
     /// </summary>
-    public class OrcRecordUpdater : RecordUpdater
+    public class OrcRecordUpdater
     {
-
         private static Log LOG = LogFactory.getLog(typeof(OrcRecordUpdater));
 
         public const string ACID_KEY_INDEX_NAME = "hive.acid.key.index";
@@ -36,18 +36,17 @@ namespace org.apache.hadoop.hive.ql.io.orc
         public const string ACID_STATS = "hive.acid.stats";
         public const int ORC_ACID_VERSION = 0;
 
-
         const int INSERT_OPERATION = 0;
         const int UPDATE_OPERATION = 1;
         const int DELETE_OPERATION = 2;
 
-        const int OPERATION = 0;
-        const int ORIGINAL_TRANSACTION = 1;
-        const int BUCKET = 2;
-        const int ROW_ID = 3;
-        const int CURRENT_TRANSACTION = 4;
-        const int ROW = 5;
-        const int FIELDS = 6;
+        internal const int OPERATION = 0;
+        internal const int ORIGINAL_TRANSACTION = 1;
+        internal const int BUCKET = 2;
+        internal const int ROW_ID = 3;
+        internal const int CURRENT_TRANSACTION = 4;
+        internal const int ROW = 5;
+        internal const int FIELDS = 6;
 
         const int DELTA_BUFFER_SIZE = 16 * 1024;
         const long DELTA_STRIPE_SIZE = 16 * 1024 * 1024;
@@ -84,7 +83,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             internal long updates;
             internal long deletes;
 
-            AcidStats()
+            public AcidStats()
             {
                 // nothing
             }
@@ -97,7 +96,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 deletes = Int64.Parse(parts[2]);
             }
 
-            string serialize()
+            internal string serialize()
             {
                 StringBuilder builder = new StringBuilder();
                 builder.Append(inserts);
@@ -107,6 +106,15 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 builder.Append(deletes);
                 return builder.ToString();
             }
+
+            public override string ToString()
+            {
+                StringBuilder builder = new StringBuilder();
+                builder.Append(" inserts: ").Append(inserts);
+                builder.Append(" updates: ").Append(updates);
+                builder.Append(" deletes: ").Append(deletes);
+                return builder.ToString();
+            }
         }
 
         static Path getSideFile(Path main)
@@ -114,27 +122,27 @@ namespace org.apache.hadoop.hive.ql.io.orc
             return new Path(main + AcidUtils.DELTA_SIDE_FILE_SUFFIX);
         }
 
-        static int getOperation(OrcStruct @struct)
+        internal static int getOperation(OrcStruct @struct)
         {
             return ((IntWritable)@struct.getFieldValue(OPERATION)).get();
         }
 
-        static long getCurrentTransaction(OrcStruct @struct)
+        internal static long getCurrentTransaction(OrcStruct @struct)
         {
             return ((LongWritable)@struct.getFieldValue(CURRENT_TRANSACTION)).get();
         }
 
-        static long getOriginalTransaction(OrcStruct @struct)
+        internal static long getOriginalTransaction(OrcStruct @struct)
         {
             return ((LongWritable)@struct.getFieldValue(ORIGINAL_TRANSACTION)).get();
         }
 
-        static int getBucket(OrcStruct @struct)
+        internal static int getBucket(OrcStruct @struct)
         {
             return ((IntWritable)@struct.getFieldValue(BUCKET)).get();
         }
 
-        static long getRowId(OrcStruct @struct)
+        internal static long getRowId(OrcStruct @struct)
         {
             return ((LongWritable)@struct.getFieldValue(ROW_ID)).get();
         }
@@ -244,7 +252,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
             if (writerOptions == null)
             {
-                writerOptions = OrcFile.writerOptions(options.getConfiguration());
+                writerOptions = OrcFile.writerOptions( /* options.getTableProperties(), */
+                    options.getConfiguration());
             }
             writerOptions.fileSystem(fs).callback(indexBuilder);
             if (!options.isWritingBase())
@@ -263,6 +272,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             item.setFieldValue(ORIGINAL_TRANSACTION, originalTransaction);
             item.setFieldValue(BUCKET, bucket);
             item.setFieldValue(ROW_ID, rowId);
+        }
+
+        public override String ToString()
+        {
+            return GetType().Name + "[" + path + "]";
         }
 
         /**
@@ -311,8 +325,8 @@ namespace org.apache.hadoop.hive.ql.io.orc
         {
             if (!(inspector is StructObjectInspector))
             {
-                throw new RuntimeException("Serious problem, expected a StructObjectInspector, but got a " +
-                    inspector.getClass().getName());
+                throw new InvalidOperationException("Serious problem, expected a StructObjectInspector, but got a " +
+                    inspector.GetType().FullName);
             }
             if (rowIdColNum < 0)
             {
@@ -479,20 +493,27 @@ namespace org.apache.hadoop.hive.ql.io.orc
          */
         static AcidStats parseAcidStats(Reader reader)
         {
-            String statsSerialized;
-            try
+            if (reader.hasMetadataValue(OrcRecordUpdater.ACID_STATS))
             {
-                ByteBuffer val =
-                  reader.getMetadataValue(OrcRecordUpdater.ACID_STATS)
-                    .duplicate();
-                statsSerialized = utf8Decoder.decode(val).toString();
+                String statsSerialized;
+                try
+                {
+                    ByteBuffer val =
+                      reader.getMetadataValue(OrcRecordUpdater.ACID_STATS)
+                        .duplicate();
+                    statsSerialized = utf8Decoder.decode(val).toString();
+                }
+                catch (CharacterCodingException e)
+                {
+                    throw new ArgumentException("Bad string encoding for " +
+                      OrcRecordUpdater.ACID_STATS, e);
+                }
+                return new AcidStats(statsSerialized);
             }
-            catch (CharacterCodingException e)
+            else
             {
-                throw new ArgumentException("Bad string encoding for " +
-                  OrcRecordUpdater.ACID_STATS, e);
+                return null;
             }
-            return new AcidStats(statsSerialized);
         }
 
         class KeyIndexBuilder : OrcFile.WriterCallback
@@ -503,7 +524,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             long lastRowId;
             AcidStats acidStats = new AcidStats();
 
-            public void preStripeWrite(OrcFile.WriterContext context)
+            public void preStripeWrite(Writer writer)
             {
                 lastKey.Append(lastTransaction);
                 lastKey.Append(',');
@@ -513,12 +534,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 lastKey.Append(';');
             }
 
-            public void preFooterWrite(OrcFile.WriterContext context
-                                       )
+            public void preFooterWrite(Writer writer)
             {
-                context.getWriter().addUserMetadata(ACID_KEY_INDEX_NAME,
+                writer.addUserMetadata(ACID_KEY_INDEX_NAME,
                     Encoding.UTF8.GetBytes(lastKey.ToString()));
-                context.getWriter().addUserMetadata(ACID_STATS,
+                writer.addUserMetadata(ACID_STATS,
                     Encoding.UTF8.GetBytes(acidStats.serialize()));
             }
 
@@ -558,11 +578,11 @@ namespace org.apache.hadoop.hive.ql.io.orc
             {
                 if (!(oi is StructObjectInspector))
                 {
-                    throw new RuntimeException("Serious problem, expected a StructObjectInspector, " +
+                    throw new InvalidOperationException("Serious problem, expected a StructObjectInspector, " +
                         "but got a " + oi.GetType().Name);
                 }
                 wrapped = (StructObjectInspector)oi;
-                List<StructField> wrappedFields = wrapped.getAllStructFieldRefs();
+                IList<StructField> wrappedFields = wrapped.getAllStructFieldRefs();
                 fields = new List<StructField>(wrapped.getAllStructFieldRefs().Count);
                 for (int i = 0; i < wrappedFields.Count; i++)
                 {
@@ -577,34 +597,34 @@ namespace org.apache.hadoop.hive.ql.io.orc
                 }
             }
 
-            public List<StructField> getAllStructFieldRefs()
+            public override IList<StructField> getAllStructFieldRefs()
             {
                 return fields;
             }
 
-            public StructField getStructFieldRef(String fieldName)
+            public override StructField getStructFieldRef(string fieldName)
             {
                 return wrapped.getStructFieldRef(fieldName);
             }
 
-            public Object getStructFieldData(Object data, StructField fieldRef)
+            public override object getStructFieldData(object data, StructField fieldRef)
             {
                 // For performance don't check that that the fieldRef isn't recId everytime,
                 // just assume that the caller used getAllStructFieldRefs and thus doesn't have that fieldRef
                 return wrapped.getStructFieldData(data, fieldRef);
             }
 
-            public List<Object> getStructFieldsDataAsList(Object data)
+            public override List<object> getStructFieldsDataAsList(object data)
             {
                 return wrapped.getStructFieldsDataAsList(data);
             }
 
-            public String getTypeName()
+            public override string getTypeName()
             {
                 return wrapped.getTypeName();
             }
 
-            public Category getCategory()
+            public override ObjectInspectorCategory getCategory()
             {
                 return wrapped.getCategory();
             }
