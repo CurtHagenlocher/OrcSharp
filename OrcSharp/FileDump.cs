@@ -31,7 +31,7 @@ namespace OrcSharp
     public static class FileDump
     {
         public const string UNKNOWN = "UNKNOWN";
-        public static readonly string SEPARATOR = new string('_', 120) + "\n";
+        public static readonly string SEPARATOR = new string('_', 120) + Environment.NewLine;
         public const int DEFAULT_BLOCK_SIZE = 256 * 1024 * 1024;
         public static readonly string DEFAULT_BACKUP_PATH = "/tmp";
 
@@ -162,7 +162,7 @@ namespace OrcSharp
                 printJsonData(conf, file);
                 if (files.Count > 1)
                 {
-                    System.Console.WriteLine(new string('=', 80) + Environment.NewLine);
+                    System.Console.WriteLine(SEPARATOR);
                 }
             }
         }
@@ -286,7 +286,7 @@ namespace OrcSharp
                 }
                 if (files.Count > 1)
                 {
-                    System.Console.WriteLine(new string('=', 80) + Environment.NewLine);
+                    System.Console.WriteLine(SEPARATOR);
                 }
             }
         }
