@@ -20,6 +20,7 @@ namespace OrcSharpTests
 {
     using System;
     using System.IO;
+    using System.Text;
 
     class CaptureStdout : IDisposable
     {
@@ -33,12 +34,14 @@ namespace OrcSharpTests
             System.Console.SetOut(new StreamWriter(output));
         }
 
-        public CaptureStdout(Stream stream)
+        protected CaptureStdout(Stream stream)
         {
             original = System.Console.Out;
             output = stream;
             System.Console.SetOut(new StreamWriter(output));
         }
+
+        protected Stream Output { get { return output; } }
 
         public void Flush()
         {
@@ -50,6 +53,25 @@ namespace OrcSharpTests
             System.Console.Out.Flush();
             System.Console.SetOut(original);
             output.Close();
+        }
+    }
+
+    class CaptureStdoutToMemory : CaptureStdout
+    {
+        public CaptureStdoutToMemory()
+            : base(new MemoryStream())
+        {
+        }
+
+        protected MemoryStream Memory { get { return (MemoryStream)Output; } }
+
+        public string Text
+        {
+            get
+            {
+                Flush();
+                return Encoding.UTF8.GetString(Memory.ToArray());
+            }
         }
     }
 }

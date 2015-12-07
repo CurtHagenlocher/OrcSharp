@@ -89,6 +89,7 @@
     <Compile Include="TestOrcTimezone2.cs" />
     <Compile Include="TestOrcWideTable.cs" />
     <Compile Include="TestRecordReaderImpl.cs" />
+    <Compile Include="TestRLEv2.cs" />
     <Compile Include="TestRunLengthByteReader.cs" />
     <Compile Include="TestRunLengthIntegerReader.cs" />
     <Compile Include="TestSearchArgumentImpl.cs" />

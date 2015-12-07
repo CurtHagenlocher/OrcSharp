@@ -32,7 +32,8 @@ namespace OrcSharpTests
     {
         const string testFileName = "TestFileDump.orc";
 
-        public TestFileDump() : base(testFileName)
+        public TestFileDump()
+            : base(testFileName)
         {
         }
 
@@ -181,13 +182,11 @@ namespace OrcSharpTests
             }
 
             string[] lines;
-            using (MemoryStream buffer = new MemoryStream())
-            using (CaptureStdout capture = new CaptureStdout(buffer))
+            using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(new string[] { testFilePath.ToString(), "-d" });
-                capture.Flush();
+                FileDump.Main(testFilePath, "-d");
 
-                lines = Encoding.UTF8.GetString(buffer.ToArray()).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                lines = capture.Text.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             }
             Assert.Equal(2, lines.Length);
 

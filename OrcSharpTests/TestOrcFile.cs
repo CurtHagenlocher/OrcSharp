@@ -1825,9 +1825,9 @@ namespace OrcSharpTests
                     "stripe " + j + " is too long at " + stripe.getDataLength());
             }
             // with HIVE-7832, the dictionaries will be disabled after writing the first
-            // stripe as there are too many distinct values. Hence only 4 stripes as
+            // stripe as there are too many distinct values. Hence only 3 stripes as
             // compared to 25 stripes in version 0.11 (above test case)
-            Assert.Equal(4, j);
+            Assert.Equal(3, j);
             Assert.Equal(2500, reader.getNumberOfRows());
         }
 

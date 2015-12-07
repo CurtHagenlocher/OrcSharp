@@ -47,7 +47,7 @@ namespace OrcSharp
         };
 #endif
 
-        public static void Main(string[] args)
+        public static void Main(params string[] args)
         {
             Configuration conf = new Configuration();
 
@@ -119,8 +119,7 @@ namespace OrcSharp
                 }
                 else
                 {
-                    // printMetaData(filesInPath, conf, rowIndexCols, printTimeZone, recover, backupPath);
-                    throw new NotImplementedException();
+                    printMetaData(filesInPath, conf, rowIndexCols, printTimeZone); // , recover, backupPath);
                 }
             }
         }

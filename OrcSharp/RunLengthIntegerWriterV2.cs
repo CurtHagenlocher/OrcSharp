@@ -120,8 +120,8 @@ namespace OrcSharp
      * <li>8 bits for lower run length bits</li>
      * </ul>
      * </li>
-     * <li>Base value - encoded as varint</li>
-     * <li>Delta base - encoded as varint</li>
+     * <li>Base value - zigzag encoded value written as varint</li>
+     * <li>Delta base - zigzag encoded value written as varint</li>
      * <li>Delta blob - only positive values. monotonicity and orderness are decided
      * based on the sign of the base value and delta base</li>
      * </ul>
@@ -509,32 +509,31 @@ namespace OrcSharp
             // invariant - subtracting any number from any other in the literals after
             // this point won't overflow
 
+            // if min is equal to max then the delta is 0, this condition happens for
+            // fixed values run >10 which cannot be encoded with SHORT_REPEAT
+            if (min == max)
+            {
+                Debug.Assert(isFixedDelta, min + "==" + max +
+                    ", isFixedDelta cannot be false");
+                Debug.Assert(currDelta == 0, min + "==" + max + ", currDelta should be zero");
+                fixedDelta = 0;
+                encoding = EncodingType.DELTA;
+                return;
+            }
+
+            if (isFixedDelta)
+            {
+                Debug.Assert(currDelta == initialDelta,
+                    "currDelta should be equal to initialDelta for fixed delta encoding");
+                encoding = EncodingType.DELTA;
+                fixedDelta = currDelta;
+                return;
+            }
+
             // if initialDelta is 0 then we cannot delta encode as we cannot identify
             // the sign of deltas (increasing or decreasing)
             if (initialDelta != 0)
             {
-
-                // if min is equal to max then the delta is 0, this condition happens for
-                // fixed values run >10 which cannot be encoded with SHORT_REPEAT
-                if (min == max)
-                {
-                    Debug.Assert(isFixedDelta, min + "==" + max +
-                        ", isFixedDelta cannot be false");
-                    Debug.Assert(currDelta == 0, min + "==" + max + ", currDelta should be zero");
-                    fixedDelta = 0;
-                    encoding = EncodingType.DELTA;
-                    return;
-                }
-
-                if (isFixedDelta)
-                {
-                    Debug.Assert(currDelta == initialDelta,
-                        "currDelta should be equal to initialDelta for fixed delta encoding");
-                    encoding = EncodingType.DELTA;
-                    fixedDelta = currDelta;
-                    return;
-                }
-
                 // stores the number of bits required for packing delta blob in
                 // delta encoding
                 bitsDeltaMax = utils.findClosestNumBits(deltaMax);
