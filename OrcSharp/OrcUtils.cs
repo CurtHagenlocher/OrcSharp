@@ -21,6 +21,7 @@ namespace OrcSharp
     using System;
     using System.Collections.Generic;
     using OrcSharp.Serialization;
+    using OrcProto = global::orc.proto;
 
     public class OrcUtils
     {
@@ -90,6 +91,24 @@ namespace OrcSharp
                 }
             }
             return null;
+        }
+
+        /**
+         * Convert a Hive type property string that contains separated type names into a list of
+         * TypeDescription objects.
+         * @return the list of TypeDescription objects.
+         */
+        public static List<TypeDescription> typeDescriptionsFromHiveTypeProperty(string hiveTypeProperty)
+        {
+            // CONSDIER: We need a type name parser for TypeDescription.
+
+            List<TypeInfo> typeInfoList = TypeInfoUtils.getTypeInfosFromTypeString(hiveTypeProperty);
+            List<TypeDescription> typeDescrList = new List<TypeDescription>(typeInfoList.Count);
+            foreach (TypeInfo typeInfo in typeInfoList)
+            {
+                typeDescrList.Add(convertTypeInfo(typeInfo));
+            }
+            return typeDescrList;
         }
 
         public static TypeDescription convertTypeInfo(TypeInfo info)
@@ -186,5 +205,470 @@ namespace OrcSharp
                         info.getCategory());
             }
         }
+
+        public static List<OrcProto.Type> getOrcTypes(TypeDescription typeDescr)
+        {
+            List<OrcProto.Type> result = new List<OrcProto.Type>();
+            appendOrcTypes(result, typeDescr);
+            return result;
+        }
+
+        private static void appendOrcTypes(List<OrcProto.Type> result, TypeDescription typeDescr)
+        {
+            OrcProto.Type.Builder type = OrcProto.Type.CreateBuilder();
+            IList<TypeDescription> children = typeDescr.getChildren();
+            switch (typeDescr.getCategory())
+            {
+                case Category.BOOLEAN:
+                    type.SetKind(OrcProto.Type.Types.Kind.BOOLEAN);
+                    break;
+                case Category.BYTE:
+                    type.SetKind(OrcProto.Type.Types.Kind.BYTE);
+                    break;
+                case Category.SHORT:
+                    type.SetKind(OrcProto.Type.Types.Kind.SHORT);
+                    break;
+                case Category.INT:
+                    type.SetKind(OrcProto.Type.Types.Kind.INT);
+                    break;
+                case Category.LONG:
+                    type.SetKind(OrcProto.Type.Types.Kind.LONG);
+                    break;
+                case Category.FLOAT:
+                    type.SetKind(OrcProto.Type.Types.Kind.FLOAT);
+                    break;
+                case Category.DOUBLE:
+                    type.SetKind(OrcProto.Type.Types.Kind.DOUBLE);
+                    break;
+                case Category.STRING:
+                    type.SetKind(OrcProto.Type.Types.Kind.STRING);
+                    break;
+                case Category.CHAR:
+                    type.SetKind(OrcProto.Type.Types.Kind.CHAR);
+                    type.SetMaximumLength((uint)typeDescr.getMaxLength());
+                    break;
+                case Category.VARCHAR:
+                    type.SetKind(OrcProto.Type.Types.Kind.VARCHAR);
+                    type.SetMaximumLength((uint)typeDescr.getMaxLength());
+                    break;
+                case Category.BINARY:
+                    type.SetKind(OrcProto.Type.Types.Kind.BINARY);
+                    break;
+                case Category.TIMESTAMP:
+                    type.SetKind(OrcProto.Type.Types.Kind.TIMESTAMP);
+                    break;
+                case Category.DATE:
+                    type.SetKind(OrcProto.Type.Types.Kind.DATE);
+                    break;
+                case Category.DECIMAL:
+                    type.SetKind(OrcProto.Type.Types.Kind.DECIMAL);
+                    type.SetPrecision((uint)typeDescr.getPrecision());
+                    type.SetScale((uint)typeDescr.getScale());
+                    break;
+                case Category.LIST:
+                    type.SetKind(OrcProto.Type.Types.Kind.LIST);
+                    type.AddSubtypes((uint)children[0].getId());
+                    break;
+                case Category.MAP:
+                    type.SetKind(OrcProto.Type.Types.Kind.MAP);
+                    foreach (TypeDescription t in children)
+                    {
+                        type.AddSubtypes((uint)t.getId());
+                    }
+                    break;
+                case Category.STRUCT:
+                    type.SetKind(OrcProto.Type.Types.Kind.STRUCT);
+                    foreach (TypeDescription t in children)
+                    {
+                        type.AddSubtypes((uint)t.getId());
+                    }
+                    foreach (string field in typeDescr.getFieldNames())
+                    {
+                        type.AddFieldNames(field);
+                    }
+                    break;
+                case Category.UNION:
+                    type.SetKind(OrcProto.Type.Types.Kind.UNION);
+                    foreach (TypeDescription t in children)
+                    {
+                        type.AddSubtypes((uint)t.getId());
+                    }
+                    break;
+                default:
+                    throw new ArgumentException("Unknown category: " + typeDescr.getCategory());
+            }
+            result.Add(type.Build());
+            if (children != null)
+            {
+                foreach (TypeDescription child in children)
+                {
+                    appendOrcTypes(result, child);
+                }
+            }
+        }
+
+        /**
+         * NOTE: This method ignores the subtype numbers in the TypeDescription rebuilds the subtype
+         * numbers based on the length of the result list being appended.
+         *
+         * @param result
+         * @param typeInfo
+         */
+        public static void appendOrcTypesRebuildSubtypes(
+            IList<OrcProto.Type> result,
+            TypeDescription typeDescr)
+        {
+            int subtype = result.Count;
+            OrcProto.Type.Builder type = OrcProto.Type.CreateBuilder();
+            bool needsAdd = true;
+            IList<TypeDescription> children = typeDescr.getChildren();
+            switch (typeDescr.getCategory())
+            {
+                case Category.BOOLEAN:
+                    type.SetKind(OrcProto.Type.Types.Kind.BOOLEAN);
+                    break;
+                case Category.BYTE:
+                    type.SetKind(OrcProto.Type.Types.Kind.BYTE);
+                    break;
+                case Category.SHORT:
+                    type.SetKind(OrcProto.Type.Types.Kind.SHORT);
+                    break;
+                case Category.INT:
+                    type.SetKind(OrcProto.Type.Types.Kind.INT);
+                    break;
+                case Category.LONG:
+                    type.SetKind(OrcProto.Type.Types.Kind.LONG);
+                    break;
+                case Category.FLOAT:
+                    type.SetKind(OrcProto.Type.Types.Kind.FLOAT);
+                    break;
+                case Category.DOUBLE:
+                    type.SetKind(OrcProto.Type.Types.Kind.DOUBLE);
+                    break;
+                case Category.STRING:
+                    type.SetKind(OrcProto.Type.Types.Kind.STRING);
+                    break;
+                case Category.CHAR:
+                    type.SetKind(OrcProto.Type.Types.Kind.CHAR);
+                    type.SetMaximumLength((uint)typeDescr.getMaxLength());
+                    break;
+                case Category.VARCHAR:
+                    type.SetKind(OrcProto.Type.Types.Kind.VARCHAR);
+                    type.SetMaximumLength((uint)typeDescr.getMaxLength());
+                    break;
+                case Category.BINARY:
+                    type.SetKind(OrcProto.Type.Types.Kind.BINARY);
+                    break;
+                case Category.TIMESTAMP:
+                    type.SetKind(OrcProto.Type.Types.Kind.TIMESTAMP);
+                    break;
+                case Category.DATE:
+                    type.SetKind(OrcProto.Type.Types.Kind.DATE);
+                    break;
+                case Category.DECIMAL:
+                    type.SetKind(OrcProto.Type.Types.Kind.DECIMAL);
+                    type.SetPrecision((uint)typeDescr.getPrecision());
+                    type.SetScale((uint)typeDescr.getScale());
+                    break;
+                case Category.LIST:
+                    type.SetKind(OrcProto.Type.Types.Kind.LIST);
+                    type.AddSubtypes((uint)++subtype);
+                    result.Add(type.Build());
+                    needsAdd = false;
+                    appendOrcTypesRebuildSubtypes(result, children[0]);
+                    break;
+                case Category.MAP:
+                    {
+                        // Make room for MAP type.
+                        result.Add(null);
+
+                        // Add MAP type pair in order to determine their subtype values.
+                        appendOrcTypesRebuildSubtypes(result, children[0]);
+                        int subtype2 = result.Count;
+                        appendOrcTypesRebuildSubtypes(result, children[1]);
+                        type.SetKind(OrcProto.Type.Types.Kind.MAP);
+                        type.AddSubtypes((uint)subtype + 1);
+                        type.AddSubtypes((uint)subtype2);
+                        result[subtype] = type.Build();
+                        needsAdd = false;
+                    }
+                    break;
+                case Category.STRUCT:
+                    {
+                        IList<String> fieldNames = typeDescr.getFieldNames();
+
+                        // Make room for STRUCT type.
+                        result.Add(null);
+
+                        List<int> fieldSubtypes = new List<int>(fieldNames.Count);
+                        foreach (TypeDescription child in children)
+                        {
+                            int fieldSubtype = result.Count;
+                            fieldSubtypes.Add(fieldSubtype);
+                            appendOrcTypesRebuildSubtypes(result, child);
+                        }
+
+                        type.SetKind(OrcProto.Type.Types.Kind.STRUCT);
+
+                        for (int i = 0; i < fieldNames.Count; i++)
+                        {
+                            type.AddSubtypes((uint)fieldSubtypes[i]);
+                            type.AddFieldNames(fieldNames[i]);
+                        }
+                        result[subtype] = type.Build();
+                        needsAdd = false;
+                    }
+                    break;
+                case Category.UNION:
+                    {
+                        // Make room for UNION type.
+                        result.Add(null);
+
+                        List<int> unionSubtypes = new List<int>(children.Count);
+                        foreach (TypeDescription child in children)
+                        {
+                            int unionSubtype = result.Count;
+                            unionSubtypes.Add(unionSubtype);
+                            appendOrcTypesRebuildSubtypes(result, child);
+                        }
+
+                        type.SetKind(OrcProto.Type.Types.Kind.UNION);
+                        for (int i = 0; i < children.Count; i++)
+                        {
+                            type.AddSubtypes((uint)unionSubtypes[i]);
+                        }
+                        result[subtype] = type.Build();
+                        needsAdd = false;
+                    }
+                    break;
+                default:
+                    throw new ArgumentException("Unknown category: " + typeDescr.getCategory());
+            }
+            if (needsAdd)
+            {
+                result.Add(type.Build());
+            }
+        }
+
+        /**
+         * NOTE: This method ignores the subtype numbers in the OrcProto.Type rebuilds the subtype
+         * numbers based on the length of the result list being appended.
+         *
+         * @param result
+         * @param typeInfo
+         */
+        public static int appendOrcTypesRebuildSubtypes(
+            IList<OrcProto.Type> result,
+            IList<OrcProto.Type> types,
+            int columnId)
+        {
+            OrcProto.Type oldType = types[columnId++];
+
+            int subtype = result.Count;
+            OrcProto.Type.Builder builder = OrcProto.Type.CreateBuilder();
+            bool needsAdd = true;
+            switch (oldType.Kind)
+            {
+                case OrcProto.Type.Types.Kind.BOOLEAN:
+                    builder.SetKind(OrcProto.Type.Types.Kind.BOOLEAN);
+                    break;
+                case OrcProto.Type.Types.Kind.BYTE:
+                    builder.SetKind(OrcProto.Type.Types.Kind.BYTE);
+                    break;
+                case OrcProto.Type.Types.Kind.SHORT:
+                    builder.SetKind(OrcProto.Type.Types.Kind.SHORT);
+                    break;
+                case OrcProto.Type.Types.Kind.INT:
+                    builder.SetKind(OrcProto.Type.Types.Kind.INT);
+                    break;
+                case OrcProto.Type.Types.Kind.LONG:
+                    builder.SetKind(OrcProto.Type.Types.Kind.LONG);
+                    break;
+                case OrcProto.Type.Types.Kind.FLOAT:
+                    builder.SetKind(OrcProto.Type.Types.Kind.FLOAT);
+                    break;
+                case OrcProto.Type.Types.Kind.DOUBLE:
+                    builder.SetKind(OrcProto.Type.Types.Kind.DOUBLE);
+                    break;
+                case OrcProto.Type.Types.Kind.STRING:
+                    builder.SetKind(OrcProto.Type.Types.Kind.STRING);
+                    break;
+                case OrcProto.Type.Types.Kind.CHAR:
+                    builder.SetKind(OrcProto.Type.Types.Kind.CHAR);
+                    builder.SetMaximumLength(oldType.MaximumLength);
+                    break;
+                case OrcProto.Type.Types.Kind.VARCHAR:
+                    builder.SetKind(OrcProto.Type.Types.Kind.VARCHAR);
+                    builder.SetMaximumLength(oldType.MaximumLength);
+                    break;
+                case OrcProto.Type.Types.Kind.BINARY:
+                    builder.SetKind(OrcProto.Type.Types.Kind.BINARY);
+                    break;
+                case OrcProto.Type.Types.Kind.TIMESTAMP:
+                    builder.SetKind(OrcProto.Type.Types.Kind.TIMESTAMP);
+                    break;
+                case OrcProto.Type.Types.Kind.DATE:
+                    builder.SetKind(OrcProto.Type.Types.Kind.DATE);
+                    break;
+                case OrcProto.Type.Types.Kind.DECIMAL:
+                    builder.SetKind(OrcProto.Type.Types.Kind.DECIMAL);
+                    builder.SetPrecision(oldType.Precision);
+                    builder.SetScale(oldType.Scale);
+                    break;
+                case OrcProto.Type.Types.Kind.LIST:
+                    builder.SetKind(OrcProto.Type.Types.Kind.LIST);
+                    builder.AddSubtypes((uint)++subtype);
+                    result.Add(builder.Build());
+                    needsAdd = false;
+                    columnId = appendOrcTypesRebuildSubtypes(result, types, columnId);
+                    break;
+                case OrcProto.Type.Types.Kind.MAP:
+                    {
+                        // Make room for MAP type.
+                        result.Add(null);
+
+                        // Add MAP type pair in order to determine their subtype values.
+                        columnId = appendOrcTypesRebuildSubtypes(result, types, columnId);
+                        int subtype2 = result.Count;
+                        columnId = appendOrcTypesRebuildSubtypes(result, types, columnId);
+                        builder.SetKind(OrcProto.Type.Types.Kind.MAP);
+                        builder.AddSubtypes((uint)subtype + 1);
+                        builder.AddSubtypes((uint)subtype2);
+                        result[subtype] = builder.Build();
+                        needsAdd = false;
+                    }
+                    break;
+                case OrcProto.Type.Types.Kind.STRUCT:
+                    {
+                        IList<string> fieldNames = oldType.FieldNamesList;
+
+                        // Make room for STRUCT type.
+                        result.Add(null);
+
+                        List<int> fieldSubtypes = new List<int>(fieldNames.Count);
+                        for (int i = 0; i < fieldNames.Count; i++)
+                        {
+                            int fieldSubtype = result.Count;
+                            fieldSubtypes.Add(fieldSubtype);
+                            columnId = appendOrcTypesRebuildSubtypes(result, types, columnId);
+                        }
+
+                        builder.SetKind(OrcProto.Type.Types.Kind.STRUCT);
+
+                        for (int i = 0; i < fieldNames.Count; i++)
+                        {
+                            builder.AddSubtypes((uint)fieldSubtypes[i]);
+                            builder.AddFieldNames(fieldNames[i]);
+                        }
+                        result[subtype] = builder.Build();
+                        needsAdd = false;
+                    }
+                    break;
+                case OrcProto.Type.Types.Kind.UNION:
+                    {
+                        int subtypeCount = oldType.SubtypesCount;
+
+                        // Make room for UNION type.
+                        result.Add(null);
+
+                        List<int> unionSubtypes = new List<int>(subtypeCount);
+                        for (int i = 0; i < subtypeCount; i++)
+                        {
+                            int unionSubtype = result.Count;
+                            unionSubtypes.Add(unionSubtype);
+                            columnId = appendOrcTypesRebuildSubtypes(result, types, columnId);
+                        }
+
+                        builder.SetKind(OrcProto.Type.Types.Kind.UNION);
+                        for (int i = 0; i < subtypeCount; i++)
+                        {
+                            builder.AddSubtypes((uint)unionSubtypes[i]);
+                        }
+                        result[subtype] = builder.Build();
+                        needsAdd = false;
+                    }
+                    break;
+                default:
+                    throw new ArgumentException("Unknown category: " + oldType.Kind);
+            }
+            if (needsAdd)
+            {
+                result.Add(builder.Build());
+            }
+            return columnId;
+        }
+
+#if false
+        public static TypeDescription getDesiredRowTypeDescr(Configuration conf)
+        {
+            string columnNameProperty = null;
+            string columnTypeProperty = null;
+
+            IList<string> schemaEvolutionColumnNames = null;
+            List<TypeDescription> schemaEvolutionTypeDescrs = null;
+
+            bool haveSchemaEvolutionProperties = false;
+            if (HiveConf.getBoolVar(conf, ConfVars.HIVE_SCHEMA_EVOLUTION))
+            {
+
+                columnNameProperty = conf.get(IOConstants.SCHEMA_EVOLUTION_COLUMNS);
+                columnTypeProperty = conf.get(IOConstants.SCHEMA_EVOLUTION_COLUMNS_TYPES);
+
+                haveSchemaEvolutionProperties =
+                    (columnNameProperty != null && columnTypeProperty != null);
+
+                if (haveSchemaEvolutionProperties)
+                {
+                    schemaEvolutionColumnNames = columnNameProperty.Split(',');
+                    if (schemaEvolutionColumnNames.Count == 0)
+                    {
+                        haveSchemaEvolutionProperties = false;
+                    }
+                    else
+                    {
+                        schemaEvolutionTypeDescrs =
+                            OrcUtils.typeDescriptionsFromHiveTypeProperty(columnTypeProperty);
+                        if (schemaEvolutionTypeDescrs.Count != schemaEvolutionColumnNames.Count)
+                        {
+                            haveSchemaEvolutionProperties = false;
+                        }
+                    }
+                }
+            }
+
+            if (!haveSchemaEvolutionProperties)
+            {
+
+                // Try regular properties;
+                columnNameProperty = conf.get(serdeConstants.LIST_COLUMNS);
+                columnTypeProperty = conf.get(serdeConstants.LIST_COLUMN_TYPES);
+                if (columnTypeProperty == null || columnNameProperty == null)
+                {
+                    return null;
+                }
+
+                schemaEvolutionColumnNames = columnNameProperty.Split(',');
+                if (schemaEvolutionColumnNames.Count == 0)
+                {
+                    return null;
+                }
+                schemaEvolutionTypeDescrs =
+                    OrcUtils.typeDescriptionsFromHiveTypeProperty(columnTypeProperty);
+                if (schemaEvolutionTypeDescrs.Count != schemaEvolutionColumnNames.Count)
+                {
+                    return null;
+                }
+            }
+
+            // Desired schema does not include virtual columns or partition columns.
+            TypeDescription result = TypeDescription.createStruct();
+            for (int i = 0; i < schemaEvolutionColumnNames.Count; i++)
+            {
+                result.addField(schemaEvolutionColumnNames[i], schemaEvolutionTypeDescrs[i]);
+            }
+
+            return result;
+        }
+#endif
     }
 }

@@ -248,6 +248,7 @@ namespace OrcSharp
         private bool[] _include;
         private long offset = 0;
         private long length = Int64.MaxValue;
+        private TypeDescription _schema;
         private SearchArgument sarg = null;
         private string[] columnNames = null;
         private bool? _useZeroCopy = null;
@@ -274,6 +275,15 @@ namespace OrcSharp
         {
             this.offset = offset;
             this.length = length;
+            return this;
+        }
+
+        /**
+         * Set the schema on read type description.
+         */
+        public RecordReaderOptions schema(TypeDescription schema)
+        {
+            this._schema = schema;
             return this;
         }
 
@@ -327,6 +337,11 @@ namespace OrcSharp
             return length;
         }
 
+        public TypeDescription getSchema()
+        {
+            return _schema;
+        }
+
         public SearchArgument getSearchArgument()
         {
             return sarg;
@@ -363,6 +378,7 @@ namespace OrcSharp
             result._include = _include;
             result.offset = offset;
             result.length = length;
+            result._schema = _schema;
             result.sarg = sarg;
             result.columnNames = columnNames;
             result._useZeroCopy = _useZeroCopy;

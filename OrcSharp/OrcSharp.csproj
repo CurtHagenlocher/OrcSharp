@@ -46,13 +46,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConversionTreeReaderFactory.cs" />
     <Compile Include="DataReader.cs" />
     <Compile Include="DirectDecompressionCodec.cs" />
     <Compile Include="External\BloomFilter.cs" />
     <Compile Include="External\BloomFilterIO.cs" />
     <Compile Include="External\ByteBuffer.cs" />
     <Compile Include="External\TimeZones.cs" />
+    <Compile Include="OrcRecordUpdater.cs" />
+    <Compile Include="SchemaEvolution.cs" />
     <Compile Include="Types\BytesColumnVector.cs" />
     <Compile Include="External\CommandLine.cs" />
     <Compile Include="External\JsonWriter.cs" />
@@ -124,7 +125,6 @@
     <Compile Include="Reader.cs" />
     <Compile Include="ReaderImpl.cs" />
     <Compile Include="RecordReader.cs" />
-    <Compile Include="RecordReaderFactory.cs" />
     <Compile Include="RecordReaderImpl.cs" />
     <Compile Include="RecordReaderUtils.cs" />
     <Compile Include="RedBlackTree.cs" />

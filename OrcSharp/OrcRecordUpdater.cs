@@ -51,6 +51,7 @@ namespace OrcSharp
         const int DELTA_BUFFER_SIZE = 16 * 1024;
         const long DELTA_STRIPE_SIZE = 16 * 1024 * 1024;
 
+#if false
         private AcidOutputFormat.Options options;
         private Path path;
         private FileSystem fs;
@@ -634,5 +635,6 @@ namespace OrcSharp
                 return recId;
             }
         }
+#endif
     }
 }

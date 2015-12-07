@@ -22,10 +22,10 @@ namespace OrcSharp
     using System.Collections.Generic;
     using System.IO;
     using System.Numerics;
+    using System.Text;
     using OrcSharp.External;
     using OrcSharp.Types;
     using OrcProto = global::orc.proto;
-    using System.Text;
 
     /**
      * Factory for creating ORC tree readers.
@@ -33,6 +33,65 @@ namespace OrcSharp
     public class TreeReaderFactory
     {
         internal static Func<TimeZoneInfo> CreateTimeZone;
+        private static readonly Log LOG = LogFactory.getLog(typeof(TreeReaderFactory));
+
+        public class TreeReaderSchema
+        {
+            /**
+             * The types in the ORC file.
+             */
+            IList<OrcProto.Type> _fileTypes;
+
+            /**
+             * The treeReaderSchema that the reader should read as.
+             */
+            IList<OrcProto.Type> _schemaTypes;
+
+            /**
+             * The subtype of the row STRUCT.  Different than 0 for ACID.
+             */
+            int _innerStructSubtype;
+
+            public TreeReaderSchema()
+            {
+                _fileTypes = null;
+                _schemaTypes = null;
+                _innerStructSubtype = -1;
+            }
+
+            public TreeReaderSchema fileTypes(IList<OrcProto.Type> fileTypes)
+            {
+                this._fileTypes = fileTypes;
+                return this;
+            }
+
+            public TreeReaderSchema schemaTypes(IList<OrcProto.Type> schemaTypes)
+            {
+                this._schemaTypes = schemaTypes;
+                return this;
+            }
+
+            public TreeReaderSchema innerStructSubtype(int innerStructSubtype)
+            {
+                this._innerStructSubtype = innerStructSubtype;
+                return this;
+            }
+
+            public IList<OrcProto.Type> getFileTypes()
+            {
+                return _fileTypes;
+            }
+
+            public IList<OrcProto.Type> getSchemaTypes()
+            {
+                return _schemaTypes;
+            }
+
+            public int getInnerStructSubtype()
+            {
+                return _innerStructSubtype;
+            }
+        }
 
         public interface TreeReader
         {
@@ -41,6 +100,7 @@ namespace OrcSharp
             object next();
             object nextVector(object previousVector, long batchSize);
             void skipRows(long rows);
+            void setVectorColumnCount(int vectorColumnCount);
         }
 
         public abstract class TreeReader<T> : TreeReader
@@ -48,6 +108,7 @@ namespace OrcSharp
             protected int columnId;
             protected BitFieldReader present = null;
             private bool valuePresent = false;
+            protected int vectorColumnCount;
 
             protected TreeReader(int columnId, InStream @in = null)
             {
@@ -61,6 +122,12 @@ namespace OrcSharp
                 {
                     present = new BitFieldReader(@in, 1);
                 }
+                vectorColumnCount = -1;
+            }
+
+            public void setVectorColumnCount(int vectorColumnCount)
+            {
+                this.vectorColumnCount = vectorColumnCount;
             }
 
             public virtual void checkEncoding(OrcProto.ColumnEncoding encoding)
@@ -2011,27 +2078,66 @@ namespace OrcSharp
 
         sealed public class StructTreeReader : TreeReader<OrcStruct>
         {
+            private int fileColumnCount;
+            private int resultColumnCount;
             private TreeReader[] fields;
             private String[] fieldNames;
 
-            public StructTreeReader(int columnId,
-                IList<OrcProto.Type> types,
+            public StructTreeReader(
+                int columnId,
+                TreeReaderSchema treeReaderSchema,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
             {
-                OrcProto.Type type = types[columnId];
-                int fieldCount = type.FieldNamesCount;
-                this.fields = new TreeReader[fieldCount];
-                this.fieldNames = new String[fieldCount];
-                for (int i = 0; i < fieldCount; ++i)
+                OrcProto.Type fileStructType = treeReaderSchema.getFileTypes()[columnId];
+                fileColumnCount = fileStructType.FieldNamesCount;
+
+                OrcProto.Type schemaStructType = treeReaderSchema.getSchemaTypes()[columnId];
+
+                if (columnId == treeReaderSchema.getInnerStructSubtype())
                 {
-                    int subtype = (int)type.SubtypesList[i];
-                    if (included == null || included[subtype])
+                    // If there are more result columns than reader columns, we will default those additional
+                    // columns to NULL.
+                    resultColumnCount = schemaStructType.FieldNamesCount;
+                }
+                else
+                {
+                    resultColumnCount = fileColumnCount;
+                }
+
+                this.fields = new TreeReader[fileColumnCount];
+                this.fieldNames = new String[fileColumnCount];
+
+                if (included == null)
+                {
+                    for (int i = 0; i < fileColumnCount; ++i)
                     {
-                        this.fields[i] = createTreeReader(subtype, types, included, skipCorrupt);
+                        int subtype = (int)schemaStructType.GetSubtypes(i);
+                        this.fields[i] = createTreeReader(subtype, treeReaderSchema, included, skipCorrupt);
+                        // Use the treeReaderSchema evolution name since file/reader types may not have the real column name.
+                        this.fieldNames[i] = schemaStructType.GetFieldNames(i);
                     }
-                    this.fieldNames[i] = type.FieldNamesList[i];
+                }
+                else
+                {
+                    for (int i = 0; i < fileColumnCount; ++i)
+                    {
+                        int subtype = (int)schemaStructType.GetSubtypes(i);
+                        if (subtype >= included.Length)
+                        {
+                            throw new IOException("subtype " + subtype + " exceeds the included array size " +
+                                included.Length + " fileTypes " + treeReaderSchema.getFileTypes().ToString() +
+                                " schemaTypes " + treeReaderSchema.getSchemaTypes().ToString() +
+                                " innerStructSubtype " + treeReaderSchema.getInnerStructSubtype());
+                        }
+                        if (included[subtype])
+                        {
+                            this.fields[i] = createTreeReader(subtype, treeReaderSchema, included, skipCorrupt);
+                        }
+                        // Use the treeReaderSchema evolution name since file/reader types may not have the real column name.
+                        this.fieldNames[i] = schemaStructType.GetFieldNames(i);
+                    }
                 }
             }
 
@@ -2053,12 +2159,20 @@ namespace OrcSharp
                 if (hasValue())
                 {
                     // TODO: optimize
-                    result = new OrcStruct(fields.Length);
-                    for (int i = 0; i < fields.Length; ++i)
+                    result = new OrcStruct(resultColumnCount);
+                    for (int i = 0; i < fileColumnCount; ++i)
                     {
                         if (fields[i] != null)
                         {
                             result.setFieldValue(i, fields[i].next());
+                        }
+                    }
+                    if (resultColumnCount > fileColumnCount)
+                    {
+                        for (int i = fileColumnCount; i < resultColumnCount; ++i)
+                        {
+                            // Default new treeReaderSchema evolution fields to NULL.
+                            result.setFieldValue(i, null);
                         }
                     }
                 }
@@ -2070,7 +2184,7 @@ namespace OrcSharp
                 ColumnVector[] result;
                 if (previousVector == null)
                 {
-                    result = new ColumnVector[fields.Length];
+                    result = new ColumnVector[fileColumnCount];
                 }
                 else
                 {
@@ -2078,7 +2192,7 @@ namespace OrcSharp
                 }
 
                 // Read all the members of struct as column vectors
-                for (int i = 0; i < fields.Length; i++)
+                for (int i = 0; i < fileColumnCount; i++)
                 {
                     if (fields[i] != null)
                     {
@@ -2092,6 +2206,22 @@ namespace OrcSharp
                         }
                     }
                 }
+
+                // Default additional treeReaderSchema evolution fields to NULL.
+                if (vectorColumnCount != -1 && vectorColumnCount > fileColumnCount)
+                {
+                    for (int i = fileColumnCount; i < vectorColumnCount; ++i)
+                    {
+                        ColumnVector colVector = result[i];
+                        if (colVector != null)
+                        {
+                            colVector.isRepeating = true;
+                            colVector.noNulls = false;
+                            colVector.isNull[0] = true;
+                        }
+                    }
+                }
+
                 return result;
             }
 
@@ -2128,12 +2258,12 @@ namespace OrcSharp
             private RunLengthByteReader tags;
 
             public UnionTreeReader(int columnId,
-                IList<OrcProto.Type> types,
+                TreeReaderSchema treeReaderSchema,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
             {
-                OrcProto.Type type = types[columnId];
+                OrcProto.Type type = treeReaderSchema.getSchemaTypes()[columnId];
                 int fieldCount = type.SubtypesCount;
                 this.fields = new TreeReader[fieldCount];
                 for (int i = 0; i < fieldCount; ++i)
@@ -2141,7 +2271,7 @@ namespace OrcSharp
                     int subtype = (int)type.SubtypesList[i];
                     if (included == null || included[subtype])
                     {
-                        this.fields[i] = createTreeReader(subtype, types, included, skipCorrupt);
+                        this.fields[i] = createTreeReader(subtype, treeReaderSchema, included, skipCorrupt);
                     }
                 }
             }
@@ -2211,14 +2341,15 @@ namespace OrcSharp
             private TreeReader elementReader;
             private IntegerReader lengths = null;
 
-            public ListTreeReader(int columnId,
-                IList<OrcProto.Type> types,
+            public ListTreeReader(
+                int columnId,
+                TreeReaderSchema treeReaderSchema,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
             {
-                OrcProto.Type type = types[columnId];
-                elementReader = createTreeReader((int)type.SubtypesList[0], types, included, skipCorrupt);
+                OrcProto.Type type = treeReaderSchema.getSchemaTypes()[columnId];
+                elementReader = createTreeReader((int)type.SubtypesList[0], treeReaderSchema, included, skipCorrupt);
             }
 
             public override void seek(PositionProvider[] index)
@@ -2293,18 +2424,19 @@ namespace OrcSharp
             private TreeReader valueReader;
             private IntegerReader lengths = null;
 
-            public MapTreeReader(int columnId,
-                IList<OrcProto.Type> types,
+            public MapTreeReader(
+                int columnId,
+                TreeReaderSchema treeReaderSchema,
                 bool[] included,
                 bool skipCorrupt)
                 : base(columnId)
             {
-                OrcProto.Type type = types[columnId];
+                OrcProto.Type type = treeReaderSchema.getSchemaTypes()[columnId];
                 int keyColumn = (int)type.SubtypesList[0];
                 int valueColumn = (int)type.SubtypesList[1];
                 if (included == null || included[keyColumn])
                 {
-                    keyReader = createTreeReader(keyColumn, types, included, skipCorrupt);
+                    keyReader = createTreeReader(keyColumn, treeReaderSchema, included, skipCorrupt);
                 }
                 else
                 {
@@ -2312,7 +2444,7 @@ namespace OrcSharp
                 }
                 if (included == null || included[valueColumn])
                 {
-                    valueReader = createTreeReader(valueColumn, types, included, skipCorrupt);
+                    valueReader = createTreeReader(valueColumn, treeReaderSchema, included, skipCorrupt);
                 }
                 else
                 {
@@ -2393,12 +2525,11 @@ namespace OrcSharp
         }
 
         public static TreeReader createTreeReader(int columnId,
-            IList<OrcProto.Type> types,
+            TreeReaderSchema treeReaderSchema,
             bool[] included,
-            bool skipCorrupt
-        )
+            bool skipCorrupt)
         {
-            OrcProto.Type type = types[columnId];
+            OrcProto.Type type = treeReaderSchema.getSchemaTypes()[columnId];
             switch (type.Kind)
             {
                 case OrcProto.Type.Types.Kind.BOOLEAN:
@@ -2441,13 +2572,13 @@ namespace OrcSharp
                     int scale = type.HasScale ? (int)type.Scale : HiveDecimal.SYSTEM_DEFAULT_SCALE;
                     return new DecimalTreeReader(columnId, precision, scale);
                 case OrcProto.Type.Types.Kind.STRUCT:
-                    return new StructTreeReader(columnId, types, included, skipCorrupt);
+                    return new StructTreeReader(columnId, treeReaderSchema, included, skipCorrupt);
                 case OrcProto.Type.Types.Kind.LIST:
-                    return new ListTreeReader(columnId, types, included, skipCorrupt);
+                    return new ListTreeReader(columnId, treeReaderSchema, included, skipCorrupt);
                 case OrcProto.Type.Types.Kind.MAP:
-                    return new MapTreeReader(columnId, types, included, skipCorrupt);
+                    return new MapTreeReader(columnId, treeReaderSchema, included, skipCorrupt);
                 case OrcProto.Type.Types.Kind.UNION:
-                    return new UnionTreeReader(columnId, types, included, skipCorrupt);
+                    return new UnionTreeReader(columnId, treeReaderSchema, included, skipCorrupt);
                 default:
                     throw new ArgumentException("Unsupported type " +
                         type.Kind);

@@ -30,7 +30,7 @@ namespace OrcSharp
 
     public class RecordReaderImpl : RecordReader
     {
-        internal static Log LOG = LogFactory.getLog(typeof(RecordReaderImpl));
+        internal static readonly Log LOG = LogFactory.getLog(typeof(RecordReaderImpl));
         private static bool isLogDebugEnabled = LOG.isDebugEnabled();
         private string path;
         private long firstRow;
@@ -140,6 +140,21 @@ namespace OrcSharp
             long strideRate,
             Configuration conf)
         {
+            TreeReaderFactory.TreeReaderSchema treeReaderSchema;
+            if (options.getSchema() == null)
+            {
+                treeReaderSchema = new TreeReaderFactory.TreeReaderSchema().fileTypes(types).schemaTypes(types);
+            }
+            else
+            {
+
+                // Now that we are creating a record reader for a file, validate that the schema to read
+                // is compatible with the file schema.
+                //
+                IList<OrcProto.Type> schemaTypes = OrcUtils.getOrcTypes(options.getSchema());
+                treeReaderSchema = SchemaEvolution.validateAndCreate(types, schemaTypes);
+            }
+
             this.path = path;
             this.codec = codec;
             this.types = types;
@@ -193,7 +208,7 @@ namespace OrcSharp
                 skipCorrupt = OrcConf.SKIP_CORRUPT_DATA.getBoolean(conf);
             }
 
-            reader = RecordReaderFactory.createTreeReader(0, conf, types, included, skipCorrupt.Value);
+            reader = TreeReaderFactory.createTreeReader(0, treeReaderSchema, included, skipCorrupt.Value);
             indexes = new OrcProto.RowIndex[types.Count];
             bloomFilterIndices = new OrcProto.BloomFilterIndex[types.Count];
             advanceToNextRow(reader, 0L, true);
@@ -1361,6 +1376,7 @@ namespace OrcSharp
                 {
                     result = (VectorizedRowBatch)previous;
                     result.selectedInUse = false;
+                    reader.setVectorColumnCount(result.getDataColumnCount());
                     reader.nextVector(result.cols, (int)batchSize);
                 }
 

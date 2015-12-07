@@ -23,7 +23,6 @@ namespace org.apache.hadoop.hive.ql.io.orc
     using org.apache.hadoop.hive.ql.io.orc.external;
     using OrcProto = global::orc.proto;
 
-
     /**
      * Key for OrcFileMergeMapper task. Contains orc file related information that
      * should match before merging two orc files.
@@ -32,7 +31,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
     {
         private Path inputPath;
         private CompressionKind compression;
-        private long compressBufferSize;
+        private int compressBufferSize;
         private List<OrcProto.Type> types;
         private int rowIndexStride;
         private OrcFile.Version version;
@@ -68,12 +67,12 @@ namespace org.apache.hadoop.hive.ql.io.orc
             this.rowIndexStride = rowIndexStride;
         }
 
-        public long getCompressBufferSize()
+        public int getCompressBufferSize()
         {
             return compressBufferSize;
         }
 
-        public void setCompressBufferSize(long compressBufferSize)
+        public void setCompressBufferSize(int compressBufferSize)
         {
             this.compressBufferSize = compressBufferSize;
         }
