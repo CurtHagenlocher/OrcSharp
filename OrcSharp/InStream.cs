@@ -28,7 +28,7 @@ namespace OrcSharp
 
     public abstract class InStream : InputStream
     {
-        private static readonly Log LOG = LogFactory.getLog(typeof(InStream));
+        private static readonly Logger LOG = LoggerFactory.getLog(typeof(InStream));
         private const int PROTOBUF_MESSAGE_MAX_LIMIT = 1024 << 20; // 1GB
 
         protected long? fileId;

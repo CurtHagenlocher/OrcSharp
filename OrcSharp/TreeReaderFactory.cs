@@ -33,7 +33,7 @@ namespace OrcSharp
     public class TreeReaderFactory
     {
         internal static Func<TimeZoneInfo> CreateTimeZone;
-        private static readonly Log LOG = LogFactory.getLog(typeof(TreeReaderFactory));
+        private static readonly Logger LOG = LoggerFactory.getLog(typeof(TreeReaderFactory));
 
         public class TreeReaderSchema
         {

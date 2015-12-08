@@ -33,7 +33,7 @@ namespace OrcSharp
      */
     public class MemoryManager
     {
-        private static readonly Log LOG = LogFactory.getLog(typeof(MemoryManager));
+        private static readonly Logger LOG = LoggerFactory.getLog(typeof(MemoryManager));
 
         /**
          * How often should we check the memory sizes? Measured in rows added

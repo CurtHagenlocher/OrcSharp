@@ -29,7 +29,7 @@ namespace OrcSharp
     /// </summary>
     public class OrcRecordUpdater
     {
-        private static Log LOG = LogFactory.getLog(typeof(OrcRecordUpdater));
+        private static Logger LOG = LoggerFactory.getLog(typeof(OrcRecordUpdater));
 
         public const string ACID_KEY_INDEX_NAME = "hive.acid.key.index";
         public const string ACID_FORMAT = "_orc_acid_version";

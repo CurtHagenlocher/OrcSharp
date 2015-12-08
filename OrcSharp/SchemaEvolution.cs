@@ -30,7 +30,7 @@ namespace OrcSharp
      */
     public class SchemaEvolution
     {
-        private static readonly Log LOG = LogFactory.getLog(typeof(SchemaEvolution));
+        private static readonly Logger LOG = LoggerFactory.getLog(typeof(SchemaEvolution));
 
         public static TreeReaderFactory.TreeReaderSchema validateAndCreate(
             IList<OrcProto.Type> fileTypes,

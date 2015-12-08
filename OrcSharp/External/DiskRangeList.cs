@@ -25,7 +25,7 @@ namespace OrcSharp.External
      * Java also doesn't support multiple inheritance, so this cannot be done as "aspect"... */
     public class DiskRangeList : DiskRange
     {
-        private static readonly Log LOG = LogFactory.getLog(typeof(DiskRangeList));
+        private static readonly Logger LOG = LoggerFactory.getLog(typeof(DiskRangeList));
         public DiskRangeList prev, next;
 
         public DiskRangeList(long offset, long end) : base(offset, end)

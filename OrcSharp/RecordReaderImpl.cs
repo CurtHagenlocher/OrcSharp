@@ -30,7 +30,7 @@ namespace OrcSharp
 
     public class RecordReaderImpl : RecordReader
     {
-        internal static readonly Log LOG = LogFactory.getLog(typeof(RecordReaderImpl));
+        internal static readonly Logger LOG = LoggerFactory.getLog(typeof(RecordReaderImpl));
         private static readonly bool isLogDebugEnabled = LOG.isDebugEnabled();
         private static readonly object UNKNOWN_VALUE = new object();
 

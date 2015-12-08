@@ -33,7 +33,7 @@ namespace OrcSharp
 
     public class ReaderImpl : Reader
     {
-        private static readonly Log LOG = LogFactory.getLog(typeof(ReaderImpl));
+        private static readonly Logger LOG = LoggerFactory.getLog(typeof(ReaderImpl));
 
         private const int DIRECTORY_SIZE_GUESS = 16 * 1024;
 
@@ -278,7 +278,7 @@ namespace OrcSharp
          * @param path the data source path for error messages
          * @param version the version of hive that wrote the file.
          */
-        static void checkOrcVersion(Log log, string path, IList<int> version)
+        static void checkOrcVersion(Logger log, string path, IList<int> version)
         {
             if (version.Count >= 1)
             {

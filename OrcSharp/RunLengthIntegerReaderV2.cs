@@ -31,7 +31,7 @@ namespace OrcSharp
      */
     public class RunLengthIntegerReaderV2 : IntegerReader
     {
-        private static readonly Log LOG = LogFactory.getLog(typeof(RunLengthIntegerReaderV2));
+        private static readonly Logger LOG = LoggerFactory.getLog(typeof(RunLengthIntegerReaderV2));
 
         private InStream input;
         private bool signed;

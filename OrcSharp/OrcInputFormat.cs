@@ -230,7 +230,14 @@ namespace org.apache.hadoop.hive.ql.io.orc
             Dictionary<string, int> nameIdMap = new Dictionary<string, int>();
             for (int i = 0; i < knownNames.Length; ++i)
             {
-                nameIdMap[knownNames[i]] = idStrs != null ? Int32.Parse(idStrs[i]) : i;
+                // nameIdMap[knownNames[i]] = idStrs != null ? Int32.Parse(idStrs[i]) : i;
+                Integer newId = (idStrs != null) ? Integer.parseInt(idStrs[i]) : i;
+                Integer oldId = nameIdMap.put(knownNames[i], newId);
+                if (oldId != null && oldId.intValue() != newId.intValue())
+                {
+                    throw new RuntimeException("Multiple IDs for " + knownNames[i] + " in column strings: ["
+                        + idStr + "], [" + nameStr + "]");
+                }
             }
             List<PredicateLeaf> leaves = sarg.getLeaves();
             for (int i = 0; i < leaves.Count; ++i)

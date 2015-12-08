@@ -48,7 +48,7 @@ namespace OrcSharp
      */
     internal class WriterImpl : Writer, MemoryManager.Callback
     {
-        private static Log LOG = LogFactory.getLog(typeof(WriterImpl));
+        private static Logger LOG = LoggerFactory.getLog(typeof(WriterImpl));
 
         private const int HDFS_BUFFER_SIZE = 256 * 1024;
         private const int MIN_ROW_INDEX_STRIDE = 1000;

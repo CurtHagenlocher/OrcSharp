@@ -24,15 +24,15 @@ namespace OrcSharp.External
     using System.Text;
     using System.Threading.Tasks;
 
-    public class LogFactory
+    public class LoggerFactory
     {
-        public static Log getLog(Type type)
+        public static Logger getLog(Type type)
         {
-            return new Log();
+            return new Logger();
         }
     }
 
-    public class Log
+    public class Logger
     {
         public void debug(string message)
         {
