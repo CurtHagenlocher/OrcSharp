@@ -31,7 +31,9 @@ namespace OrcSharp
     public class RecordReaderImpl : RecordReader
     {
         internal static readonly Log LOG = LogFactory.getLog(typeof(RecordReaderImpl));
-        private static bool isLogDebugEnabled = LOG.isDebugEnabled();
+        private static readonly bool isLogDebugEnabled = LOG.isDebugEnabled();
+        private static readonly object UNKNOWN_VALUE = new object();
+
         private string path;
         private long firstRow;
         private List<StripeInformation> stripes = new List<StripeInformation>();
@@ -373,7 +375,7 @@ namespace OrcSharp
             }
             else
             {
-                return null;
+                return UNKNOWN_VALUE;
             }
         }
 
@@ -430,6 +432,10 @@ namespace OrcSharp
                 {
                     return TruthValue.NULL;
                 }
+            }
+            else if (min == UNKNOWN_VALUE)
+            {
+                return TruthValue.YES_NO_NULL;
             }
 
             TruthValue result;
