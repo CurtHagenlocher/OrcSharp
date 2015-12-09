@@ -32,7 +32,7 @@ namespace OrcSharpTests
     * returned by "row by row" reader with batch reader.
     *
     */
-    public class TestVectorizedORCReader : WithLocalDirectory
+    public class TestVectorizedORCReader : OrcTestBase
     {
         class MyRecord
         {

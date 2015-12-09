@@ -24,7 +24,7 @@ namespace OrcSharpTests
     using OrcSharp.Serialization;
     using Xunit;
 
-    public class TestUnrolledBitPack : WithLocalDirectory
+    public class TestUnrolledBitPack : OrcTestBase
     {
         const string testFileName = "TestUnrolledBitPack.orc";
 

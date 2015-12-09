@@ -23,13 +23,13 @@ namespace OrcSharpTests
     using System.IO;
     using OrcSharp.External;
 
-    public class WithLocalDirectory : IDisposable
+    public class OrcTestBase : IDisposable
     {
         protected readonly string workDir;
         protected readonly Configuration conf;
         protected readonly string testFilePath;
 
-        public WithLocalDirectory(string filename)
+        public OrcTestBase(string filename)
         {
             conf = new Configuration();
             workDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

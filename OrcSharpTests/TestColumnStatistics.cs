@@ -28,7 +28,7 @@ namespace OrcSharpTests
     /**
      * Test ColumnStatisticsImpl for ORC.
      */
-    public class TestColumnStatistics : WithLocalDirectory
+    public class TestColumnStatistics : OrcTestBase
     {
         const string testFileName = "TestColumnStatistics.orc";
 

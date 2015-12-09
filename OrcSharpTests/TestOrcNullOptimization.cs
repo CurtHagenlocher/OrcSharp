@@ -27,7 +27,7 @@ namespace OrcSharpTests
     using Xunit;
     using OrcProto = global::orc.proto;
 
-    public class TestOrcNullOptimization : WithLocalDirectory
+    public class TestOrcNullOptimization : OrcTestBase
     {
         public class MyStruct
         {

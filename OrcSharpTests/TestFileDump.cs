@@ -28,7 +28,7 @@ namespace OrcSharpTests
     using OrcSharp.Types;
     using Xunit;
 
-    public class TestFileDump : WithLocalDirectory
+    public class TestFileDump : OrcTestBase
     {
         const string testFileName = "TestFileDump.orc";
 

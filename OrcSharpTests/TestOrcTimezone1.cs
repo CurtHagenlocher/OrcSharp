@@ -26,7 +26,7 @@ namespace OrcSharpTests
     using OrcSharp.Types;
     using Xunit;
 
-    public class TestOrcTimezone1 : WithLocalDirectory
+    public class TestOrcTimezone1 : OrcTestBase
     {
         const string testFileName = "TestOrcTimezone1.orc";
 

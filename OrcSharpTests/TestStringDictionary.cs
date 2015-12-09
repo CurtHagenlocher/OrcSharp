@@ -25,7 +25,7 @@ namespace OrcSharpTests
     using Xunit;
     using OrcProto = global::orc.proto;
 
-    public class TestStringDictionary : WithLocalDirectory
+    public class TestStringDictionary : OrcTestBase
     {
         const string testFileName = "TestStringDictionary.orc";
 

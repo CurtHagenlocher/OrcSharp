@@ -24,7 +24,7 @@ namespace OrcSharpTests
     using OrcSharp.Serialization;
     using Xunit;
 
-    public class TestRLEv2 : WithLocalDirectory
+    public class TestRLEv2 : OrcTestBase
     {
         const string testFileName = "TestRLEv2.orc";
 

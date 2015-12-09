@@ -102,7 +102,7 @@
     <Compile Include="TestVectorizedORCReader.cs" />
     <Compile Include="TestVectorOrcFile.cs" />
     <Compile Include="TestWriter.cs" />
-    <Compile Include="WithLocalDirectory.cs" />
+    <Compile Include="OrcTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

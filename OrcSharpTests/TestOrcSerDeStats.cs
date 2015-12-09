@@ -28,7 +28,7 @@ namespace OrcSharpTests
     using OrcSharp.Types;
     using Xunit;
 
-    public class TestOrcSerDeStats : WithLocalDirectory
+    public class TestOrcSerDeStats : OrcTestBase
     {
         public class ListStruct
         {

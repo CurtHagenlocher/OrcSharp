@@ -34,7 +34,7 @@ namespace OrcSharpTests
     /**
      * Tests for the vectorized reader and writer for ORC files.
      */
-    public class TestVectorOrcFile : WithLocalDirectory
+    public class TestVectorOrcFile : OrcTestBase
     {
         const string testFileName = "TestVectorOrcFile.orc";
 

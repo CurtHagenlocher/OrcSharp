@@ -27,7 +27,7 @@ namespace OrcSharpTests
     using OrcSharp.Serialization;
     using Xunit;
 
-    public class TestBitPack : WithLocalDirectory
+    public class TestBitPack : OrcTestBase
     {
         private const int SIZE = 100;
         private static readonly Random rand = new Random(100);

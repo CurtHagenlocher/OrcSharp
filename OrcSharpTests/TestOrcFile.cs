@@ -33,7 +33,7 @@ namespace OrcSharpTests
     /**
      * Tests for the top level reader/streamFactory of ORC files.
      */
-    public class TestOrcFile : WithLocalDirectory
+    public class TestOrcFile : OrcTestBase
     {
         const string testFileName = "TestOrcFile.orc";
 

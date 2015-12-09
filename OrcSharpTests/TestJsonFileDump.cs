@@ -24,7 +24,7 @@ namespace OrcSharpTests
     using OrcSharp.Serialization;
     using Xunit;
 
-    public class TestJsonFileDump : WithLocalDirectory
+    public class TestJsonFileDump : OrcTestBase
     {
         const string testFileName = "TestJsonFileDump.orc";
 

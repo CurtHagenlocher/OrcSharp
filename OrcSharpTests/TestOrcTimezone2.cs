@@ -30,7 +30,7 @@ namespace OrcSharpTests
     /**
      *
      */
-    public class TestOrcTimezone2 : WithLocalDirectory
+    public class TestOrcTimezone2 : OrcTestBase
     {
         const string testFileName = "TestOrcTimezone1.orc";
 

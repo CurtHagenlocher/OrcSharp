@@ -26,7 +26,7 @@ namespace OrcSharpTests
     using OrcSharp.Types;
     using Xunit;
 
-    public class TestNewIntegerEncoding : WithLocalDirectory
+    public class TestNewIntegerEncoding : OrcTestBase
     {
         const string testFileName = "TestNewIntegerEncoding.orc";
 
