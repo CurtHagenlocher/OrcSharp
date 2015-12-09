@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using org.apache.hadoop.hive.ql.io.orc.external;
-    using org.apache.hadoop.hive.ql.io.orc.query;
+    using OrcSharp.External;
+    using OrcSharp.Types;
     using OrcProto = global::orc.proto;
-    using Path = org.apache.hadoop.hive.ql.io.orc.external.Path;
 
     /**
      * A MapReduce/Hive input format for ORC files.
@@ -1274,8 +1273,7 @@ namespace org.apache.hadoop.hive.ql.io.orc
             }
         }
 
-        public InputSplit[] getSplits(JobConf job,
-                                      int numSplits)
+        public InputSplit[] getSplits(JobConf job, int numSplits)
         {
             if (isDebugEnabled)
             {

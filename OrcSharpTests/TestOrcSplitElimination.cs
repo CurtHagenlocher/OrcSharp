@@ -19,19 +19,19 @@
 namespace OrcSharpTests
 {
     using System.Collections.Generic;
+    using System.IO;
     using OrcSharp;
     using OrcSharp.External;
-    using OrcSharp.Query;
+    using OrcSharp.Serialization;
+    using OrcSharp.Types;
     using Xunit;
 
-#if HADOOP
-
-    public class TestOrcSplitElimination : WithLocalDirectory
+    public class TestOrcSplitElimination : OrcTestBase
     {
         public class AllTypesRow
         {
             long userid;
-            Text string1;
+            string string1;
             double subtype;
             HiveDecimal decimal1;
             Timestamp ts;
@@ -39,13 +39,19 @@ namespace OrcSharpTests
             public AllTypesRow(long uid, string s1, double d1, HiveDecimal @decimal, Timestamp ts)
             {
                 this.userid = uid;
-                this.string1 = new Text(s1);
+                this.string1 = s1;
                 this.subtype = d1;
                 this.decimal1 = @decimal;
                 this.ts = ts;
             }
         }
 
+        public TestOrcSplitElimination()
+            : base("")
+        {
+        }
+
+#if false
         // Before
         public void openFileSystem()
         {
@@ -68,10 +74,12 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(AllTypesRow));
 
-            Writer writer = OrcFile.createWriter(fs, testFilePath, conf, inspector,
-                100000, CompressionKind.NONE, 10000, 10000);
-            writeData(writer);
-            writer.close();
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, conf, inspector,
+                100000, CompressionKind.NONE, 10000, 10000))
+            {
+                writeData(writer);
+            }
             conf.set(ShimLoader.getHadoopShims().getHadoopConfNames().get("MAPREDMINSPLITSIZE"), "1000");
             conf.set(ShimLoader.getHadoopShims().getHadoopConfNames().get("MAPREDMAXSPLITSIZE"), "5000");
             InputFormat @in = new OrcInputFormat();
@@ -143,10 +151,13 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(AllTypesRow));
 
-            Writer writer = OrcFile.createWriter(fs, testFilePath, conf, inspector,
-                100000, CompressionKind.NONE, 10000, 10000);
-            writeData(writer);
-            writer.close();
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, conf, inspector,
+                100000, CompressionKind.NONE, 10000, 10000))
+            {
+                writeData(writer);
+            }
+
             conf.set(ShimLoader.getHadoopShims().getHadoopConfNames().get("MAPREDMINSPLITSIZE"), "1000");
             conf.set(ShimLoader.getHadoopShims().getHadoopConfNames().get("MAPREDMAXSPLITSIZE"), "150000");
             InputFormat @in = new OrcInputFormat();
@@ -229,10 +240,13 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(AllTypesRow));
 
-            Writer writer = OrcFile.createWriter(fs, testFilePath, conf, inspector,
-                100000, CompressionKind.NONE, 10000, 10000);
-            writeData(writer);
-            writer.close();
+            using (Stream file = File.OpenWrite(testFilePath))
+            using (Writer writer = OrcFile.createWriter(testFilePath, file, conf, inspector,
+                100000, CompressionKind.NONE, 10000, 10000))
+            {
+                writeData(writer);
+            }
+
             conf.set(ShimLoader.getHadoopShims().getHadoopConfNames().get("MAPREDMINSPLITSIZE"), "1000");
             conf.set(ShimLoader.getHadoopShims().getHadoopConfNames().get("MAPREDMAXSPLITSIZE"), "150000");
             InputFormat @in = new OrcInputFormat();
@@ -372,7 +386,6 @@ namespace OrcSharpTests
                 }
             }
         }
-    }
-
 #endif
+    }
 }
