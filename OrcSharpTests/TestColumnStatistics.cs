@@ -30,13 +30,6 @@ namespace OrcSharpTests
      */
     public class TestColumnStatistics : OrcTestBase
     {
-        const string testFileName = "TestColumnStatistics.orc";
-
-        public TestColumnStatistics()
-            : base(testFileName)
-        {
-        }
-
         [Fact]
         public void testLongMerge()
         {
@@ -195,8 +188,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(SimpleStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .rowIndexStride(1000)
                 .stripeSize(10000)
@@ -245,7 +238,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
 
             // check the file level stats
             ColumnStatistics[] stats = reader.getStatistics();

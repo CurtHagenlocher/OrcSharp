@@ -55,7 +55,11 @@ namespace OrcSharpTests
                 string expectedLine = eStream.ReadLine().Trim();
                 while (expectedLine != null)
                 {
-                    string actualLine = aStream.ReadLine().Trim();
+                    string actualLine = aStream.ReadLine();
+                    if (actualLine != null)
+                    {
+                        actualLine = actualLine.Trim();
+                    }
                     System.Console.WriteLine("actual:   " + actualLine);
                     System.Console.WriteLine("expected: " + expectedLine);
                     Assert.Equal(expectedLine, actualLine);

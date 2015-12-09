@@ -90,13 +90,6 @@ namespace OrcSharpTests
             }
         }
 
-        const string testFileName = "TestOrcSerDeStats.orc";
-
-        public TestOrcSerDeStats()
-            : base(testFileName)
-        {
-        }
-
         private static InnerStruct inner(int i, string s)
         {
             return new InnerStruct(i, s);
@@ -132,8 +125,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(SimpleStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
                     .bufferSize(10000)))
@@ -148,7 +141,7 @@ namespace OrcSharpTests
                 Assert.Equal(273, writer.getRawDataSize());
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(4, reader.getNumberOfRows());
             Assert.Equal(273, reader.getRawDataSize());
@@ -226,8 +219,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(ListStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(10000)
                     .bufferSize(10000)))
@@ -247,7 +240,7 @@ namespace OrcSharpTests
                 Assert.Equal(430000000, writer.getRawDataSize());
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             // stats from reader
             Assert.Equal(5000, reader.getNumberOfRows());
@@ -260,8 +253,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MapStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(10000)
                     .bufferSize(10000)))
@@ -282,7 +275,7 @@ namespace OrcSharpTests
                 Assert.Equal(950000, writer.getRawDataSize());
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             // stats from reader
             Assert.Equal(1000, reader.getNumberOfRows());
@@ -295,8 +288,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(SimpleStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(10000)
                     .bufferSize(10000)))
@@ -319,7 +312,7 @@ namespace OrcSharpTests
                 Assert.Equal(44500, writer.getRawDataSize());
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             // stats from reader
             Assert.Equal(1000, reader.getNumberOfRows());
@@ -335,8 +328,8 @@ namespace OrcSharpTests
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
             long rawDataSize;
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
                     .bufferSize(10000)))
@@ -364,7 +357,7 @@ namespace OrcSharpTests
                 Assert.Equal(1740, rawDataSize);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
 
             Assert.Equal(2, reader.getNumberOfRows());
@@ -430,8 +423,8 @@ namespace OrcSharpTests
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(BigRow));
 
             long rawDataSize;
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .inspector(inspector)
                     .stripeSize(100000)
                     .version(OrcFile.Version.V_0_11)
@@ -460,7 +453,7 @@ namespace OrcSharpTests
                 Assert.Equal(1740, rawDataSize);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
 
             Assert.Equal(2, reader.getNumberOfRows());

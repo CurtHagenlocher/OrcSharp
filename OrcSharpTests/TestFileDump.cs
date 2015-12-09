@@ -30,13 +30,6 @@ namespace OrcSharpTests
 
     public class TestFileDump : OrcTestBase
     {
-        const string testFileName = "TestFileDump.orc";
-
-        public TestFileDump()
-            : base(testFileName)
-        {
-        }
-
         internal class MyRecord
         {
             int i;
@@ -65,7 +58,7 @@ namespace OrcSharpTests
                 }
             }
             bool b;
-            byte bt;
+            sbyte bt;
             short s;
             int i;
             long l;
@@ -79,7 +72,7 @@ namespace OrcSharpTests
             List<int> a;
             Struct st;
 
-            public AllTypesRecord(bool b, byte bt, short s, int i, long l, float f, double d, HiveDecimal de,
+            public AllTypesRecord(bool b, sbyte bt, short s, int i, long l, float f, double d, HiveDecimal de,
                            Timestamp t, Date dt, string str, Dictionary<string, string> m, List<int> a, Struct st)
             {
                 this.b = b;
@@ -103,7 +96,7 @@ namespace OrcSharpTests
         public void testDump()
         {
             // conf.set(HiveConf.ConfVars.HIVE_ORC_ENCODING_STRATEGY.varname, "COMPRESSION");
-            using (Stream file = File.OpenWrite(testFilePath))
+            using (Stream file = File.OpenWrite(TestFilePath))
             {
                 OrcFile.WriterOptions options = new OrcFile.WriterOptions(new Properties(), conf);
                 options.inspector(ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyRecord)));
@@ -111,7 +104,7 @@ namespace OrcSharpTests
                 options.compress(CompressionKind.ZLIB);
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
-                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
+                using (Writer writer = OrcFile.createWriter(TestFilePath, file, options))
                 {
                     Random r1 = new Random(1);
                     for (int i = 0; i < 21000; ++i)
@@ -125,7 +118,7 @@ namespace OrcSharpTests
             string outputFilename = "orc-file-dump.out";
             using (CaptureStdout capture = new CaptureStdout(Path.Combine(workDir, outputFilename)))
             {
-                FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=1,2,3" });
+                FileDump.Main(new string[] { TestFilePath.ToString(), "--rowindex=1,2,3" });
             }
 
             TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
@@ -134,7 +127,7 @@ namespace OrcSharpTests
         [Fact]
         public void testDataDump()
         {
-            using (Stream file = File.OpenWrite(testFilePath))
+            using (Stream file = File.OpenWrite(TestFilePath))
             {
                 OrcFile.WriterOptions options = new OrcFile.WriterOptions(new Properties(), conf);
                 options.inspector(ObjectInspectorFactory.getReflectionObjectInspector(typeof(AllTypesRecord)));
@@ -142,13 +135,13 @@ namespace OrcSharpTests
                 options.compress(CompressionKind.NONE);
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
-                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
+                using (Writer writer = OrcFile.createWriter(TestFilePath, file, options))
                 {
                     Dictionary<string, string> m = new Dictionary<string, string>(2);
                     m.Add("k1", "v1");
                     writer.addRow(new AllTypesRecord(
                         true,
-                        (byte)10,
+                        (sbyte)10,
                         (short)100,
                         1000,
                         10000L,
@@ -165,7 +158,7 @@ namespace OrcSharpTests
                     m.Add("k3", "v3");
                     writer.addRow(new AllTypesRecord(
                         false,
-                        (byte)20,
+                        (sbyte)20,
                         (short)200,
                         2000,
                         20000L,
@@ -184,7 +177,7 @@ namespace OrcSharpTests
             string[] lines;
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath, "-d");
+                FileDump.Main(TestFilePath, "-d");
 
                 lines = capture.Text.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             }
@@ -203,7 +196,7 @@ namespace OrcSharpTests
         {
             // conf.set(HiveConf.ConfVars.HIVE_ORC_ENCODING_STRATEGY.varname, "COMPRESSION");
             // conf.setFloat(HiveConf.ConfVars.HIVE_ORC_DICTIONARY_KEY_SIZE_THRESHOLD.varname, 0.49f);
-            using (Stream file = File.OpenWrite(testFilePath))
+            using (Stream file = File.OpenWrite(TestFilePath))
             {
                 OrcFile.WriterOptions options = new OrcFile.WriterOptions(new Properties(), conf);
                 options.inspector(ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyRecord)));
@@ -211,7 +204,7 @@ namespace OrcSharpTests
                 options.compress(CompressionKind.ZLIB);
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
-                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
+                using (Writer writer = OrcFile.createWriter(TestFilePath, file, options))
                 {
                     Random r1 = new Random(1);
                     int nextInt = 0;
@@ -234,7 +227,7 @@ namespace OrcSharpTests
             string outputFilename = "orc-file-dump-dictionary-threshold.out";
             using (CaptureStdout capture = new CaptureStdout(Path.Combine(workDir, outputFilename)))
             {
-                FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=1,2,3" });
+                FileDump.Main(new string[] { TestFilePath.ToString(), "--rowindex=1,2,3" });
             }
 
             TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
@@ -244,7 +237,7 @@ namespace OrcSharpTests
         public void testBloomFilter()
         {
             // conf.set(HiveConf.ConfVars.HIVE_ORC_ENCODING_STRATEGY.varname, "COMPRESSION");
-            using (Stream file = File.OpenWrite(testFilePath))
+            using (Stream file = File.OpenWrite(TestFilePath))
             {
                 OrcFile.WriterOptions options = new OrcFile.WriterOptions(new Properties(), conf);
                 options.inspector(ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyRecord)));
@@ -253,7 +246,7 @@ namespace OrcSharpTests
                 options.bufferSize(10000);
                 options.rowIndexStride(1000);
                 options.bloomFilterColumns("S");
-                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
+                using (Writer writer = OrcFile.createWriter(TestFilePath, file, options))
                 {
                     Random r1 = new Random(1);
                     for (int i = 0; i < 21000; ++i)
@@ -267,7 +260,7 @@ namespace OrcSharpTests
             string outputFilename = "orc-file-dump-bloomfilter.out";
             using (CaptureStdout capture = new CaptureStdout(Path.Combine(workDir, outputFilename)))
             {
-                FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=3" });
+                FileDump.Main(new string[] { TestFilePath.ToString(), "--rowindex=3" });
             }
 
             TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));
@@ -277,7 +270,7 @@ namespace OrcSharpTests
         public void testBloomFilter2()
         {
             // conf.set(HiveConf.ConfVars.HIVE_ORC_ENCODING_STRATEGY.varname, "COMPRESSION");
-            using (Stream file = File.OpenWrite(testFilePath))
+            using (Stream file = File.OpenWrite(TestFilePath))
             {
                 OrcFile.WriterOptions options = new OrcFile.WriterOptions(new Properties(), conf);
                 options.inspector(ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyRecord)));
@@ -287,7 +280,7 @@ namespace OrcSharpTests
                 options.rowIndexStride(1000);
                 options.bloomFilterColumns("l");
                 options.bloomFilterFpp(0.01);
-                using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
+                using (Writer writer = OrcFile.createWriter(TestFilePath, file, options))
                 {
                     Random r1 = new Random(1);
                     for (int i = 0; i < 21000; ++i)
@@ -301,7 +294,7 @@ namespace OrcSharpTests
             string outputFilename = "orc-file-dump-bloomfilter2.out";
             using (CaptureStdout capture = new CaptureStdout(Path.Combine(workDir, outputFilename)))
             {
-                FileDump.Main(new string[] { testFilePath.ToString(), "--rowindex=2" });
+                FileDump.Main(new string[] { TestFilePath.ToString(), "--rowindex=2" });
             }
 
             TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));

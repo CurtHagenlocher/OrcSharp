@@ -63,20 +63,13 @@ namespace OrcSharpTests
             }
         }
 
-        const string testFileName = "TestVectorizedORCReader.orc";
-
-        public TestVectorizedORCReader()
-            : base(testFileName)
-        {
-        }
-
         [Fact]
         public void createFile()
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyRecord));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .stripeSize(100000)
                 .compress(CompressionKind.ZLIB)
                 .inspector(inspector)
@@ -110,9 +103,9 @@ namespace OrcSharpTests
 
         private void checkVectorizedReader()
         {
-            Reader vreader = OrcFile.createReader(testFilePath,
+            Reader vreader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             using (RecordReaderImpl vrr = (RecordReaderImpl)vreader.rows())
             using (RecordReaderImpl rr = (RecordReaderImpl)reader.rows())

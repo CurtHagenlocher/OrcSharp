@@ -26,20 +26,13 @@ namespace OrcSharpTests
 
     public class TestRLEv2 : OrcTestBase
     {
-        const string testFileName = "TestRLEv2.orc";
-
-        public TestRLEv2()
-            : base(testFileName)
-        {
-        }
-
         [Fact]
         public void testFixedDeltaZero()
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -54,7 +47,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // 10 runs of 512 elements. Each run has 2 bytes header, 2 bytes base (base = 123,
                 // zigzag encoded varint) and 1 byte delta (delta = 0). In total, 5 bytes per run.
@@ -67,8 +60,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -83,7 +76,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // 10 runs of 512 elements. Each run has 2 bytes header, 1 byte base (base = 0)
                 // and 1 byte delta (delta = 1). In total, 4 bytes per run.
@@ -96,8 +89,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -112,7 +105,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // 10 runs of 512 elements. Each run has 2 bytes header, 2 byte base (base = 512, zigzag + varint)
                 // and 1 byte delta (delta = 1). In total, 5 bytes per run.
@@ -125,8 +118,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -141,7 +134,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // 10 runs of 512 elements. Each run has 2 bytes header, 1 byte base (base = 0)
                 // and 2 bytes delta (delta = 100, zigzag encoded varint). In total, 5 bytes per run.
@@ -154,8 +147,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -170,7 +163,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // 10 runs of 512 elements. Each run has 2 bytes header, 2 byte base (base = 512, zigzag + varint)
                 // and 2 bytes delta (delta = 100, zigzag encoded varint). In total, 6 bytes per run.
@@ -183,8 +176,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -199,7 +192,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // 1 byte header + 1 byte value
                 Assert.True(capture.Text.Contains("Stream: column 0 section DATA start: 3 length 2"));
@@ -211,8 +204,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -228,7 +221,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // monotonicity will be undetermined for this sequence 0,0,1,2,3,...510. Hence DIRECT encoding
                 // will be used. 2 bytes for header and 640 bytes for data (512 values with fixed bit of 10 bits
@@ -242,8 +235,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(int));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer w = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer w = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .compress(CompressionKind.NONE)
                 .inspector(inspector)
                 .rowIndexStride(0)
@@ -260,7 +253,7 @@ namespace OrcSharpTests
 
             using (CaptureStdoutToMemory capture = new CaptureStdoutToMemory())
             {
-                FileDump.Main(testFilePath);
+                FileDump.Main(TestFilePath);
 
                 // use PATCHED_BASE encoding
                 Assert.True(capture.Text.Contains("Stream: column 0 section DATA start: 3 length 583"));

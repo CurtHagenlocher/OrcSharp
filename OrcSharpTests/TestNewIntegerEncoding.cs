@@ -28,13 +28,6 @@ namespace OrcSharpTests
 
     public class TestNewIntegerEncoding : OrcTestBase
     {
-        const string testFileName = "TestNewIntegerEncoding.orc";
-
-        public TestNewIntegerEncoding()
-            : base(testFileName)
-        {
-        }
-
         public class TSRow
         {
             Timestamp ts;
@@ -64,8 +57,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(Row));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -77,7 +70,7 @@ namespace OrcSharpTests
                 writer.addRow(new Row(111, 1111L));
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 while (rows.hasNext())
@@ -105,8 +98,8 @@ namespace OrcSharpTests
                 1, 1, 1, 1
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .compress(CompressionKind.NONE)
                 .version(OrcFile.Version.V_0_11)
@@ -119,7 +112,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -147,8 +140,8 @@ namespace OrcSharpTests
                 1, 1, 1, 1
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -161,7 +154,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -182,8 +175,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { -500, -400, -350, -325, -310 };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -196,7 +189,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -217,8 +210,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { -500, -600, -650, -675, -710 };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -231,7 +224,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -252,8 +245,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { 500, 400, 350, 325, 310 };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -266,7 +259,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -287,8 +280,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { 500, 600, 650, 675, 710 };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -301,7 +294,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -325,8 +318,8 @@ namespace OrcSharpTests
                 4513343538618202719L, 4513343538618202711L, 2911390882471569739L, -9181829309989854913L
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -338,7 +331,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -362,8 +355,8 @@ namespace OrcSharpTests
                 Int64.MaxValue, 4513343538618202711L, 2911390882471569739L, Int64.MinValue
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -375,7 +368,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -399,8 +392,8 @@ namespace OrcSharpTests
                 -4513343538618202711L, -2911390882471569739L, -2, Int64.MaxValue
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -412,7 +405,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -433,8 +426,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { Int32.MinValue };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -446,7 +439,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -467,8 +460,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { Int32.MaxValue };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -481,7 +474,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -502,8 +495,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { Int64.MinValue };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -516,7 +509,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -537,8 +530,8 @@ namespace OrcSharpTests
 
             long[] input = new long[] { Int64.MaxValue };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -551,7 +544,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -577,8 +570,8 @@ namespace OrcSharpTests
                 input.Add((long)rand.Next());
             }
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -591,7 +584,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -617,8 +610,8 @@ namespace OrcSharpTests
                 input.Add(rand.NextLong());
             }
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -631,7 +624,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -666,8 +659,8 @@ namespace OrcSharpTests
                 2, 16
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -680,7 +673,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -715,8 +708,8 @@ namespace OrcSharpTests
                 2, 16
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -729,7 +722,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -764,8 +757,8 @@ namespace OrcSharpTests
                 2, 16
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -778,7 +771,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -804,8 +797,8 @@ namespace OrcSharpTests
                 6, 8, 7, 9, 9, 11, 33, 11, 3, 7, 4, 6, 10, 14, 12, 5, 14, 7, 6
             };
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -818,7 +811,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -845,8 +838,8 @@ namespace OrcSharpTests
             }
             input[0] = 20000L;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -859,7 +852,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -886,8 +879,8 @@ namespace OrcSharpTests
             }
             input[1] = 20000L;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -900,7 +893,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -927,8 +920,8 @@ namespace OrcSharpTests
             }
             input[255] = 20000L;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -940,7 +933,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -967,8 +960,8 @@ namespace OrcSharpTests
             }
             input[256] = 20000L;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -980,7 +973,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1007,8 +1000,8 @@ namespace OrcSharpTests
             }
             input[510] = 20000L;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1020,7 +1013,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1047,8 +1040,8 @@ namespace OrcSharpTests
             }
             input[511] = 20000L;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1060,7 +1053,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1087,8 +1080,8 @@ namespace OrcSharpTests
             }
             input[511] = Int64.MaxValue;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1100,7 +1093,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1129,8 +1122,8 @@ namespace OrcSharpTests
             input[256] = Int64.MaxValue;
             input[511] = Int64.MaxValue;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1142,7 +1135,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1183,8 +1176,8 @@ namespace OrcSharpTests
             input.Add(Int64.MaxValue);
             input.Add(33333L);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1196,7 +1189,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1241,8 +1234,8 @@ namespace OrcSharpTests
             }
             input.Add(Int64.MaxValue);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1254,7 +1247,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1308,8 +1301,8 @@ namespace OrcSharpTests
             tslist.Add(Timestamp.Parse("2005-01-01 00:00:00"));
             tslist.Add(Timestamp.Parse("1974-01-01 00:00:00"));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1321,7 +1314,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;
@@ -1341,8 +1334,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(long));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -1355,7 +1348,7 @@ namespace OrcSharpTests
                 writer.addRow(-5535739865598783616L);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 object row = rows.next();
@@ -1385,8 +1378,8 @@ namespace OrcSharpTests
                 input.Add((long)rand.Next());
             }
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .compress(CompressionKind.NONE)
                 .stripeSize(100000)
@@ -1400,7 +1393,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 55555;

@@ -55,19 +55,13 @@ namespace OrcSharpTests
             }
         }
 
-        const string testFileName = "TestOrcNullOptimization.orc";
-
-        public TestOrcNullOptimization() : base(testFileName)
-        {
-        }
-
         [Fact]
         public void testMultiStripeWithNull()
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -82,7 +76,7 @@ namespace OrcSharpTests
                 writer.addRow(new MyStruct(null, null, true, new List<InnerStruct> { new InnerStruct(100) }));
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();
@@ -167,8 +161,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -184,7 +178,7 @@ namespace OrcSharpTests
                                            Lists.newArrayList(new InnerStruct(100))));
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();
@@ -259,8 +253,8 @@ namespace OrcSharpTests
         {
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(MyStruct));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)))
@@ -283,7 +277,7 @@ namespace OrcSharpTests
                                            Lists.newArrayList(new InnerStruct(100))));
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();

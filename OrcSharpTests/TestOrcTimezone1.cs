@@ -28,13 +28,6 @@ namespace OrcSharpTests
 
     public class TestOrcTimezone1 : OrcTestBase
     {
-        const string testFileName = "TestOrcTimezone1.orc";
-
-        public TestOrcTimezone1()
-            : base(testFileName)
-        {
-        }
-
         public static IEnumerable<object[]> TimeZoneData = new[]
         {
             /* Extreme timezones */
@@ -69,8 +62,8 @@ namespace OrcSharpTests
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(Timestamp));
             List<string> ts = new List<string>();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .bufferSize(10000)))
@@ -97,7 +90,7 @@ namespace OrcSharpTests
 
             using (TestHelpers.SetTimeZoneInfo(readerTimeZone))
             {
-                Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+                Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
                 using (RecordReader rows = reader.rows(null))
                 {
                     int idx = 0;

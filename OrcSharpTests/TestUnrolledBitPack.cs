@@ -26,12 +26,6 @@ namespace OrcSharpTests
 
     public class TestUnrolledBitPack : OrcTestBase
     {
-        const string testFileName = "TestUnrolledBitPack.orc";
-
-        public TestUnrolledBitPack() : base(testFileName)
-        {
-        }
-
         [Theory]
         [InlineData(-1L)]
         [InlineData(1L)]
@@ -56,8 +50,8 @@ namespace OrcSharpTests
             };
 
             ObjectInspector inspector = ObjectInspectorFactory.getReflectionObjectInspector(typeof(long));
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .stripeSize(100000)
                 .compress(CompressionKind.NONE)
@@ -69,7 +63,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;

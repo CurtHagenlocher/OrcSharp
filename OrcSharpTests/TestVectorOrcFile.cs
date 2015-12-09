@@ -36,13 +36,6 @@ namespace OrcSharpTests
      */
     public class TestVectorOrcFile : OrcTestBase
     {
-        const string testFileName = "TestVectorOrcFile.orc";
-
-        public TestVectorOrcFile()
-            : base(testFileName)
-        {
-        }
-
         private static InnerStruct MakeInner(int i, string s)
         {
             return new InnerStruct(i, s);
@@ -359,8 +352,8 @@ namespace OrcSharpTests
             TypeDescription schema = TypeDescription.createTimestamp();
             List<Timestamp> tslist = new List<Timestamp>();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(100000)
                 .bufferSize(10000)
@@ -393,7 +386,7 @@ namespace OrcSharpTests
                 schema = writer.getSchema();
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
@@ -418,8 +411,8 @@ namespace OrcSharpTests
                 .addField("bytes1", TypeDescription.createBinary())
                 .addField("string1", TypeDescription.createString());
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(100000)
                 .bufferSize(10000)))
@@ -443,7 +436,7 @@ namespace OrcSharpTests
                 Assert.Equal(2, schema.getMaximumId());
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
 
             bool[] expected = new bool[] { false, false, true };
@@ -533,8 +526,8 @@ namespace OrcSharpTests
                 .addField("int1", TypeDescription.createInt())
                 .addField("string1", TypeDescription.createString());
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(100000)
                 .bufferSize(10000)))
@@ -571,7 +564,7 @@ namespace OrcSharpTests
                 schema = writer.getSchema();
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
 
             Assert.Equal(2, schema.getMaximumId());
             bool[] expected = new bool[] { false, true, false };
@@ -800,8 +793,8 @@ namespace OrcSharpTests
         {
             TypeDescription schema = createBigRowSchema();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(100000)
                 .bufferSize(10000)))
@@ -822,7 +815,7 @@ namespace OrcSharpTests
                 schema = writer.getSchema();
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
 
             Assert.Equal(23, schema.getMaximumId());
             bool[] expected = new bool[]
@@ -1090,8 +1083,8 @@ namespace OrcSharpTests
             int minInt = 0, maxInt = 0;
             string minStr = null, maxStr = null;
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(1000)
                 .compress(CompressionKind.NONE)
@@ -1133,7 +1126,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
 
             // check out the statistics
             ColumnStatistics[] stats = reader.getStatistics();
@@ -1191,8 +1184,8 @@ namespace OrcSharpTests
         {
             TypeDescription schema = createBigRowSchema();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(1000)
                 .compress(CompressionKind.NONE)
@@ -1200,7 +1193,7 @@ namespace OrcSharpTests
             {
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
@@ -1220,8 +1213,8 @@ namespace OrcSharpTests
             TypeDescription schema = createBigRowSchema();
             ByteBuffer bigBuf = ByteBuffer.allocate(40000);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .setSchema(schema)
                     .stripeSize(1000)
                     .compress(CompressionKind.NONE)
@@ -1244,7 +1237,7 @@ namespace OrcSharpTests
                 writer.addUserMetadata("clobber", byteBuf(5, 7, 11, 13, 17, 19));
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             Assert.Equal(byteBuf(5, 7, 11, 13, 17, 19), reader.getMetadataValue("clobber"));
             Assert.Equal(byteBuf(1, 2, 3, 4, 5, 6, 7, -1, -2, 127, -128),
                 reader.getMetadataValue("my.meta"));
@@ -1328,13 +1321,13 @@ namespace OrcSharpTests
         [Fact]
         public void testDate1900()
         {
-            createOrcDateFile(testFilePath, 1900, 1970);
+            createOrcDateFile(TestFilePath, 1900, 1970);
         }
 
         [Fact]
         public void testDate2038()
         {
-            createOrcDateFile(testFilePath, 2038, 2250);
+            createOrcDateFile(TestFilePath, 2038, 2250);
         }
 
         private static void setUnion(VectorizedRowBatch batch, int rowId,
@@ -1418,8 +1411,8 @@ namespace OrcSharpTests
             HiveDecimal maxValue = HiveDecimal.Parse("10000000000000000000");
             Random rand = new Random(42);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(1000)
                 .compress(CompressionKind.NONE)
@@ -1483,7 +1476,7 @@ namespace OrcSharpTests
                 schema = writer.getSchema();
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
 
             Assert.Equal(5, schema.getMaximumId());
             bool[] expected = new bool[] { false, false, false, false, false, false };
@@ -1619,6 +1612,7 @@ namespace OrcSharpTests
             }
         }
 
+#if SNAPPY
         /**
          * Read and write a randomly generated snappy file.
          * @
@@ -1629,8 +1623,8 @@ namespace OrcSharpTests
             TypeDescription schema = createInnerSchema();
             Random rand = new Random(12);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(1000)
                 .compress(CompressionKind.SNAPPY)
@@ -1650,7 +1644,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 rand = new Random(12);
@@ -1677,8 +1671,8 @@ namespace OrcSharpTests
             TypeDescription schema = createInnerSchema();
             Random rand = new Random(24);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(5000)
                 .compress(CompressionKind.SNAPPY)
@@ -1700,7 +1694,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(50000, reader.getNumberOfRows());
             Assert.Equal(0, reader.getRowIndexStride());
@@ -1725,6 +1719,7 @@ namespace OrcSharpTests
                 Assert.Equal(false, rows.hasNext());
             }
         }
+#endif
 
         [Fact]
         public void testSeek()
@@ -1738,8 +1733,8 @@ namespace OrcSharpTests
             byte[][] byteValues = new byte[COUNT][];
             string[] words = new string[128];
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(200000)
                 .bufferSize(65536)
@@ -1780,7 +1775,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             Assert.Equal(COUNT, reader.getNumberOfRows());
             using (RecordReader rows = reader.rows())
@@ -1971,8 +1966,8 @@ namespace OrcSharpTests
             TypeDescription schema = createInnerSchema();
             MyMemoryManager memory = new MyMemoryManager(conf, 10000, 0.1);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .compress(CompressionKind.NONE)
                 .stripeSize(50000)
@@ -1981,7 +1976,7 @@ namespace OrcSharpTests
                 .memory(memory)
                 .version(OrcFile.Version.V_0_11)))
             {
-                Assert.Equal(testFilePath, memory.path);
+                Assert.Equal(TestFilePath, memory.path);
                 VectorizedRowBatch batch = schema.createRowBatch();
                 batch.size = 1;
                 for (int i = 0; i < 2500; ++i)
@@ -1993,7 +1988,7 @@ namespace OrcSharpTests
                 }
             }
             Assert.Null(memory.path);
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             int idx = 0;
             foreach (StripeInformation stripe in reader.getStripes())
@@ -2012,8 +2007,8 @@ namespace OrcSharpTests
             TypeDescription schema = createInnerSchema();
             MyMemoryManager memory = new MyMemoryManager(conf, 10000, 0.1);
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .compress(CompressionKind.NONE)
                 .stripeSize(50000)
@@ -2023,7 +2018,7 @@ namespace OrcSharpTests
                 .version(OrcFile.Version.V_0_12)))
             {
                 VectorizedRowBatch batch = schema.createRowBatch();
-                Assert.Equal(testFilePath, memory.path);
+                Assert.Equal(TestFilePath, memory.path);
                 batch.size = 1;
                 for (int i = 0; i < 2500; ++i)
                 {
@@ -2034,7 +2029,7 @@ namespace OrcSharpTests
                 }
             }
             Assert.Null(memory.path);
-            Reader reader = OrcFile.createReader(testFilePath,
+            Reader reader = OrcFile.createReader(TestFilePath,
                 OrcFile.readerOptions(conf));
             int idx = 0;
             foreach (StripeInformation stripe in reader.getStripes())
@@ -2055,8 +2050,8 @@ namespace OrcSharpTests
         {
             TypeDescription schema = createInnerSchema();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .stripeSize(400000L)
                 .compress(CompressionKind.NONE)
@@ -2075,7 +2070,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             Assert.Equal(3500, reader.getNumberOfRows());
 
             SearchArgument sarg = SearchArgumentFactory.newBuilder()
@@ -2212,8 +2207,8 @@ namespace OrcSharpTests
                         TypeDescription.createString()));
             VectorizedRowBatch batch = schema.createRowBatch();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .rowIndexStride(1000)))
             {
@@ -2329,7 +2324,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
 
             // check the stats
             ColumnStatistics[] stats = reader.getStatistics();
@@ -2511,8 +2506,8 @@ namespace OrcSharpTests
                 .addField("varchar", TypeDescription.createVarchar().withMaxLength(10));
             VectorizedRowBatch batch = schema.createRowBatch();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                     .setSchema(schema)))
             {
                 batch.size = 4;
@@ -2527,7 +2522,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 batch = rows.nextBatch(null);
@@ -2564,8 +2559,8 @@ namespace OrcSharpTests
                 .addField("str", TypeDescription.createString());
             VectorizedRowBatch batch = schema.createRowBatch();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)
                 .rowIndexStride(1000)))
             {
@@ -2581,7 +2576,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 batch = rows.nextBatch(null);
@@ -2609,8 +2604,8 @@ namespace OrcSharpTests
                 .addField("struct", TypeDescription.createStruct()
                     .addField("inner", TypeDescription.createLong()));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)))
             {
                 VectorizedRowBatch batch = schema.createRowBatch();
@@ -2628,7 +2623,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 OrcStruct row = null;
@@ -2662,8 +2657,8 @@ namespace OrcSharpTests
                     .addUnionChild(TypeDescription.createInt())
                     .addUnionChild(TypeDescription.createLong()));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)))
             {
                 VectorizedRowBatch batch = schema.createRowBatch();
@@ -2706,7 +2701,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 OrcStruct row = null;
@@ -2761,8 +2756,8 @@ namespace OrcSharpTests
                 .addField("list",
                     TypeDescription.createList(TypeDescription.createLong()));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)))
             {
                 VectorizedRowBatch batch = schema.createRowBatch();
@@ -2807,7 +2802,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 OrcStruct row = null;
@@ -2867,8 +2862,8 @@ namespace OrcSharpTests
                     TypeDescription.createMap(TypeDescription.createLong(),
                         TypeDescription.createLong()));
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .setSchema(schema)))
             {
                 VectorizedRowBatch batch = schema.createRowBatch();
@@ -2914,7 +2909,7 @@ namespace OrcSharpTests
                 writer.addRowBatch(batch);
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 OrcStruct row = null;

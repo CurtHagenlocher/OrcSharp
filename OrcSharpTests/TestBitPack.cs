@@ -31,12 +31,6 @@ namespace OrcSharpTests
     {
         private const int SIZE = 100;
         private static readonly Random rand = new Random(100);
-        const string testFileName = "TestNewIntegerEncoding.orc";
-
-        public TestBitPack()
-            : base(testFileName)
-        {
-        }
 
         private long[] deltaEncode(long[] inp)
         {
@@ -322,8 +316,8 @@ namespace OrcSharpTests
             }
             List<long> input = inp.ToList();
 
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, OrcFile.writerOptions(conf)
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, OrcFile.writerOptions(conf)
                 .inspector(inspector)
                 .compress(CompressionKind.ZLIB)))
             {
@@ -333,7 +327,7 @@ namespace OrcSharpTests
                 }
             }
 
-            Reader reader = OrcFile.createReader(testFilePath, OrcFile.readerOptions(conf));
+            Reader reader = OrcFile.createReader(TestFilePath, OrcFile.readerOptions(conf));
             using (RecordReader rows = reader.rows())
             {
                 int idx = 0;

@@ -26,12 +26,6 @@ namespace OrcSharpTests
 
     public class TestJsonFileDump : OrcTestBase
     {
-        const string testFileName = "TestJsonFileDump.orc";
-
-        public TestJsonFileDump() : base(testFileName)
-        {
-        }
-
         class MyRecord
         {
             int i;
@@ -59,8 +53,8 @@ namespace OrcSharpTests
                 .bufferSize(10000)
                 .rowIndexStride(1000)
                 .bloomFilterColumns("s");
-            using (Stream file = File.OpenWrite(testFilePath))
-            using (Writer writer = OrcFile.createWriter(testFilePath, file, options))
+            using (Stream file = File.OpenWrite(TestFilePath))
+            using (Writer writer = OrcFile.createWriter(TestFilePath, file, options))
             {
                 Random r1 = new Random(1);
                 for (int i = 0; i < 21000; ++i)
@@ -80,7 +74,7 @@ namespace OrcSharpTests
             const string outputFilename = "orc-file-dump.json";
             using (CaptureStdout capture = new CaptureStdout(Path.Combine(workDir, outputFilename)))
             {
-                FileDump.Main(new string[] { testFilePath.ToString(), "-j", "-p", "--rowindex=3" });
+                FileDump.Main(new string[] { TestFilePath.ToString(), "-j", "-p", "--rowindex=3" });
             }
 
             TestHelpers.CompareFilesByLine(outputFilename, Path.Combine(workDir, outputFilename));

@@ -21,20 +21,47 @@ namespace OrcSharpTests
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Reflection;
     using OrcSharp.External;
 
     public class OrcTestBase : IDisposable
     {
+        private readonly string testClassName;
         protected readonly string workDir;
         protected readonly Configuration conf;
-        protected readonly string testFilePath;
+        private string testFilePath;
 
-        public OrcTestBase(string filename)
+        public OrcTestBase()
         {
             conf = new Configuration();
             workDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(workDir);
-            testFilePath = Path.Combine(workDir, filename);
+            testClassName = GetType().Name;
+        }
+
+        public string TestFilePath
+        {
+            get
+            {
+                if (testFilePath == null)
+                {
+                    string testName = "Unknown";
+                    Type thisType = GetType();
+                    StackTrace st = new StackTrace();
+                    for (int i = 0; i < st.FrameCount; i++)
+                    {
+                        StackFrame sf = st.GetFrame(i);
+                        MethodBase method = sf.GetMethod();
+                        if (method.DeclaringType == thisType)
+                        {
+                            testName = method.Name;
+                            break;
+                        }
+                    }
+                    testFilePath = Path.Combine(workDir, testClassName + "." + testName + ".orc");
+                }
+                return testFilePath;
+            }
         }
 
         public virtual void Dispose()

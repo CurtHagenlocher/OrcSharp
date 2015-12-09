@@ -172,7 +172,7 @@ namespace OrcSharp
             {
                 System.Console.WriteLine("Structure for " + Path.GetFileName(path));
                 Reader reader = OrcFile.createReader(path, OrcFile.readerOptions(conf));
-                System.Console.WriteLine("File Version: " + reader.getFileVersion().ToString() +
+                System.Console.WriteLine("File Version: " + OrcFile.VersionHelper.getName(reader.getFileVersion()) +
                     " with " + reader.getWriterVersion());
                 using (RecordReaderImpl rows = (RecordReaderImpl)reader.rows())
                 {
@@ -542,7 +542,7 @@ namespace OrcSharp
                         printMap(writer, (Dictionary<object, object>)obj, types, type);
                         break;
                     case OrcProto.Type.Types.Kind.BYTE:
-                        writer.value((byte)obj);
+                        writer.value((sbyte)obj);
                         break;
                     case OrcProto.Type.Types.Kind.SHORT:
                         writer.value((short)obj);

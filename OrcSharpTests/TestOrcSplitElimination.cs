@@ -46,11 +46,6 @@ namespace OrcSharpTests
             }
         }
 
-        public TestOrcSplitElimination()
-            : base("")
-        {
-        }
-
 #if false
         // Before
         public void openFileSystem()
