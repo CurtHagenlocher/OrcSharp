@@ -202,7 +202,7 @@ namespace OrcSharp
                 {
                     compressed = getNewOutputBuffer();
                 }
-                else if (overflow == null)
+                else if (overflow == null && compressed.position() > 0)
                 {
                     overflow = getNewOutputBuffer();
                 }

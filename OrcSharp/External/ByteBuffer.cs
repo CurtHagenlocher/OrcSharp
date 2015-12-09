@@ -24,10 +24,10 @@ namespace OrcSharp.External
     public sealed class ByteBuffer : IEquatable<ByteBuffer>
     {
         private byte[] buffer;
-        int _offset;
-        int _limit;
-        int _position;
-        int _mark;
+        private int _offset;
+        private int _limit;
+        private int _position;
+        private int _mark;
 
         private ByteBuffer(int capacity)
         {
@@ -168,7 +168,7 @@ namespace OrcSharp.External
 
         internal void put(int position, byte p)
         {
-            throw new NotImplementedException();
+            buffer[position] = p;
         }
 
         internal void put(byte p)

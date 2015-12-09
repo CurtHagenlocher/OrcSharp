@@ -16,166 +16,162 @@
  * limitations under the License.
  */
 
-namespace org.apache.hadoop.hive.ql.io.orc
+namespace OrcSharp
 {
-    using org.apache.hadoop.hive.ql.io.orc.external;
+    using System;
+    using System.IO.Compression;
+    using OrcSharp.External;
 
-    class ZlibCodec : CompressionCodec, DirectDecompressionCodec
+    class ZlibCodec : CompressionCodec
     {
+        private readonly CompressionLevel level;
 
-        private bool direct;
-
-        private int level;
-        private int strategy;
-
-        public ZlibCodec()
-        {
-            level = Deflater.DEFAULT_COMPRESSION;
-            strategy = Deflater.DEFAULT_STRATEGY;
-        }
-
-        private ZlibCodec(int level, int strategy)
+        public ZlibCodec(CompressionLevel level = CompressionLevel.Optimal)
         {
             this.level = level;
-            this.strategy = strategy;
         }
 
-        public bool compress(ByteBuffer @in, ByteBuffer @out,
-                                ByteBuffer overflow)
+        public bool compress(ByteBuffer @in, ByteBuffer @out, ByteBuffer overflow)
         {
-            Deflater deflater = new Deflater(level, true);
-            deflater.setStrategy(strategy);
-            int length = @in.remaining();
-            deflater.setInput(@in.array(), @in.arrayOffset() + @in.position(), length);
-            deflater.finish();
-            int outSize = 0;
-            int offset = @out.arrayOffset() + @out.position();
-            while (!deflater.finished() && (length > outSize))
+            using (ByteBufferOutputStream output = new ByteBufferOutputStream(@out, overflow))
             {
-                int size = deflater.deflate(@out.array(), offset, @out.remaining());
-                @out.position(size + @out.position());
-                outSize += size;
-                offset += size;
-                // if we run out of space in the out buffer, use the overflow
-                if (@out.remaining() == 0)
+                using (DeflateStream deflater = new DeflateStream(output, level))
+                using (ByteBufferInputStream input = new ByteBufferInputStream(@in.duplicate()))
                 {
-                    if (overflow == null)
-                    {
-                        deflater.end();
-                        return false;
-                    }
-                    @out = overflow;
-                    offset = @out.arrayOffset() + @out.position();
+                    input.CopyTo(deflater);
                 }
+                return output.Okay;
             }
-            deflater.end();
-            return length > outSize;
         }
 
         public void decompress(ByteBuffer @in, ByteBuffer @out)
         {
-
-            if (@in.isDirect() && @out.isDirect())
+            using (ByteBufferInputStream input = new ByteBufferInputStream(@in.duplicate()))
+            using (DeflateStream inflater = new DeflateStream(input, CompressionMode.Decompress))
+            using (ByteBufferOutputStream output = new ByteBufferOutputStream(@out))
             {
-                directDecompress(@in, @out);
-                return;
-            }
-
-            Inflater inflater = new Inflater(true);
-            inflater.setInput(@in.array(), @in.arrayOffset() + @in.position(),
-                              @in.remaining());
-            while (!(inflater.finished() || inflater.needsDictionary() ||
-                     inflater.needsInput()))
-            {
-                try
-                {
-                    int count = inflater.inflate(@out.array(),
-                                                 @out.arrayOffset() + @out.position(),
-                                                 @out.remaining());
-                    @out.position(count + @out.position());
-                }
-                catch (DataFormatException dfe)
-                {
-                    throw new IOException("Bad compression data", dfe);
-                }
+                inflater.CopyTo(output);
             }
             @out.flip();
-            inflater.end();
             @in.position(@in.limit());
         }
 
-        public bool isAvailable()
+        public CompressionCodec modify(CompressionModifier[] modifiers)
         {
-            if (direct == null)
-            {
-                // see nowrap option in new Inflater(boolean) which disables zlib headers
-                try
-                {
-                    if (ShimLoader.getHadoopShims().getDirectDecompressor(
-                        DirectCompressionType.ZLIB_NOHEADER) != null)
-                    {
-                        direct = Boolean.valueOf(true);
-                    }
-                    else
-                    {
-                        direct = Boolean.valueOf(false);
-                    }
-                }
-                catch (UnsatisfiedLinkError ule)
-                {
-                    direct = Boolean.valueOf(false);
-                }
-            }
-            return direct.booleanValue();
-        }
-
-        public void directDecompress(ByteBuffer @in, ByteBuffer @out)
-        {
-            DirectDecompressorShim decompressShim = ShimLoader.getHadoopShims()
-                .getDirectDecompressor(DirectCompressionType.ZLIB_NOHEADER);
-            decompressShim.decompress(@in, @out);
-            @out.flip(); // flip for read
-        }
-
-        public CompressionCodec modify(EnumSet<Modifier> modifiers)
-        {
-
             if (modifiers == null)
             {
                 return this;
             }
 
-            int l = this.level;
-            int s = this.strategy;
+            CompressionLevel l = this.level;
 
-            foreach (Modifier m in modifiers)
+            foreach (CompressionModifier m in modifiers)
             {
                 switch (m)
                 {
-                    case BINARY:
+                    case CompressionModifier.BINARY:
                         /* filtered == less LZ77, more huffman */
-                        s = Deflater.FILTERED;
+                        /* not supported */
                         break;
-                    case TEXT:
-                        s = Deflater.DEFAULT_STRATEGY;
+                    case CompressionModifier.TEXT:
+                        /* not supported */
                         break;
-                    case FASTEST:
+                    case CompressionModifier.FASTEST:
                         // deflate_fast looking for 8 byte patterns
-                        l = Deflater.BEST_SPEED;
+                        l = CompressionLevel.Fastest;
                         break;
-                    case FAST:
+                    case CompressionModifier.FAST:
                         // deflate_fast looking for 16 byte patterns
-                        l = Deflater.BEST_SPEED + 1;
+                        l = CompressionLevel.Fastest;
                         break;
-                    case DEFAULT:
+                    case CompressionModifier.DEFAULT:
                         // deflate_slow looking for 128 byte patterns
-                        l = Deflater.DEFAULT_COMPRESSION;
+                        l = CompressionLevel.Optimal;
                         break;
                     default:
                         break;
                 }
             }
-            return new ZlibCodec(l, s);
+            return new ZlibCodec(l);
+        }
+
+        class ByteBufferInputStream : InputStream
+        {
+            private readonly ByteBuffer[] buffers;
+            private int bufferIndex;
+
+            public ByteBufferInputStream(params ByteBuffer[] buffers)
+            {
+                this.buffers = buffers;
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                while (bufferIndex < buffers.Length)
+                {
+                    ByteBuffer bb = buffers[bufferIndex];
+                    int length = bb == null ? 0 : bb.remaining();
+                    if (length > 0)
+                    {
+                        length = Math.Min(count, length);
+                        Array.Copy(bb.array(), bb.arrayOffset() + bb.position(), buffer, offset, length);
+                        bb.position(bb.position() + length);
+                        return length;
+                    }
+                    bufferIndex++;
+                }
+                return 0;
+            }
+        }
+
+        class ByteBufferOutputStream : OutputStream
+        {
+            private readonly ByteBuffer[] buffers;
+            private int bufferIndex;
+            private bool okay;
+
+            public ByteBufferOutputStream(params ByteBuffer[] buffers)
+            {
+                this.buffers = buffers;
+                this.okay = true;
+            }
+
+            public bool Okay
+            {
+                get { return okay; }
+            }
+
+            public override void Flush()
+            {
+            }
+
+            public override long Position
+            {
+                get { throw new NotImplementedException(); }
+                set { throw new NotImplementedException(); }
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                while (bufferIndex < buffers.Length && count > 0)
+                {
+                    ByteBuffer bb = buffers[bufferIndex];
+                    int length = bb == null ? 0 : bb.remaining();
+                    if (length > 0)
+                    {
+                        length = Math.Min(count, length);
+                        Array.Copy(buffer, offset, bb.array(), bb.arrayOffset() + bb.position(), length);
+                        count -= length;
+                        offset += length;
+                        bb.position(bb.position() + length);
+                    }
+                    else
+                    {
+                        bufferIndex++;
+                    }
+                }
+                okay = count == 0;
+            }
         }
     }
 }

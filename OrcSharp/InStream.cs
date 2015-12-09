@@ -216,7 +216,7 @@ namespace OrcSharp
             private int currentRange;
             private bool isUncompressedOriginal;
 
-            public CompressedStream(long fileId, string name, List<DiskRange> input, long length,
+            public CompressedStream(long? fileId, string name, List<DiskRange> input, long length,
                                     CompressionCodec codec, int bufferSize)
                 : base(fileId, name, length)
             {
@@ -277,9 +277,7 @@ namespace OrcSharp
                         {
                             uncompressed.clear();
                         }
-#if COMPRESSION
                         codec.decompress(slice, uncompressed);
-#endif
                     }
                 }
                 else
@@ -307,7 +305,7 @@ namespace OrcSharp
                 {
                     if (currentOffset == this.length)
                     {
-                        return -1;
+                        return 0;
                     }
                     readHeader();
                 }
@@ -550,7 +548,7 @@ namespace OrcSharp
             }
             else
             {
-                return new CompressedStream(fileId.Value, name, input, length, codec, bufferSize);
+                return new CompressedStream(fileId, name, input, length, codec, bufferSize);
             }
         }
 

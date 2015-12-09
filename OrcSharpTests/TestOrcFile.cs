@@ -1373,7 +1373,6 @@ namespace OrcSharpTests
                 Assert.Equal(false, rows.hasNext());
             }
         }
-#endif
 
         /**
          * Read and write a randomly generated snappy file.
@@ -1430,6 +1429,7 @@ namespace OrcSharpTests
                 Assert.Equal(false, rows.hasNext());
             }
         }
+#endif
 
         [Fact]
         public void testSeek()

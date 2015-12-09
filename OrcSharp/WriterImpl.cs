@@ -226,7 +226,6 @@ namespace OrcSharp
 
         public static CompressionCodec createCodec(CompressionKind kind)
         {
-#if COMPRESSION
             switch (kind)
             {
                 case CompressionKind.NONE:
@@ -234,33 +233,11 @@ namespace OrcSharp
                 case CompressionKind.ZLIB:
                     return new ZlibCodec();
                 case CompressionKind.SNAPPY:
-                    return new SnappyCodec();
                 case CompressionKind.LZO:
-                    try
-                    {
-                        Class<CompressionCodec> lzo =
-                            (Class<CompressionCodec>)
-                              JavaUtils.loadClass("OrcSharp.LzoCodec");
-                        return lzo.newInstance();
-                    }
-                    catch (ClassNotFoundException e)
-                    {
-                        throw new ArgumentException("LZO is not available.", e);
-                    }
-                    catch (InstantiationException e)
-                    {
-                        throw new ArgumentException("Problem initializing LZO", e);
-                    }
-                    catch (IllegalAccessException e)
-                    {
-                        throw new ArgumentException("Insufficient access to LZO", e);
-                    }
+                    throw new NotSupportedException("Unsupported compression codec: " + kind);
                 default:
-                    throw new ArgumentException("Unknown compression codec: " +
-                        kind);
+                    throw new ArgumentException("Unknown compression codec: " + kind);
             }
-#endif
-            return null;
         }
 
         public bool checkMemory(double newScale)
@@ -1947,7 +1924,7 @@ namespace OrcSharp
                 TypeDescription schema,
                 StreamFactory writer,
                 bool nullable)
-                    : base(columnId, inspector, schema, writer, nullable)
+                : base(columnId, inspector, schema, writer, nullable)
             {
                 maxLength = schema.getMaxLength();
             }
