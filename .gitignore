@@ -12,6 +12,7 @@ $RECYCLE.BIN/
 .vs/
 obj/
 Debug/
+TestResults/
 *.suo
 
 # Windows Installer files

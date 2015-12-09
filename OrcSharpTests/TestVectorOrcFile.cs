@@ -1738,6 +1738,7 @@ namespace OrcSharpTests
                 .setSchema(schema)
                 .stripeSize(200000)
                 .bufferSize(65536)
+                .compress(CompressionKind.NONE) // Compression makes this very slow
                 .rowIndexStride(1000)))
             {
                 VectorizedRowBatch batch = schema.createRowBatch();

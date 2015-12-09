@@ -1440,6 +1440,7 @@ namespace OrcSharpTests
                     .inspector(inspector)
                     .stripeSize(200000)
                     .bufferSize(65536)
+                    .compress(CompressionKind.NONE) // Compression makes this run 20 times slower
                     .rowIndexStride(1000)))
             {
                 Random rand = new Random(42);
