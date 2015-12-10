@@ -38,7 +38,7 @@ namespace OrcSharp.External
         {
         }
 
-        public void error(string p)
+        public void error(string message, Exception error = null)
         {
         }
 

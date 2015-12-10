@@ -18,6 +18,7 @@
 
 namespace OrcSharp.External
 {
+    using System;
     using System.IO;
 
     public class FileSystem
@@ -43,7 +44,7 @@ namespace OrcSharp.External
         }
     }
 
-    class FileStatus
+    sealed class FileStatus : IComparable<FileStatus>
     {
         internal bool isDir()
         {
@@ -51,6 +52,11 @@ namespace OrcSharp.External
         }
 
         internal string getPath()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int CompareTo(FileStatus fileStatus)
         {
             throw new System.NotImplementedException();
         }
