@@ -839,11 +839,11 @@ namespace OrcSharp.Serialization
         }
     }
 
-    class ObjectInspectorFactory
+    public class ObjectInspectorFactory
     {
         static Dictionary<Type, ObjectInspector> cache = new Dictionary<Type, ObjectInspector>();
 
-        internal static ObjectInspector getReflectionObjectInspector(Type type)
+        public static ObjectInspector getReflectionObjectInspector(Type type)
         {
             ObjectInspector result;
             lock (cache)

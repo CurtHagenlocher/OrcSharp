@@ -64,7 +64,6 @@ namespace OrcSharp.Serialization
          */
         private static TypeInfo getExtendedTypeInfoFromJavaType(Type t, MethodInfo m)
         {
-
             if (t == typeof(object))
             {
                 return TypeInfoFactory.unknownTypeInfo;
