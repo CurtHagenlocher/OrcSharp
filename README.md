@@ -12,5 +12,3 @@ TODO, in no particular order
  8. Ensure code works with CoreCLR
  9. Ensure code works on non-Windows operating systems
  10. Better dependency story for Protobuf
-
-Target date for initial release: Late January 2016
