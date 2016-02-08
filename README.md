@@ -5,7 +5,7 @@ TODO, in no particular order
  1. Fix known bugs (especially around timezones)
  2. Figure out types and serialization framework
  3. Finalize API
- 4. Implement compression
+ 4. Implement compression more efficiently, as well as additional types of compression
  5. Replace ETs in Query with LINQ ETs
  6. Further C#-ification of implementation
  7. Significantly improve test coverage, particularly by comparing directly against the Java or C++ implementations
